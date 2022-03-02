@@ -1,5 +1,0 @@
-/Applications/CLion.app/Contents/bin/cmake/mac/bin/cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_DEPENDS_USE_COMPILER=FALSE -G "CodeBlocks - Unix Makefiles" "/Users/joe/Personal/Dev Projects/sdl/test"
--- Could NOT find Boost: Found unsuitable version "1.76.0", but required is at least "1.78.0" (found /usr/local/include, )
--- Configuring done
--- Generating done
--- Build files have been written to: /Users/joe/Personal/Dev Projects/sdl/test/cmake-build-debug

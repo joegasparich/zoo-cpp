@@ -1,6 +1,7 @@
 #include "RenderComponent.h"
 #include "../renderer/Renderer.h"
 #include "../Game.h"
+#include "../constants/world.h"
 
 RenderComponent::RenderComponent() {}
 
@@ -15,7 +16,7 @@ void RenderComponent::start(Entity &entity) {
 }
 
 void RenderComponent::render(double step) {
-    Renderer::blit(*m_texture, entity->pos, 100, 100);
+    Renderer::blit(*m_texture, entity->pos * (float)WORLD_SCALE, 100, 100);
 }
 
 Texture &RenderComponent::getTexture() const {

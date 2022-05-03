@@ -25,8 +25,8 @@ public:
 
     void run();
 
-    std::unique_ptr<Stage> stage;
-    std::unique_ptr<InputManager> input;
+    std::unique_ptr<Stage> m_stage;
+    std::unique_ptr<InputManager> m_input;
 
 private:
     Game();
@@ -37,5 +37,5 @@ private:
     void pollEvents();
     void render(double step) const;
 
-    GameState state;
+    GameState m_state;
 };

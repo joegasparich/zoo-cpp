@@ -7,32 +7,53 @@
 #include <map>
 #include <functional>
 
-using namespace std;
 using namespace boost::uuids;
+
+enum class EventType {
+    ApplicationStarted, ApplicationLoaded, ApplicationEnding,
+    WindowClosed, WindowResized, WindowFocused, WindowBlurred, WindowMoved,
+    KeyPressed, KeyReleased,
+    MouseButtonPressed, MouseButtonReleased, MouseMoved, MouseScrolled,
+    InputPressed, InputReleased
+};
+
+constexpr const char* getEventName(EventType type) {
+    switch (type) {
+        case EventType::ApplicationStarted: return "Application Started";
+        case EventType::ApplicationLoaded: return "Application Loaded";
+        case EventType::ApplicationEnding: return "Application Ending";
+        case EventType::WindowClosed: return "Window Closed";
+        case EventType::WindowResized: return "Window Resized";
+        case EventType::WindowFocused: return "Window Focused";
+        case EventType::WindowBlurred: return "Window Blurred";
+        case EventType::WindowMoved: return "Window Moved";
+        case EventType::KeyPressed: return "Key Pressed";
+        case EventType::KeyReleased: return "Key Released";
+        case EventType::MouseButtonPressed: return "Mouse Button Pressed";
+        case EventType::MouseButtonReleased: return "Mouse Button Released";
+        case EventType::MouseMoved: return "Mouse Moved";
+        case EventType::MouseScrolled: return "Mouse Scrolled";
+        case EventType::InputPressed: return "Input Pressed";
+        case EventType::InputReleased: return "Input Released";
+        default: return "Unknown Event";
+    }
+}
 
 class Mediator {
 public:
-    static Mediator& getInstance() {
-        static Mediator theInstance;
-        instance = &theInstance;
-        return *instance;
+    static Mediator &get() {
+        static Mediator instance;
+        return instance;
     }
 
-    uuid on(const string& event, function<void(string)>);
-    void fire(const string& event, const string& data);
-    void unsubscribe(const string& event, uuid handle);
+    static uuid on(const EventType event, std::function<void(std::string)>);
+    static void fire(const EventType event);
+    static void fire(const EventType event, const std::string& data);
+    static void unsubscribe(const EventType event, uuid handle);
 
 private:
-    static Mediator *instance;
     Mediator();
     ~Mediator() noexcept;
-    Mediator(const Mediator& rs) { instance = rs.instance; }
-    Mediator& operator=(const Mediator& rs) {
-        if (this != &rs) {
-            instance = rs.instance;
-        }
-        return *this;
-    }
 
-    map<string, map<uuid, function<void(string)>>> listeners;
+    std::map<EventType, std::map<uuid, std::function<void(std::string)>>> listeners;
 };

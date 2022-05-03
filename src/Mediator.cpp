@@ -1,34 +1,39 @@
 #include "Mediator.h"
 
+#include <iostream>
 #include <utility>
-
-Mediator * Mediator::instance = nullptr;
 
 Mediator::Mediator() : listeners{} {};
 Mediator::~Mediator() noexcept = default;
 
-uuid Mediator::on(const string& event, function<void(string)> callback) {
+uuid Mediator::on(const EventType event, std::function<void(std::string)> callback) {
     auto handle{ random_generator()() };
 
-    if (!listeners.contains(event)) {
-        listeners.insert({event, {}});
+    if (!Mediator::get().listeners.contains(event)) {
+        Mediator::get().listeners.insert({event, {}});
     }
-    listeners.at(event).insert({handle, move(callback)});
+    Mediator::get().listeners.at(event).insert({handle, move(callback)});
 
     return handle;
 }
 
-void Mediator::fire(const string& event, const string& data) {
-    if (!listeners.contains(event)) return;
+void Mediator::fire(const EventType event) {
+    Mediator::fire(event, "");
+}
 
-    for (const auto& listener : listeners.at(event)) {
+void Mediator::fire(const EventType event, const std::string& data) {
+    std::cout << getEventName(event) << " Event fired with data " << data << std::endl;
+
+    if (!Mediator::get().listeners.contains(event)) return;
+
+    for (const auto& listener : Mediator::get().listeners.at(event)) {
         listener.second(data);
     }
 }
 
-void Mediator::unsubscribe(const string& event, uuid handle) {
-    if (!listeners.contains(event)) return;
-    if (!listeners.at(event).contains((handle))) return;
+void Mediator::unsubscribe(const EventType event, uuid handle) {
+    if (!Mediator::get().listeners.contains(event)) return;
+    if (!Mediator::get().listeners.at(event).contains((handle))) return;
 
-    listeners.at(event).erase(handle);
+    Mediator::get().listeners.at(event).erase(handle);
 }

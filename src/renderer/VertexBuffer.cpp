@@ -4,7 +4,7 @@
 #include "VertexBuffer.h"
 #include "Renderer.h"
 
-VertexBuffer::VertexBuffer(const void *data, unsigned int size) {
+VertexBuffer::VertexBuffer(const void *data, size_t size) {
     GL_CALL(glGenBuffers(1, &m_rendererID));
     // Bind the buffer to let OpenGL know that this is the current buffer we're using
     GL_CALL(glBindBuffer(GL_ARRAY_BUFFER, m_rendererID));

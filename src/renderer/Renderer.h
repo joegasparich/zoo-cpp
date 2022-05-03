@@ -6,8 +6,8 @@
 #include <cassert>
 #include <iostream>
 
-#include "../lib/glm/glm.hpp"
-#include "../lib/glm/gtc/matrix_transform.hpp"
+#include "glm/glm.hpp"
+#include "glm/gtc/matrix_transform.hpp"
 
 #include "VertexArray.h"
 #include "IndexBuffer.h"
@@ -42,19 +42,20 @@ public:
     static void init();
     static void doRender();
     static void clear();
-    static void draw(const VertexArray& va, const IndexBuffer& ib, const Shader& shader);
-    static void blit(Texture &texture, glm::vec2 pos, float w, float h);
+    static void blit(Texture &texture, glm::vec2 screenPos, float w, float h);
+
+    static glm::vec2 screenToWorldPos(glm::vec2 screenPos);
+    static glm::vec2 worldToScreenPos(glm::vec2 worldPos);
 
     Camera m_camera;
+    SDL_Window *m_window;
+    SDL_GLContext m_glContext;
 
 private:
     Renderer();
     ~Renderer();
 
     void setupBlit();
-
-    SDL_Window *m_window;
-    SDL_GLContext m_glContext;
 
     std::unique_ptr<VertexArray> m_blitVa;
     std::unique_ptr<VertexBuffer> m_blitVb;

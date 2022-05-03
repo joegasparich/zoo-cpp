@@ -12,13 +12,13 @@ void Entity::setup() {
 }
 
 void Entity::update() {
-    auto &input = Game::get().input;
+    auto &input = Game::get().m_input;
 
     float inputHorizontal = (float) input->isInputHeld("D") - (float) input->isInputHeld("A");
     float inputVertical = (float) input->isInputHeld("S") - (float) input->isInputHeld("W");
 
-    pos.x += inputHorizontal;
-    pos.y += inputVertical;
+    pos.x += inputHorizontal * 0.05f;
+    pos.y += inputVertical * 0.05f;
     for (auto &component: components) {
         component.second->update();
     }

@@ -3,7 +3,7 @@
 #include "IndexBuffer.h"
 #include "Renderer.h"
 
-IndexBuffer::IndexBuffer(const unsigned int* data, unsigned int count)
+IndexBuffer::IndexBuffer(const void* data, unsigned int count)
     : m_count{count} {
     GL_CALL(glGenBuffers(1, &m_rendererID));
     GL_CALL(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_rendererID));

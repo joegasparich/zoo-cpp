@@ -159,7 +159,7 @@ IF(SDL2_LIBRARY_TEMP)
         SET(SDL2_LIBRARY_TEMP ${MINGW32_LIBRARY} ${SDL2_LIBRARY_TEMP})
     ENDIF(MINGW)
 
-    # Set the final string here so the GUI reflects the final state.
+    # Set the final string here so the GUI reflects the final m_state.
     SET(SDL2_LIBRARY ${SDL2_LIBRARY_TEMP} CACHE STRING "Where the SDL2 Library can be found")
     # Set the temp variable to INTERNAL so it is not seen in the CMake GUI
     SET(SDL2_LIBRARY_TEMP "${SDL2_LIBRARY_TEMP}" CACHE INTERNAL "")

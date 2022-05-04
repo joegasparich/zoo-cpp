@@ -2,7 +2,7 @@
 
 #include "Tool.h"
 #include "ToolManager.h"
-#include "../BiomeGrid.h"
+#include "../world/BiomeGrid.h"
 
 class BiomeTool : public Tool {
 public:
@@ -15,6 +15,10 @@ public:
 
     void setBiome(Biome biome);
     Biome getBiome();
+
+    void set() override;
+
+    void unset() override;
 
 
 private:

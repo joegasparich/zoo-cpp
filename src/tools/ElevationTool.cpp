@@ -1,10 +1,19 @@
 #include "ElevationTool.h"
 #include "../Game.h"
+#include "../ui/ElevationPanel.h"
+#include "../ui/UIManager.h"
 
-ElevationTool::ElevationTool(ToolManager &toolManager) : Tool(toolManager) {
+ElevationTool::ElevationTool(ToolManager &toolManager) : Tool(toolManager) {}
+ElevationTool::~ElevationTool() = default;
+
+void ElevationTool::set() {
     m_currentElevation = Elevation::Hill;
+    m_panelId = UIManager::createUIComponent(std::make_unique<ElevationPanel>(m_toolManager, *this));
 }
-ElevationTool::~ElevationTool() {}
+
+void ElevationTool::unset() {
+    UIManager::closeUIComponent(m_panelId);
+}
 
 void ElevationTool::update() {
     auto& input = Game::get().m_input;
@@ -23,4 +32,12 @@ std::string ElevationTool::getName() {
 
 ToolType ElevationTool::getType() {
     return ToolType::Elevation;
+}
+
+Elevation ElevationTool::getCurrentElevation() const {
+    return m_currentElevation;
+}
+
+void ElevationTool::setCurrentElevation(Elevation currentElevation) {
+    m_currentElevation = currentElevation;
 }

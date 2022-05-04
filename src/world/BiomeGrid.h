@@ -2,7 +2,7 @@
 
 #include <array>
 #include <vector>
-#include "renderer/Renderer.h"
+#include "../renderer/Renderer.h"
 
 #define CHUNK_SIZE 5
 #define NUM_BIOMES 3
@@ -32,6 +32,7 @@ inline BiomeInfo getBiomeInfo(Biome biome) {
         case Biome::Grass: return {"Grass", glm::vec3{0.714, 0.835, 0.235}};
         case Biome::Sand: return {"Sand", glm::vec3{0.957, 0.8, 0.631}};
         case Biome::Snow: return {"Snow", glm::vec3{0.875, 0.965, 0.965}};
+        default: return {};
     }
 }
 

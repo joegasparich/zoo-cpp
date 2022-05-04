@@ -1,8 +1,8 @@
 #pragma once
 
 #include <memory>
-#include "../BiomeGrid.h"
-#include "../ElevationGrid.h"
+#include "BiomeGrid.h"
+#include "ElevationGrid.h"
 
 class World {
 public:

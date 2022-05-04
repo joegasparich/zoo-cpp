@@ -35,5 +35,7 @@ void BiomePanel::render() {
 void BiomePanel::onOpen() {}
 
 void BiomePanel::onClose() {
-    m_toolManager.setTool(ToolType::None);
+    if (!m_externallyClosed) {
+        m_toolManager.setTool(ToolType::None);
+    }
 }

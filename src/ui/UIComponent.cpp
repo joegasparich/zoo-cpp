@@ -20,7 +20,3 @@ void UIComponent::render() {
 void UIComponent::postRender() {
     ImGui::End();
 }
-
-void UIComponent::close() {
-    m_isOpen = false;
-}

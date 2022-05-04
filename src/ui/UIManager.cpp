@@ -38,14 +38,6 @@ void UIManager::render() {
     ImGui_ImplSDL2_NewFrame();
     ImGui::NewFrame();
 
-    // Remove closed components
-    for (auto const& componentId : instance.m_componentsToRemove) {
-        std::cout << "Removing component with id: " << componentId << std::endl;
-        instance.m_components.at(componentId)->onClose();
-        instance.m_components.erase(componentId);
-    }
-    instance.m_componentsToRemove.clear();
-
     // Render components
     for(auto const& [id, component] : instance.m_components) {
         component->render();
@@ -55,6 +47,14 @@ void UIManager::render() {
             instance.m_componentsToRemove.push_back(id);
         }
     }
+
+    // Remove closed components
+    for (auto const& componentId : instance.m_componentsToRemove) {
+        std::cout << "Removing component with id: " << componentId << std::endl;
+        instance.m_components.at(componentId)->onClose();
+        instance.m_components.erase(componentId);
+    }
+    instance.m_componentsToRemove.clear();
 
     // Push new components
     for(auto& component : instance.m_componentsToPush) {
@@ -82,6 +82,8 @@ std::string UIManager::createUIComponent(std::unique_ptr<UIComponent> component)
 
 void UIManager::closeUIComponent(const std::string& componentId) {
     auto& instance = UIManager::get();
+
+    instance.m_components.at(componentId)->m_externallyClosed = true;
 
     instance.m_componentsToRemove.push_back(componentId);
 }

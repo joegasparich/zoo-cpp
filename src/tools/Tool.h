@@ -15,6 +15,8 @@ public:
     Tool(ToolManager &toolManager);
     virtual ~Tool();
 
+    virtual void set() = 0;
+    virtual void unset() = 0;
     virtual void update() = 0;
     virtual void postUpdate() = 0;
     virtual std::string getName();

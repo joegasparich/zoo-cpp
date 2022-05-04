@@ -1,8 +1,8 @@
 #include "ElevationGrid.h"
-#include "constants/world.h"
-#include "util/math.h"
-#include "Game.h"
-#include "Debug.h"
+#include "../constants/world.h"
+#include "../util/math.h"
+#include "../Game.h"
+#include "../Debug.h"
 
 ElevationGrid::ElevationGrid(unsigned int rows, unsigned int cols) : m_rows(rows), m_cols(cols) {}
 
@@ -15,16 +15,22 @@ void ElevationGrid::setup() {
     }
 }
 
-void ElevationGrid::setElevation(glm::ivec2 gridPos, Elevation elevation) {
-    if (!canElevate(gridPos, elevation)) return;
+bool ElevationGrid::setElevation(glm::ivec2 gridPos, Elevation elevation) {
+    if (!canElevate(gridPos, elevation)) return false;
 
     // Flatten surrounding terrain
-//    if (elevation != Elevation::Flat) {
-//        auto flattened = getAdjacentGridPositions(gridPos, true);
-//        std::remove_if(flattened.begin(), flattened.end(), [this, gridPos, elevation](auto pos) { return (int)getElevationAtGridPos(gridPos) == -(int)elevation; })
-//    }
+    if (elevation != Elevation::Flat) {
+        auto pointsToFlatten = getAdjacentGridPositions(gridPos, true);
+        auto end = std::remove_if(pointsToFlatten.begin(), pointsToFlatten.end(), [this, elevation](auto pos) { return (int)getElevationAtGridPos(pos) != -(int)elevation; });
+        auto failedToFlatten = false;
+        for (auto point = pointsToFlatten.begin(); point != end; ++point) {
+            if (!setElevation(*point, Elevation::Flat)) failedToFlatten = true;
+        }
+        if (failedToFlatten) return false;
+    }
 
     m_grid.at(gridPos.x).at(gridPos.y) = elevation;
+    return true;
 }
 
 void ElevationGrid::setElevationInCircle(glm::vec2 pos, float radius, Elevation elevation) {
@@ -48,6 +54,23 @@ void ElevationGrid::setElevationInCircle(glm::vec2 pos, float radius, Elevation 
         }
     }
 
+    // Can we elevate tile objects that require flat terrain?
+    // Get each elevate point
+    // Collect the flatten points of each elevate point
+    // Attempt to flatten and record results
+    //     Recursive check for adjacent required points and see if they're also being flattened
+    // For each elevate point check flatten results
+    //     If all succeeded then
+    //     Recursive check for adjacent required points being elevated
+    //     elevate point
+
+    // TODO: Figure out how to do path adjacency requirements (2 adjacent points or all 4)
+    // What if a 4 banger raises a path but an adjacent path is a 3 banger?
+    // Fuck my ass
+    // Collect a list of all recursive points and then check each path around the point? How does that interact with gates and shit
+
+    // This might be more complex than its worth tbh
+
     if (!changed) return;
 
     for (auto point : points) {
@@ -55,7 +78,7 @@ void ElevationGrid::setElevationInCircle(glm::vec2 pos, float radius, Elevation 
     }
 
     // Redraw biome grid
-    Game::get().m_stage->m_world->m_biomeGrid->redrawChunksInRadius(pos * 2.0f, radius + 5.0f);
+    Game::get().m_stage->m_world->m_biomeGrid->redrawChunksInRadius(pos * 2.0f, radius + 6.0f);
 }
 
 bool ElevationGrid::canElevate(glm::ivec2 gridPos, Elevation elevation) {
@@ -172,16 +195,12 @@ bool ElevationGrid::isPositionSlopeCorner(glm::vec2 pos) {
     );
 }
 
-std::vector<glm::vec2> ElevationGrid::getSurroundingTiles(glm::ivec2 gridPos) {
-    return std::vector<glm::vec2>();
+std::vector<glm::ivec2> ElevationGrid::getAdjacentGridPositions(glm::ivec2 gridPos) {
+    return getAdjacentGridPositions(gridPos, false);
 }
 
-std::vector<glm::vec2> ElevationGrid::getAdjacentGridPositions(glm::ivec2 gridPos) {
-    return std::vector<glm::vec2>();
-}
-
-std::vector<glm::vec2> ElevationGrid::getAdjacentGridPositions(glm::ivec2 gridPos, bool diagonals) {
-    auto positions = std::vector<glm::vec2>{
+std::vector<glm::ivec2> ElevationGrid::getAdjacentGridPositions(glm::ivec2 gridPos, bool diagonals) {
+    auto positions = std::vector<glm::ivec2>{
         gridPos + glm::ivec2{1, 0},
         gridPos + glm::ivec2{-1, 0},
         gridPos + glm::ivec2{0, 1},

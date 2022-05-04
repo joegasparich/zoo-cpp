@@ -4,12 +4,12 @@
 
 #include "UIComponent.h"
 #include "../tools/ToolManager.h"
-#include "../tools/BiomeTool.h"
+#include "../tools/ElevationTool.h"
 
-class BiomePanel : public UIComponent {
+class ElevationPanel : public UIComponent {
 public:
-    BiomePanel(ToolManager& toolManager, BiomeTool& biomeTool);
-    ~BiomePanel() override;
+    ElevationPanel(ToolManager &toolManager, ElevationTool &biomeTool);
+    ~ElevationPanel() override;
 
     void render() override;
     void onOpen() override;
@@ -17,5 +17,5 @@ public:
 
 private:
     ToolManager& m_toolManager;
-    BiomeTool& m_biomeTool;
+    ElevationTool& m_elevationTool;
 };

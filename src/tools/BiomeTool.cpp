@@ -4,11 +4,15 @@
 #include "../ui/BiomePanel.h"
 #include "../ui/UIManager.h"
 
-BiomeTool::BiomeTool(ToolManager &toolManager) : Tool(toolManager) {
+BiomeTool::BiomeTool(ToolManager &toolManager) : Tool(toolManager) {}
+BiomeTool::~BiomeTool() = default;
+
+void BiomeTool::set() {
     m_currentBiome = Biome::Sand;
     m_panelId = UIManager::createUIComponent(std::make_unique<BiomePanel>(m_toolManager, *this));
 }
-BiomeTool::~BiomeTool() {
+
+void BiomeTool::unset() {
     UIManager::closeUIComponent(m_panelId);
 }
 

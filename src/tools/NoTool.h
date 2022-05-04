@@ -6,11 +6,13 @@
 class NoTool : public Tool {
 public:
     NoTool(ToolManager &toolManager);
+    virtual ~NoTool();
+
+    void set() override;
+    void unset() override;
 
     std::string getName() override;
     ToolType getType() override;
-
-    virtual ~NoTool();
 
     ToolType m_toolType = ToolType::None;
 private:

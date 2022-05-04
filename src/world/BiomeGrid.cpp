@@ -1,7 +1,7 @@
 #include "BiomeGrid.h"
-#include "util/math.h"
-#include "constants/world.h"
-#include "Game.h"
+#include "../util/math.h"
+#include "../constants/world.h"
+#include "../Game.h"
 
 #define SLOPE_COLOUR_STRENGTH 0.3f
 

@@ -2,7 +2,10 @@
 #include "ToolManager.h"
 
 NoTool::NoTool(ToolManager &toolManager) : Tool(toolManager) {}
-NoTool::~NoTool() {}
+NoTool::~NoTool() = default;
+
+void NoTool::set() {}
+void NoTool::unset() {}
 
 void NoTool::update() {}
 void NoTool::postUpdate() {}

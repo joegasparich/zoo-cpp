@@ -3,9 +3,9 @@
 #include <vector>
 
 #include "Entity.h"
-#include "BiomeGrid.h"
+#include "world/BiomeGrid.h"
 #include "tools/ToolManager.h"
-#include "ElevationGrid.h"
+#include "world/ElevationGrid.h"
 #include "world/World.h"
 
 class Stage {

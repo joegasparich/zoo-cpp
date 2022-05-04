@@ -32,6 +32,10 @@ void ToolManager::postUpdate() {
 void ToolManager::setTool(ToolType type) {
     if (m_activeTool && m_activeTool->getType() == type) return;
 
+    if (m_activeTool) {
+        m_activeTool->unset();
+    }
+
     switch(type) {
         case ToolType::Biome:
             m_activeTool = std::make_unique<BiomeTool>(*this);
@@ -44,6 +48,8 @@ void ToolManager::setTool(ToolType type) {
             m_activeTool = std::make_unique<NoTool>(*this);
             break;
     }
+
+    m_activeTool->set();
 }
 
 Tool& ToolManager::getActiveTool() {

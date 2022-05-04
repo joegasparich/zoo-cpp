@@ -13,8 +13,6 @@ public:
 
     std::string getName() override;
     ToolType getType() override;
-
-    ToolType m_toolType = ToolType::None;
 private:
     void update() override;
     void postUpdate() override;

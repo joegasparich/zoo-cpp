@@ -13,19 +13,19 @@
 
 Stage::Stage() : m_entities{} {
     m_tools = std::make_unique<ToolManager>();
-    m_world = std::make_unique<World>(100, 100);
+    m_world = std::make_unique<World>(10, 10);
 }
 
 void Stage::setup() {
     m_world->setup();
 
-//    auto player{std::make_unique<Entity>(0, 0)};
-//    player->addComponent(std::make_unique<RenderComponent>(AssetManager::getTexture(IMG_SHIP)));
-//    auto player2{std::make_unique<Entity>(2, 2)};
-//    player2->addComponent(std::make_unique<RenderComponent>(AssetManager::getTexture(IMG_SHIP)));
-//
-//    m_entities.push_back(std::move(player));
-//    m_entities.push_back(std::move(player2));
+    auto player{std::make_unique<Entity>(0, 0)};
+    player->addComponent(std::make_unique<RenderComponent>(AssetManager::getTexture(IMG_SHIP)));
+    auto player2{std::make_unique<Entity>(2, 2)};
+    player2->addComponent(std::make_unique<RenderComponent>(AssetManager::getTexture(IMG_SHIP)));
+
+    m_entities.push_back(std::move(player));
+    m_entities.push_back(std::move(player2));
 
     for (auto &entity: m_entities) {
         entity->setup();
@@ -71,6 +71,7 @@ void Stage::postUpdate() {
 
 void Stage::render(double step) const {
     m_world->render();
+    m_tools->render();
 
     for (auto &entity: m_entities) {
         entity->render(step);

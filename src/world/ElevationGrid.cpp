@@ -217,8 +217,6 @@ std::vector<glm::ivec2> ElevationGrid::getAdjacentGridPositions(glm::ivec2 gridP
 }
 
 void ElevationGrid::renderDebug() {
-    auto& input = Game::get().m_input;
-    auto& renderer = Renderer::get();
     if (m_grid.empty()) return;
 
     for (unsigned int i = 0; i < m_cols; i++) {

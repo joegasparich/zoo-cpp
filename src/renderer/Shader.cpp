@@ -1,7 +1,6 @@
 #include <GL/glew.h>
 #include <fstream>
 #include <sstream>
-#include <string>
 
 #include "Shader.h"
 #include "Renderer.h"
@@ -34,15 +33,27 @@ void Shader::setUniform1f(const std::string &name, float value) {
     GL_CALL(glUniform1f(getUniformLocation(name), value));
 }
 
-void Shader::setUniform4f(const std::string &name, float v0, float v1, float v2, float v3) {
-    GL_CALL(glUniform4f(getUniformLocation(name), v0, v1, v2, v3));
+void Shader::setUniform2f(const std::string &name, glm::vec2& value) {
+    GL_CALL(glUniform2f(getUniformLocation(name), value.x, value.y));
+}
+
+void Shader::setUniform3f(const std::string &name, glm::vec3& value) {
+    GL_CALL(glUniform3f(getUniformLocation(name), value.x, value.y, value.z));
+}
+
+void Shader::setUniform4f(const std::string &name, glm::vec4& value) {
+    GL_CALL(glUniform4f(getUniformLocation(name), value.x, value.y, value.z, value.w));
+}
+
+void Shader::setUniformMat3f(const std::string &name, const glm::mat3 &matrix) {
+    GL_CALL(glUniformMatrix3fv(getUniformLocation(name), 1, GL_FALSE, &matrix[0][0]));
 }
 
 void Shader::setUniformMat4f(const std::string &name, const glm::mat4 &matrix) {
     GL_CALL(glUniformMatrix4fv(getUniformLocation(name), 1, GL_FALSE, &matrix[0][0]));
 }
 
-unsigned int Shader::getUniformLocation(const std::string &name) {
+unsigned int Shader::getUniformLocation(const std::string &name) const {
     if (m_uniformLocationCache.find(name) != m_uniformLocationCache.end()) {
         return m_uniformLocationCache[name];
     }

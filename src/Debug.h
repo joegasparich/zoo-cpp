@@ -17,9 +17,9 @@ private:
     Debug();
     ~Debug();
 
-    std::unique_ptr<VertexArray> m_lineVa;
+    std::unique_ptr<VertexArray> m_va;
     std::unique_ptr<VertexBuffer> m_lineVb;
-    std::unique_ptr<VertexBufferLayout> m_lineLayout;
     std::unique_ptr<IndexBuffer> m_lineIb;
-    std::unique_ptr<Shader> m_lineShader;
+    std::unique_ptr<VertexBufferLayout> m_basicLayout;
+    std::unique_ptr<Shader> m_basicShader;
 };

@@ -3,6 +3,7 @@
 #include <memory>
 
 #include "Tool.h"
+#include "ToolGhost.h"
 
 class ToolManager {
 public:
@@ -11,10 +12,12 @@ public:
 
     void update();
     void postUpdate();
+    void render();
 
     void setTool(ToolType type);
     Tool& getActiveTool();
 
+    std::unique_ptr<ToolGhost> m_ghost;
 private:
     std::unique_ptr<Tool> m_activeTool;
 };

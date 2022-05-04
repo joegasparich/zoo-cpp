@@ -9,9 +9,7 @@
 #include "ui/UIManager.h"
 
 Game::Game() :
-        m_state{GameState::PLAY},
-        m_stage{std::make_unique<Stage>()},
-        m_input{std::make_unique<InputManager>()} {
+        m_state{GameState::PLAY} {
     Mediator::fire(EventType::ApplicationStarted);
 }
 
@@ -37,6 +35,9 @@ void Game::init() {
 
     Renderer::init();
     UIManager::init();
+
+    m_stage = std::make_unique<Stage>();
+    m_input = std::make_unique<InputManager>();
 
     AssetManager::loadAssets();
 

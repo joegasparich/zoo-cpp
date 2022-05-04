@@ -133,6 +133,30 @@ void Renderer::blit(Texture &texture, glm::vec2 screenPos, float w, float h) {
     GL_CALL(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr));
 }
 
+glm::mat4 Renderer::getMVPMatrix(glm::vec2 worldPos, float rotation, glm::vec2 scale, bool isWorldPos) {
+    auto& renderer = Renderer::get();
+
+    auto proj = glm::ortho(0.0f, (float)WINDOW_WIDTH, 0.0f, (float)WINDOW_HEIGHT, -1.0f, 1.0f);
+    auto view = glm::mat4(1.0f);
+    view = glm::translate(view, glm::vec3(0.0f, WINDOW_HEIGHT, 0.0f));
+    if (isWorldPos) {
+        view = glm::scale(view,  glm::vec3(renderer.m_camera.scale, renderer.m_camera.scale, 1.0f));
+        auto cameraScreenPos = renderer.m_camera.pos * (float)WORLD_SCALE;
+        view = glm::translate(view,  glm::vec3(
+                -cameraScreenPos.x,
+                cameraScreenPos.y,
+                0.0f)
+        );
+    }
+    view = glm::scale(view,  glm::vec3(1.0f, -1.0f, 1.0f));
+    auto model = glm::mat4(1.0f);
+    model = glm::translate(model, glm::vec3(worldPos * (float)WORLD_SCALE, 0.0f));
+    model = glm::rotate(model, rotation, glm::vec3(0.0f, 0.0f, 1.0f));
+    model = glm::scale(model, glm::vec3(scale * (float)WORLD_SCALE, 1.0f));
+
+    return proj * view * model;
+}
+
 glm::vec2 Renderer::screenToWorldPos(glm::vec2 screenPos) {
     auto& camera = Renderer::get().m_camera;
 

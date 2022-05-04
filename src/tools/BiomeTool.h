@@ -9,18 +9,15 @@ public:
     BiomeTool(ToolManager &toolManager);
     ~BiomeTool();
 
+    void set() override;
+    void unset() override;
     void postUpdate() override;
+
     std::string getName() override;
     ToolType getType() override;
 
     void setBiome(Biome biome);
     Biome getBiome();
-
-    void set() override;
-
-    void unset() override;
-
-
 private:
     void update() override;
 

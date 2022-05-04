@@ -6,7 +6,8 @@
 #include "../ui/UIManager.h"
 #include "ElevationTool.h"
 
-ToolManager::ToolManager() {
+ToolManager::ToolManager() :
+    m_ghost{std::make_unique<ToolGhost>()} {
     setTool(ToolType::None);
     UIManager::createUIComponent(std::make_unique<Toolbar>(this));
 }
@@ -27,6 +28,10 @@ void ToolManager::postUpdate() {
     if (input->isMouseButtonDown(SDL_BUTTON_RIGHT)) {
         setTool(ToolType::None);
     }
+}
+
+void ToolManager::render() {
+    m_ghost->render();
 }
 
 void ToolManager::setTool(ToolType type) {

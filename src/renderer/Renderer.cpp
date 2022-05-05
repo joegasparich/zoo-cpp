@@ -89,8 +89,7 @@ void Renderer::clear() {
     GL_CALL(glClear(GL_COLOR_BUFFER_BIT));
 }
 
-// TODO: Flag for World vs screen screenPos
-void Renderer::blit(Texture &texture, glm::vec2 screenPos, float w, float h) {
+void Renderer::blit(Texture &texture, glm::vec2 pos, float w, float h, bool isWorldPos) {
     auto& renderer = Renderer::get();
 
     renderer.m_blitVa->bind();
@@ -98,34 +97,7 @@ void Renderer::blit(Texture &texture, glm::vec2 screenPos, float w, float h) {
     renderer.m_blitShader->bind();
     texture.bind();
 
-    // Project to screen window
-    glm::mat4 proj = glm::ortho(0.0f, (float)WINDOW_WIDTH, 0.0f, (float)WINDOW_HEIGHT, -1.0f, 1.0f);
-
-    // View
-    glm::mat4 view = glm::mat4(1.0f);
-    // Move window to top left
-    view = glm::translate(view,  glm::vec3(
-        0.0f,
-        WINDOW_HEIGHT,
-        0.0f)
-    );
-    // Scale to camera zoom TODO: zoom in the middle
-    view = glm::scale(view,  glm::vec3(renderer.m_camera.scale, renderer.m_camera.scale, 1.0f));
-    // Move to camera position
-    auto cameraScreenPos = renderer.m_camera.pos * (float)WORLD_SCALE;
-    view = glm::translate(view,  glm::vec3(
-        -cameraScreenPos.x,
-        cameraScreenPos.y,
-        0.0f)
-    );
-
-    // Model
-    glm::mat4 model = glm::mat4(1.0f);
-    // Move to position and flip so that down is positive
-    model = glm::translate(model, glm::vec3(screenPos.x, -screenPos.y - h, 0));
-    // Scale to size
-    model = glm::scale(model, glm::vec3(w, h, 0));
-    glm::mat4 mvp = proj * view * model;
+    auto mvp = Renderer::getMVPMatrix(pos, 0.0f, glm::vec3(w, h, 1.0f), isWorldPos);
 
     renderer.m_blitShader->setUniformMat4f("u_MVP", mvp);
     renderer.m_blitShader->setUniform1i("u_Texture", 0);
@@ -133,26 +105,34 @@ void Renderer::blit(Texture &texture, glm::vec2 screenPos, float w, float h) {
     GL_CALL(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr));
 }
 
-glm::mat4 Renderer::getMVPMatrix(glm::vec2 worldPos, float rotation, glm::vec2 scale, bool isWorldPos) {
+glm::mat4 Renderer::getMVPMatrix(glm::vec2 pos, float rotation, glm::vec2 scale, bool isWorldPos) {
     auto& renderer = Renderer::get();
 
+    // Project to screen window
     auto proj = glm::ortho(0.0f, (float)WINDOW_WIDTH, 0.0f, (float)WINDOW_HEIGHT, -1.0f, 1.0f);
+    // View
     auto view = glm::mat4(1.0f);
-    view = glm::translate(view, glm::vec3(0.0f, WINDOW_HEIGHT, 0.0f));
+    // Move window to top left
+    view = glm::translate(view, glm::vec3(WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2, 0.0f));
+    // Translate into world pos
     if (isWorldPos) {
-        view = glm::scale(view,  glm::vec3(renderer.m_camera.scale, renderer.m_camera.scale, 1.0f));
-        auto cameraScreenPos = renderer.m_camera.pos * (float)WORLD_SCALE;
+        // Scale to camera zoom
+        view = glm::scale(view,  glm::vec3(renderer.m_camera.scale * WORLD_SCALE, renderer.m_camera.scale * WORLD_SCALE, 1.0f));
+        // Offset camera position
+        auto cameraScreenPos = renderer.m_camera.pos;
         view = glm::translate(view,  glm::vec3(
                 -cameraScreenPos.x,
                 cameraScreenPos.y,
                 0.0f)
         );
     }
+    // Flip Y axis
     view = glm::scale(view,  glm::vec3(1.0f, -1.0f, 1.0f));
+    // Model
     auto model = glm::mat4(1.0f);
-    model = glm::translate(model, glm::vec3(worldPos * (float)WORLD_SCALE, 0.0f));
+    model = glm::translate(model, glm::vec3(pos, 0.0f));
     model = glm::rotate(model, rotation, glm::vec3(0.0f, 0.0f, 1.0f));
-    model = glm::scale(model, glm::vec3(scale * (float)WORLD_SCALE, 1.0f));
+    model = glm::scale(model, glm::vec3(scale, 1.0f));
 
     return proj * view * model;
 }
@@ -160,11 +140,11 @@ glm::mat4 Renderer::getMVPMatrix(glm::vec2 worldPos, float rotation, glm::vec2 s
 glm::vec2 Renderer::screenToWorldPos(glm::vec2 screenPos) {
     auto& camera = Renderer::get().m_camera;
 
-    return (screenPos / (camera.scale * WORLD_SCALE)) + camera.pos;
+    return ((screenPos - glm::vec2{WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2}) / (camera.scale * WORLD_SCALE)) + camera.pos;
 }
 
 glm::vec2 Renderer::worldToScreenPos(glm::vec2 worldPos) {
     auto& camera = Renderer::get().m_camera;
 
-    return (worldPos - camera.pos) * (camera.scale * WORLD_SCALE);
+    return (worldPos - camera.pos) * (camera.scale * WORLD_SCALE) + glm::vec2{WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2};
 }

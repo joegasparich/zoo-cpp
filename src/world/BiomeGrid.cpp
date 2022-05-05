@@ -20,19 +20,43 @@ std::vector<glm::vec2> getQuadrantVertices(glm::vec2 pos, Side quadrant) {
 
 // -- BiomeChunk -- //
 
+struct BiomeVertex {
+    glm::vec2 pos;
+    glm::vec3 colour;
+};
+
 BiomeChunk::BiomeChunk(unsigned int x, unsigned int y, unsigned int cols, unsigned int rows) :
         m_x{x},
         m_y{y},
         m_cols{cols},
         m_rows{rows} {}
 
-void BiomeChunk::setup() {
+void BiomeChunk::setup(VertexArray& va, VertexBufferLayout& layout, Shader& shader) {
     for (int i = 0; i < m_cols; i++) {
         m_grid.emplace_back();
         for (int j = 0; j < m_rows; j++) {
             m_grid.at(i).push_back(BiomeSquare{{Biome::Grass, Biome::Grass, Biome::Grass, Biome::Grass}});
         }
     }
+
+    m_va = &va;
+    m_layout = &layout;
+    m_shader = &shader;
+
+    m_vb = std::make_unique<VertexBuffer>(nullptr, CHUNK_SIZE * CHUNK_SIZE * 4 * 3 * sizeof(BiomeVertex), true);
+
+    std::vector<std::array<unsigned int, 3>> indices{};
+    for (int i=0; i<m_cols; ++i) {
+        for (int j=0; j<m_rows; ++j) {
+            unsigned int base = (i * m_rows + j) * 12;
+            indices.push_back({base + 0, base+ 1, base + 2});
+            indices.push_back({base + 3, base+ 4, base + 5});
+            indices.push_back({base + 6, base+ 7, base + 8});
+            indices.push_back({base + 9, base+ 10, base + 11});
+        }
+    }
+
+    m_ib = std::make_unique<IndexBuffer>(&indices[0], indices.size() * 3);
 
     generateMesh();
 }
@@ -46,8 +70,7 @@ void BiomeChunk::postUpdate() {
 }
 
 void BiomeChunk::generateMesh() {
-    std::vector<std::array<float, 5>> vertices{};
-    std::vector<std::array<unsigned int, 3>> indices{};
+    std::vector<BiomeVertex> vertices{};
 
     for (int i=0; i<m_cols; ++i) {
         for (int j=0; j<m_rows; ++j) {
@@ -63,52 +86,24 @@ void BiomeChunk::generateMesh() {
                 for (auto vertex : getQuadrantVertices({i, j}, (Side)q)) {
                     // Apply elevation
                     auto elevation = Game::get().m_stage->m_world->m_elevationGrid->getElevationAtPos((vertex + glm::vec2{m_x, m_y}) / 2.0f);
-                    vertices.push_back({vertex.x, vertex.y - (elevation * 2.0f), color.x, color.y, color.z});
+                    // push vertex
+                    vertices.push_back({{vertex.x, vertex.y - (elevation * 2.0f)},
+                                        {color.x, color.y, color.z}});
                 }
             }
         }
     }
 
-    for (int i=0; i<m_cols; ++i) {
-        for (int j=0; j<m_rows; ++j) {
-            unsigned int base = (i * m_rows + j) * 12;
-            indices.push_back({base + 0, base+ 1, base + 2});
-            indices.push_back({base + 3, base+ 4, base + 5});
-            indices.push_back({base + 6, base+ 7, base + 8});
-            indices.push_back({base + 9, base+ 10, base + 11});
-        }
-    }
-
-    m_va = std::make_unique<VertexArray>();
-    m_vb = std::make_unique<VertexBuffer>(&vertices[0], sizeof(float) * vertices.size() * 5);
-
-    m_layout = std::make_unique<VertexBufferLayout>();
-    m_layout->push<float>(2);
-    m_layout->push<float>(3);
-    m_va->addBuffer(*m_vb, *m_layout);
-    m_ib = std::make_unique<IndexBuffer>(&indices[0], indices.size() * 3);
-
-    m_shader = std::make_unique<Shader>("./shaders/BiomeVertex.shader", "./shaders/BiomeFragment.shader");
+    m_vb->updateData(&vertices[0], vertices.size() * sizeof(float) * 5, 0);
 };
 
 void BiomeChunk::render() {
+    m_va->addBuffer(*m_vb, *m_layout);
     m_va->bind();
-    m_ib->bind();
     m_shader->bind();
+    m_ib->bind();
 
-    glm::mat4 proj = glm::ortho(0.0f, (float)WINDOW_WIDTH, 0.0f, (float)WINDOW_HEIGHT, -1.0f, 1.0f);
-
-    glm::mat4 view = glm::mat4(1.0f);
-    view = glm::translate(view,  glm::vec3(0.0f, WINDOW_HEIGHT, 0.0f));
-    auto cameraScreenPos = Renderer::get().m_camera.pos * CELL_SIZE * BIOME_SCALE;
-    view = glm::scale(view,  glm::vec3(Renderer::get().m_camera.scale, Renderer::get().m_camera.scale, 1.0f));
-    view = glm::translate(view,  glm::vec3(-cameraScreenPos.x, cameraScreenPos.y, 0.0f));
-
-    glm::mat4 model = glm::mat4(1.0f);
-    model = glm::translate(model, glm::vec3(m_x * CELL_SIZE, -(int)m_y * CELL_SIZE, 0));
-    model = glm::scale(model, glm::vec3(CELL_SIZE, -CELL_SIZE, 0));
-
-    glm::mat4 mvp = proj * view * model;
+    auto mvp = Renderer::getMVPMatrix(glm::vec3((float)m_x / BIOME_SCALE, (float)m_y / BIOME_SCALE, 0), 0.0f, glm::vec3(1.0f / BIOME_SCALE), true);
     m_shader->setUniformMat4f("u_MVP", mvp);
 
     GL_CALL(glDrawElements(GL_TRIANGLES, m_cols * m_rows * 12, GL_UNSIGNED_INT, nullptr));
@@ -157,6 +152,12 @@ BiomeGrid::BiomeGrid(unsigned int cols, unsigned int rows) :
 }
 
 void BiomeGrid::setup() {
+    m_va = std::make_unique<VertexArray>();
+    m_layout = std::make_unique<VertexBufferLayout>();
+    m_layout->push<float>(2);
+    m_layout->push<float>(3);
+    m_shader = std::make_unique<Shader>("./shaders/BiomeVertex.shader", "./shaders/BiomeFragment.shader");
+
     auto chunkCols = m_cols / CHUNK_SIZE + (m_cols % CHUNK_SIZE != 0);
     auto chunkRows = m_rows / CHUNK_SIZE + (m_rows % CHUNK_SIZE != 0);
 
@@ -170,7 +171,7 @@ void BiomeGrid::setup() {
                 j == chunkRows - 1 && m_rows % CHUNK_SIZE != 0 ? m_rows & CHUNK_SIZE : CHUNK_SIZE,
             });
 
-            m_chunkGrid.at(i).at(j).setup();
+            m_chunkGrid.at(i).at(j).setup(*m_va, *m_layout, *m_shader);
         }
     }
 }

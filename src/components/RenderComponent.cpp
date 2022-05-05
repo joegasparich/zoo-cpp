@@ -16,7 +16,8 @@ void RenderComponent::start(Entity &entity) {
 }
 
 void RenderComponent::render(double step) {
-    Renderer::blit(*m_texture, entity->pos * (float)WORLD_SCALE, WORLD_SCALE, WORLD_SCALE);
+    // TODO: Batch renders
+    Renderer::blit(*m_texture, entity->pos, 1.0f, 1.0f, true);
 }
 
 Texture &RenderComponent::getTexture() const {

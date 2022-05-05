@@ -42,8 +42,8 @@ public:
     static void init();
     static void doRender();
     static void clear();
-    static void blit(Texture &texture, glm::vec2 screenPos, float w, float h);
-    static glm::mat4 getMVPMatrix(glm::vec2 worldPos, float rotation, glm::vec2 scale, bool isWorldPos);
+    static void blit(Texture &texture, glm::vec2 pos, float w, float h, bool isWorldPos);
+    static glm::mat4 getMVPMatrix(glm::vec2 pos, float rotation, glm::vec2 scale, bool isWorldPos);
 
     static glm::vec2 screenToWorldPos(glm::vec2 screenPos);
     static glm::vec2 worldToScreenPos(glm::vec2 worldPos);

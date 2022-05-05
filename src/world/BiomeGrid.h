@@ -7,7 +7,6 @@
 #define CHUNK_SIZE 5
 #define NUM_BIOMES 3
 #define BIOME_SCALE 2.0f
-#define CELL_SIZE (float)(WORLD_SCALE/BIOME_SCALE)
 
 enum class Biome {
     Grass,
@@ -49,7 +48,7 @@ class BiomeChunk {
 public:
     BiomeChunk(unsigned int x, unsigned int y, unsigned int cols, unsigned int rows);
 
-    void setup();
+    void setup(VertexArray& va, VertexBufferLayout& layout, Shader& shader);
     void postUpdate();
     void generateMesh();
     void render();
@@ -64,12 +63,11 @@ public:
 
     std::vector<std::vector<BiomeSquare>> m_grid;
 
-    // TODO: Move shared stuff like shader into BiomeGrid?
-    std::unique_ptr<VertexArray> m_va;
     std::unique_ptr<VertexBuffer> m_vb;
-    std::unique_ptr<VertexBufferLayout> m_layout;
     std::unique_ptr<IndexBuffer> m_ib;
-    std::unique_ptr<Shader> m_shader;
+    VertexArray* m_va;
+    VertexBufferLayout* m_layout;
+    Shader* m_shader;
 };
 
 class BiomeGrid {
@@ -90,6 +88,10 @@ private:
 
     unsigned int m_rows;
     unsigned int m_cols;
+
+    std::unique_ptr<VertexArray> m_va;
+    std::unique_ptr<VertexBufferLayout> m_layout;
+    std::unique_ptr<Shader> m_shader;
 
     std::vector<std::vector<BiomeChunk>> m_chunkGrid;
 };

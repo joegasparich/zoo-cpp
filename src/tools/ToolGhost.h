@@ -8,6 +8,7 @@
 #include "../renderer/Texture.h"
 
 enum class GhostType {
+    None,
     Circle,
     Square,
     Sprite
@@ -20,12 +21,12 @@ public:
     void render();
     void reset();
 
-    GhostType type = GhostType::Circle;
-    bool m_snap = false;
-    bool m_follow = true;
-    bool m_elevate = false;
+    GhostType m_type;
+    bool m_snap;
+    bool m_follow;
+    bool m_elevate;
     std::unique_ptr<Texture> m_texture;
-    std::function<bool(glm::vec2 pos)> canPlace;
+    std::function<bool(glm::vec2 pos)> m_canPlace;
 private:
     void renderCircle();
     void renderSquare();

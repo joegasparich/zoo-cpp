@@ -9,6 +9,7 @@ ElevationTool::~ElevationTool() = default;
 void ElevationTool::set() {
     m_currentElevation = Elevation::Hill;
     m_panelId = UIManager::createUIComponent(std::make_unique<ElevationPanel>(m_toolManager, *this));
+    m_toolManager.m_ghost->m_type =  GhostType::Circle;
 }
 
 void ElevationTool::unset() {

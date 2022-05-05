@@ -44,6 +44,8 @@ void Renderer::init() {
 
     GL_CALL(glEnable(GL_BLEND));
     GL_CALL(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
+    GL_CALL(glEnable(GL_PRIMITIVE_RESTART));
+    GL_CALL(glPrimitiveRestartIndex(PRIMITIVE_RESTART));
 
     renderer.setupBlit();
 

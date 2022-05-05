@@ -4,13 +4,60 @@
 #include "../Game.h"
 #include "../Debug.h"
 
+#define WATER_LEVEL 0.2f
+
 ElevationGrid::ElevationGrid(unsigned int rows, unsigned int cols) : m_rows(rows), m_cols(cols) {}
 
 void ElevationGrid::setup() {
+    m_va = std::make_unique<VertexArray>();
+    m_layout = std::make_unique<VertexBufferLayout>();
+    m_layout->push<float>(2);
+    m_shader = std::make_unique<Shader>("./shaders/WaterVertex.shader", "./shaders/WaterFragment.shader");
+
     for (unsigned int i = 0; i < m_cols; i++) {
         m_grid.emplace_back();
         for (unsigned int j = 0; j < m_rows; j++) {
             m_grid.at(i).push_back(Elevation::Flat);
+        }
+    }
+
+    m_grid.at(2).at(2) = Elevation::Water;
+    m_grid.at(3).at(3) = Elevation::Water;
+    generateWaterMesh();
+}
+
+void ElevationGrid::render() {
+    m_va->bind();
+    m_ib->bind();
+    m_shader->bind();
+
+    auto mvp = Renderer::getMVPMatrix(glm::vec3(0.0f), 0.0f, glm::vec3(1.0f), true);
+    m_shader->setUniformMat4f("u_MVP", mvp);
+
+    GL_CALL(glDrawElements(GL_TRIANGLE_FAN, m_numIndices, GL_UNSIGNED_INT, nullptr));
+}
+
+void ElevationGrid::renderDebug() {
+    if (m_grid.empty()) return;
+
+    for (unsigned int i = 0; i < m_cols; i++) {
+        for (unsigned int j = 0; j < m_rows; j++) {
+            if (i < m_cols - 1) {
+                Debug::drawLine(
+                    {i * WORLD_SCALE, (j - (float)(int)m_grid.at(i).at(j) * ELEVATION_HEIGHT) * WORLD_SCALE},
+                    {(i + 1) * WORLD_SCALE, (j - (float)(int)m_grid.at(i + 1).at(j) * ELEVATION_HEIGHT) * WORLD_SCALE},
+                    {1.0f, 1.0f, 1.0f, 1.0f},
+                        true
+                );
+            }
+            if (j < m_rows - 1) {
+                Debug::drawLine(
+                        {i * WORLD_SCALE, (j - (float)(int)m_grid.at(i).at(j) * ELEVATION_HEIGHT) * WORLD_SCALE},
+                        {i * WORLD_SCALE, (j - (float)(int)m_grid.at(i).at(j + 1) * ELEVATION_HEIGHT + 1) * WORLD_SCALE},
+                        {1.0f, 1.0f, 1.0f, 1.0f},
+                        true
+                );
+            }
         }
     }
 }
@@ -77,8 +124,37 @@ void ElevationGrid::setElevationInCircle(glm::vec2 pos, float radius, Elevation 
         setElevation(point, elevation);
     }
 
-    // Redraw biome grid
+    // Regenerate meshes
     Game::get().m_stage->m_world->m_biomeGrid->redrawChunksInRadius(pos * 2.0f, radius + 6.0f);
+    generateWaterMesh();
+}
+
+void ElevationGrid::generateWaterMesh() {
+    std::vector<glm::vec2> vertices{};
+    std::vector<unsigned int> indices{};
+
+    for (int i = 0; i < m_cols - 1; ++i) {
+        for (int j = 0; j < m_rows - 1; ++j) {
+            if (getTileBaseElevation({i, j}) < 0) {
+                auto index = vertices.size();
+                auto tile = getTileWaterVertices({i, j});
+                tile.insert(tile.begin(), {0.5f, 0.5f});
+                for (auto v : tile) {
+                    vertices.push_back({i + v.x, j + v.y});
+                    indices.push_back(index);
+                    index++;
+                }
+                indices.push_back(index - tile.size() + 1);
+                indices.push_back(PRIMITIVE_RESTART);
+            }
+        }
+    }
+    m_numIndices = indices.size();
+
+    m_vb = std::make_unique<VertexBuffer>(&vertices[0], vertices.size() * sizeof(float) * 2);
+    m_ib = std::make_unique<IndexBuffer>(&indices[0], indices.size());
+
+    m_va->addBuffer(*m_vb, *m_layout);
 }
 
 bool ElevationGrid::canElevate(glm::ivec2 gridPos, Elevation elevation) {
@@ -127,6 +203,120 @@ SlopeVariant ElevationGrid::getTileSlopeVariant(glm::ivec2 tile) {
 
     // How did you get here?
     return SlopeVariant::Flat;
+}
+
+std::vector<glm::vec2> ElevationGrid::getTileWaterVertices(glm::ivec2 gridPos) {
+    auto slopeVariant = getTileSlopeVariant(gridPos);
+    std::vector<glm::vec2> vertices{};
+
+    switch (slopeVariant) {
+        case SlopeVariant::N:
+            vertices.emplace_back(0.0f, 0.0f);
+            vertices.emplace_back(1.0f, 0.0f);
+            vertices.emplace_back(1.0f, 1.0f - WATER_LEVEL);
+            vertices.emplace_back(0.0f, 1.0f - WATER_LEVEL);
+            break;
+        case SlopeVariant::S:
+            vertices.emplace_back(0.0f, WATER_LEVEL);
+            vertices.emplace_back(1.0f, WATER_LEVEL);
+            vertices.emplace_back(1.0f, 1.0f);
+            vertices.emplace_back(0.0f, 1.0f);
+            break;
+        case SlopeVariant::W:
+            vertices.emplace_back(0.0f, 0.0f);
+            vertices.emplace_back(1.0f - WATER_LEVEL, 0.0f);
+            vertices.emplace_back(1.0f - WATER_LEVEL, 1.0f);
+            vertices.emplace_back(0.0f, 1.0f);
+            break;
+        case SlopeVariant::E:
+            vertices.emplace_back(WATER_LEVEL, 0.0f);
+            vertices.emplace_back(1.0f, 0.0f);
+            vertices.emplace_back(1.0f, 1.0f);
+            vertices.emplace_back(WATER_LEVEL, 1.0f);
+            break;
+        case SlopeVariant::NW:
+            vertices.emplace_back(0.0f, 0.0f);
+            vertices.emplace_back(1.0f, 0.0f);
+            vertices.emplace_back(1.0f, 1.0f - WATER_LEVEL);
+            vertices.emplace_back(1.0f - WATER_LEVEL, 1.0f);
+            vertices.emplace_back(0.0f, 1.0f);
+            break;
+        case SlopeVariant::NE:
+            vertices.emplace_back(0.0f, 0.0f);
+            vertices.emplace_back(1.0f, 0.0f);
+            vertices.emplace_back(1.0f, 1.0f);
+            vertices.emplace_back(WATER_LEVEL, 1.0f);
+            vertices.emplace_back(0.0f, 1.0f - WATER_LEVEL);
+            break;
+        case SlopeVariant::SW:
+            vertices.emplace_back(0.0f, 0.0f);
+            vertices.emplace_back(1.0f - WATER_LEVEL, 0.0f);
+            vertices.emplace_back(1.0f, WATER_LEVEL);
+            vertices.emplace_back(1.0f, 1.0f);
+            vertices.emplace_back(0.0f, 1.0f);
+            break;
+        case SlopeVariant::SE:
+            vertices.emplace_back(0.0f, WATER_LEVEL);
+            vertices.emplace_back(WATER_LEVEL, 0.0f);
+            vertices.emplace_back(1.0f, 0.0f);
+            vertices.emplace_back(1.0f, 1.0f);
+            vertices.emplace_back(0.0f, 1.0f);
+            break;
+        case SlopeVariant::INW:
+            vertices.emplace_back(0.0f, 0.0f);
+            vertices.emplace_back(1.0f - WATER_LEVEL, 0.0f);
+            vertices.emplace_back(1.0f - WATER_LEVEL, 1.0f - WATER_LEVEL);
+            vertices.emplace_back(0.0f, 1.0f - WATER_LEVEL);
+            break;
+        case SlopeVariant::INE:
+            vertices.emplace_back(WATER_LEVEL, 0.0f);
+            vertices.emplace_back(1.0f, 0.0f);
+            vertices.emplace_back(1.0f, 1.0f - WATER_LEVEL);
+            vertices.emplace_back(WATER_LEVEL, 1.0f - WATER_LEVEL);
+            break;
+        case SlopeVariant::ISW:
+            vertices.emplace_back(0.0f, WATER_LEVEL);
+            vertices.emplace_back(1.0f - WATER_LEVEL, WATER_LEVEL);
+            vertices.emplace_back(1.0f - WATER_LEVEL, 1.0f);
+            vertices.emplace_back(0.0f, 1.0f);
+            break;
+        case SlopeVariant::ISE:
+            vertices.emplace_back(WATER_LEVEL, WATER_LEVEL);
+            vertices.emplace_back(1.0f, WATER_LEVEL);
+            vertices.emplace_back(1.0f, 1.0f);
+            vertices.emplace_back(WATER_LEVEL, 1.0f);
+            break;
+        case SlopeVariant::I1:
+            vertices.emplace_back(0.0f, WATER_LEVEL);
+            vertices.emplace_back(WATER_LEVEL, 0.0f);
+            vertices.emplace_back(1.0f, 0.0f);
+            vertices.emplace_back(1.0f, 1.0f - WATER_LEVEL);
+            vertices.emplace_back(1.0f - WATER_LEVEL, 1.0f);
+            vertices.emplace_back(0.0f, 1.0f);
+            break;
+        case SlopeVariant::I2:
+            vertices.emplace_back(0.0f, 0.0f);
+            vertices.emplace_back(1.0f - WATER_LEVEL, 0.0f);
+            vertices.emplace_back(1.0f, WATER_LEVEL);
+            vertices.emplace_back(1.0f, 1.0f);
+            vertices.emplace_back(WATER_LEVEL, 1.0f);
+            vertices.emplace_back(0.0f, 1.0f - WATER_LEVEL);
+            break;
+        case SlopeVariant::Flat:
+            vertices.emplace_back(0.0f, 0.0f);
+            vertices.emplace_back(1.0f, 0.0f);
+            vertices.emplace_back(1.0f, 1.0f);
+            vertices.emplace_back(0.0f, 1.0f);
+            break;
+        default:
+            break;
+    }
+
+    for (auto& vertex : vertices) {
+        vertex.y += WATER_LEVEL * ELEVATION_HEIGHT;
+    }
+
+    return vertices;
 }
 
 float ElevationGrid::getElevationAtPos(glm::vec2 pos) {
@@ -195,6 +385,14 @@ bool ElevationGrid::isPositionSlopeCorner(glm::vec2 pos) {
     );
 }
 
+bool ElevationGrid::isPositionWater(glm::vec2 pos) {
+    return isTileWater(glm::floor(pos));
+}
+
+bool ElevationGrid::isTileWater(glm::ivec2 pos) {
+    return m_grid.at(pos.x).at(pos.y) == Elevation::Water;
+}
+
 std::vector<glm::ivec2> ElevationGrid::getAdjacentGridPositions(glm::ivec2 gridPos) {
     return getAdjacentGridPositions(gridPos, false);
 }
@@ -214,29 +412,4 @@ std::vector<glm::ivec2> ElevationGrid::getAdjacentGridPositions(glm::ivec2 gridP
     }
 
     return positions;
-}
-
-void ElevationGrid::renderDebug() {
-    if (m_grid.empty()) return;
-
-    for (unsigned int i = 0; i < m_cols; i++) {
-        for (unsigned int j = 0; j < m_rows; j++) {
-            if (i < m_cols - 1) {
-                Debug::drawLine(
-                    {i * WORLD_SCALE, (j - (float)(int)m_grid.at(i).at(j) * ELEVATION_HEIGHT) * WORLD_SCALE},
-                    {(i + 1) * WORLD_SCALE, (j - (float)(int)m_grid.at(i + 1).at(j) * ELEVATION_HEIGHT) * WORLD_SCALE},
-                    {1.0f, 1.0f, 1.0f, 1.0f},
-                    true
-                );
-            }
-            if (j < m_rows - 1) {
-                Debug::drawLine(
-                    {i * WORLD_SCALE, (j - (float)(int)m_grid.at(i).at(j) * ELEVATION_HEIGHT) * WORLD_SCALE},
-                    {i * WORLD_SCALE, (j - (float)(int)m_grid.at(i).at(j + 1) * ELEVATION_HEIGHT + 1) * WORLD_SCALE},
-                    {1.0f, 1.0f, 1.0f, 1.0f},
-                    true
-                );
-            }
-        }
-    }
 }

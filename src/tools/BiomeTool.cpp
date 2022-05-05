@@ -10,6 +10,7 @@ BiomeTool::~BiomeTool() = default;
 void BiomeTool::set() {
     m_currentBiome = Biome::Sand;
     m_panelId = UIManager::createUIComponent(std::make_unique<BiomePanel>(m_toolManager, *this));
+    m_toolManager.m_ghost->m_type = GhostType::Circle;
 }
 
 void BiomeTool::unset() {

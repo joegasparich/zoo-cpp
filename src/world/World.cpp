@@ -19,5 +19,6 @@ void World::postUpdate() {
 
 void World::render() {
     m_biomeGrid->render();
+    m_elevationGrid->render();
 //    m_elevationGrid->renderDebug();
 }

@@ -13,13 +13,25 @@ ToolGhost::ToolGhost() {
     m_basicLayout->push<float>(2);
 
     m_circleVa = std::make_unique<VertexArray>();
+
+    reset();
+}
+
+void ToolGhost::reset() {
+    m_type = GhostType::None;
+    m_snap = false;
+    m_follow = true;
+    m_elevate = false;
+    m_texture = nullptr;
+    m_canPlace = [](glm::vec2 pos) { return true; };
 }
 
 void ToolGhost::render() {
-    switch(type) {
+    switch(m_type) {
         case GhostType::Circle: renderCircle();
         case GhostType::Square: renderSquare();
         case GhostType::Sprite: renderTexture();
+        case GhostType::None: break;
     }
 }
 

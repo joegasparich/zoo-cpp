@@ -39,6 +39,7 @@ void ToolManager::setTool(ToolType type) {
 
     if (m_activeTool) {
         m_activeTool->unset();
+        m_ghost->reset();
     }
 
     switch(type) {

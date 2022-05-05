@@ -17,6 +17,8 @@
 #define WINDOW_WIDTH 1280
 #define WINDOW_HEIGHT 720
 
+#define PRIMITIVE_RESTART 12345
+
 #define GL_CALL(x) glClearError();\
     x;                           \
     assert(glLogCall(#x, __FILE__, __LINE__))

@@ -1,11 +1,9 @@
 #pragma once
 
-#include <memory>
-#include <functional>
-#include "glm/glm.hpp"
+#include "pch.h"
 
-#include "../renderer/Renderer.h"
-#include "../renderer/Texture.h"
+#include "renderer/Renderer.h"
+#include "renderer/Texture.h"
 
 enum class GhostType {
     None,

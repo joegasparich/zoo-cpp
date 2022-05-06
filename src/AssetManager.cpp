@@ -1,12 +1,6 @@
-#include <fstream>
-#include <sstream>
-#include <nlohmann/json.hpp>
-
 #include "AssetManager.h"
 #include "Registry.h"
 #include "constants/assets.h"
-
-using json = nlohmann::json;
 
 AssetManager::AssetManager() : m_textureMap{} {};
 
@@ -35,6 +29,8 @@ void AssetManager::loadWalls() {
 
         // Parse JSON
         auto json = json::parse(buffer.str());
+
+        std::cout << json.dump() << std::endl;
 
         // Map to Wall
         auto imagePath = json["spriteSheet"].get<std::string>();

@@ -2,7 +2,7 @@
 
 #include "Tool.h"
 #include "ToolManager.h"
-#include "../world/BiomeGrid.h"
+#include "world/BiomeGrid.h"
 
 class BiomeTool : public Tool {
 public:

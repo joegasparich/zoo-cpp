@@ -1,12 +1,9 @@
 #pragma once
 
-#include <vector>
-#include <map>
-#include <memory>
-
-#include "../lib/imgui/imgui.h"
-#include "../lib/imgui/imgui_impl_sdl.h"
-#include "../lib/imgui/imgui_impl_opengl3.h"
+#include "imgui/imgui.h"
+#include "imgui/imgui_impl_sdl.h"
+#include "imgui/imgui_impl_opengl3.h"
+#include "pch.h"
 
 #include "UIComponent.h"
 

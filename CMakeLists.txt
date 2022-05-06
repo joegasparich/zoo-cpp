@@ -16,16 +16,21 @@ file(GLOB_RECURSE sources CONFIGURE_DEPENDS
     "src/*.tpp"
 )
 
+set(HEADER_FILES src/pch.h)
 set(SOURCE_FILES ${sources})
 
 add_executable(${PROJECT_NAME} ${SOURCE_FILES})
 
 add_subdirectory(src/lib/json)
 
+target_precompile_headers(${PROJECT_NAME} PUBLIC ${HEADER_FILES})
+
 target_include_directories(${PROJECT_NAME} PUBLIC ${SDL2_INCLUDE_DIRS})
 target_include_directories(${PROJECT_NAME} PUBLIC ${OPENGL_INCLUDE_DIR})
 target_include_directories(${PROJECT_NAME} PUBLIC ${Boost_INCLUDE_DIRS})
 target_include_directories(${PROJECT_NAME} PUBLIC ${GLM_INCLUDE_DIRS})
+target_include_directories(${PROJECT_NAME} PUBLIC src)
+target_include_directories(${PROJECT_NAME} PUBLIC src/lib)
 
 target_link_libraries(${PROJECT_NAME} nlohmann_json::nlohmann_json)
 target_link_libraries(${PROJECT_NAME} ${SDL2_LIBRARY})

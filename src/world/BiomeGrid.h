@@ -1,8 +1,8 @@
 #pragma once
 
-#include <array>
-#include <vector>
-#include "../renderer/Renderer.h"
+#include "pch.h"
+
+#include "renderer/Renderer.h"
 
 #define CHUNK_SIZE 5
 #define NUM_BIOMES 3
@@ -47,13 +47,17 @@ struct BiomeSquare {
 class BiomeChunk {
 public:
     BiomeChunk(unsigned int x, unsigned int y, unsigned int cols, unsigned int rows);
+    BiomeChunk(std::vector<std::vector<std::vector<Biome>>> gridData, unsigned int x, unsigned int y);
 
     void setup(VertexArray& va, VertexBufferLayout& layout, Shader& shader);
+
     void postUpdate();
     void generateMesh();
     void render();
     void setBiomeInRadius(glm::vec2 pos, float radius, Biome biome);
     bool isPositionInChunk(glm::vec2 pos);
+
+    std::vector<std::vector<std::vector<Biome>>> save();
 
     unsigned int m_x;
     unsigned int m_y;
@@ -75,12 +79,16 @@ public:
     BiomeGrid(unsigned int cols, unsigned int rows);
 
     void setup();
+    void reset();
     void postUpdate();
     void render();
     void setBiomeInRadius(glm::vec2 pos, float radius, Biome biome);
     void redrawChunksInRadius(glm::vec2 pos, float radius);
     void redrawAllChunks();
-    bool isChunkInGrid(unsigned int col, unsigned int row) const;
+    bool isChunkInGrid(int col, int row) const;
+
+    json save();
+    void load(json saveData);
 
     static float getQuadrantSlopeColour(glm::vec2 pos, Side quadrant);
 private:

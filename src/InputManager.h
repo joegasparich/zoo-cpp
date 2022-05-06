@@ -1,10 +1,7 @@
 #pragma once
 
 #include <SDL2/SDL.h>
-#include "glm/vec2.hpp"
-#include <string>
-#include <set>
-#include <map>
+#include "pch.h"
 
 #define MAX_KEYBOARD_KEYS 350
 #define MAX_MOUSE_BUTTONS 5

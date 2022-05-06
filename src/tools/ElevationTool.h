@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Tool.h"
-#include "../world/ElevationGrid.h"
+#include "world/ElevationGrid.h"
 
 class ElevationTool : public Tool {
 public:

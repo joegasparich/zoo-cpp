@@ -1,8 +1,5 @@
 #include "Mediator.h"
 
-#include <iostream>
-#include <utility>
-
 Mediator::Mediator() : listeners{} {};
 Mediator::~Mediator() noexcept = default;
 

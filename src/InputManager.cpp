@@ -1,4 +1,3 @@
-#include <iostream>
 #include "InputManager.h"
 #include "util/util.h"
 #include "Mediator.h"

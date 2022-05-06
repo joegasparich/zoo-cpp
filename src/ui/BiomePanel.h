@@ -1,10 +1,10 @@
 #pragma once
 
-#include "../lib/imgui/imgui.h"
+#include "lib/imgui/imgui.h"
 
 #include "UIComponent.h"
-#include "../tools/ToolManager.h"
-#include "../tools/BiomeTool.h"
+#include "tools/ToolManager.h"
+#include "tools/BiomeTool.h"
 
 class BiomePanel : public UIComponent {
 public:

@@ -1,8 +1,9 @@
 #include "ElevationGrid.h"
-#include "../constants/world.h"
-#include "../util/math.h"
-#include "../Game.h"
-#include "../Debug.h"
+#include "constants/world.h"
+#include "util/math.h"
+#include "Game.h"
+#include "Debug.h"
+#include "Zoo.h"
 
 #define WATER_LEVEL 0.1f
 
@@ -22,6 +23,16 @@ void ElevationGrid::setup() {
     }
 
     generateWaterMesh();
+}
+
+void ElevationGrid::reset() {
+    m_cols = 0;
+    m_rows = 0;
+    m_grid.clear();
+
+    m_numIndices = 0;
+    m_vb = nullptr;
+    m_ib = nullptr;
 }
 
 void ElevationGrid::render() {
@@ -123,7 +134,7 @@ void ElevationGrid::setElevationInCircle(glm::vec2 pos, float radius, Elevation 
     }
 
     // Regenerate meshes
-    Game::get().m_stage->m_world->m_biomeGrid->redrawChunksInRadius(pos * 2.0f, radius + 6.0f);
+    Zoo::zoo->m_world->m_biomeGrid->redrawChunksInRadius(pos * 2.0f, radius + 6.0f);
     generateWaterMesh();
 }
 
@@ -410,4 +421,20 @@ std::vector<glm::ivec2> ElevationGrid::getAdjacentGridPositions(glm::ivec2 gridP
     }
 
     return positions;
+}
+
+json ElevationGrid::save() {
+    return json{
+        {"grid", m_grid}
+    };
+}
+
+void ElevationGrid::load(json saveData) {
+    reset();
+
+    m_grid = saveData["grid"].get<std::vector<std::vector<Elevation>>>();
+    m_cols = m_grid.size();
+    m_rows = m_grid[0].size();
+
+    generateWaterMesh();
 }

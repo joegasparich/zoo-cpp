@@ -1,6 +1,6 @@
 #pragma once
 
-#include <vector>
+#include "pch.h"
 
 #include "Entity.h"
 #include "world/BiomeGrid.h"
@@ -16,6 +16,7 @@ public:
     void update();
     void preUpdate();
     void postUpdate();
+    void reset();
     void render(double step) const;
 
     std::unique_ptr<World> m_world;

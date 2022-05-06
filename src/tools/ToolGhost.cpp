@@ -1,8 +1,6 @@
-#include <numeric>
-
 #include "ToolGhost.h"
-#include "../Game.h"
-#include "../constants/world.h"
+#include "Game.h"
+#include "Zoo.h"
 
 #define GHOST_COLOUR glm::vec3{0.4f, 0.8f, 1.0f}
 #define CIRCLE_RESOLUTION 16
@@ -48,7 +46,7 @@ void ToolGhost::renderCircle() {
         vertices[n].x = (float)cos(2.0 * M_PI * n / CIRCLE_RESOLUTION);
         vertices[n].y = (float)sin(2.0 * M_PI * n / CIRCLE_RESOLUTION);
 
-        vertices[n].y -= Game::get().m_stage->m_world->m_elevationGrid->getElevationAtPos(mousePos + vertices[n]);
+        vertices[n].y -= Zoo::zoo->m_world->m_elevationGrid->getElevationAtPos(mousePos + vertices[n]);
     }
     vertices.insert(vertices.begin(), glm::vec2{0.0f, 0.0f});
 

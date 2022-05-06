@@ -1,7 +1,7 @@
 #include "BiomeGrid.h"
-#include "../util/math.h"
-#include "../constants/world.h"
-#include "../Game.h"
+#include "util/math.h"
+#include "Game.h"
+#include "Zoo.h"
 
 #define SLOPE_COLOUR_STRENGTH 0.3f
 
@@ -29,16 +29,37 @@ BiomeChunk::BiomeChunk(unsigned int x, unsigned int y, unsigned int cols, unsign
         m_x{x},
         m_y{y},
         m_cols{cols},
-        m_rows{rows} {}
-
-void BiomeChunk::setup(VertexArray& va, VertexBufferLayout& layout, Shader& shader) {
+        m_rows{rows} {
     for (int i = 0; i < m_cols; i++) {
         m_grid.emplace_back();
         for (int j = 0; j < m_rows; j++) {
             m_grid.at(i).push_back(BiomeSquare{{Biome::Grass, Biome::Grass, Biome::Grass, Biome::Grass}});
         }
     }
+}
 
+BiomeChunk::BiomeChunk(std::vector<std::vector<std::vector<Biome>>> gridData, unsigned int x, unsigned int y) {
+    m_x = x;
+    m_y = y;
+    m_cols = gridData.size();
+    m_rows = gridData[0].size();
+
+    auto rowIndex = 0;
+    for (auto& row : gridData) {
+        m_grid.emplace_back();
+        for (auto& square : row) {
+            m_grid.at(rowIndex).push_back(BiomeSquare{{
+                square[0],
+                square[1],
+                square[2],
+                square[3]
+            }});
+        }
+        rowIndex++;
+    }
+}
+
+void BiomeChunk::setup(VertexArray& va, VertexBufferLayout& layout, Shader& shader) {
     m_va = &va;
     m_layout = &layout;
     m_shader = &shader;
@@ -85,7 +106,7 @@ void BiomeChunk::generateMesh() {
                 // push vertices
                 for (auto vertex : getQuadrantVertices({i, j}, (Side)q)) {
                     // Apply elevation
-                    auto elevation = Game::get().m_stage->m_world->m_elevationGrid->getElevationAtPos((vertex + glm::vec2{m_x, m_y}) / 2.0f);
+                    auto elevation = Zoo::zoo->m_world->m_elevationGrid->getElevationAtPos((vertex + glm::vec2{m_x, m_y}) / 2.0f);
                     // push vertex
                     vertices.push_back({{vertex.x, vertex.y - (elevation * 2.0f)},
                                         {color.x, color.y, color.z}});
@@ -145,6 +166,18 @@ bool BiomeChunk::isPositionInChunk(glm::vec2 pos) {
     return pos.x >= 0 && pos.x < m_cols && pos.y >= 0 && pos.y < m_rows;
 }
 
+std::vector<std::vector<std::vector<Biome>>> BiomeChunk::save() {
+    std::vector<std::vector<std::vector<Biome>>> chunkData;
+    std::transform(m_grid.begin(), m_grid.end(), std::back_inserter(chunkData), [](std::vector<BiomeSquare>& row) {
+        std::vector<std::vector<Biome>> rowData;
+        std::transform(row.begin(), row.end(), std::back_inserter(rowData), [](BiomeSquare& square) {
+            return std::vector<Biome>{square.quadrants.begin(), square.quadrants.end()};
+        });
+       return rowData;
+    });
+    return chunkData;
+}
+
 // -- BiomeGrid -- //
 
 BiomeGrid::BiomeGrid(unsigned int cols, unsigned int rows) :
@@ -176,6 +209,12 @@ void BiomeGrid::setup() {
             m_chunkGrid.at(i).at(j).setup(*m_va, *m_layout, *m_shader);
         }
     }
+}
+
+void BiomeGrid::reset() {
+    m_cols = 0;
+    m_rows = 0;
+    m_chunkGrid.clear();
 }
 
 void BiomeGrid::postUpdate() {
@@ -235,12 +274,54 @@ std::vector<BiomeChunk*> BiomeGrid::getChunksInRadius(glm::vec2 pos, float radiu
     return chunks;
 }
 
-bool BiomeGrid::isChunkInGrid(unsigned int col, unsigned int row) const {
-    return col < m_cols / CHUNK_SIZE && row < m_rows / CHUNK_SIZE;
+bool BiomeGrid::isChunkInGrid(int col, int row) const {
+    return col >= 0 && col < m_cols / CHUNK_SIZE && row >= 0 && row < m_rows / CHUNK_SIZE;
+}
+
+json BiomeGrid::save() {
+    // 5D Chess
+    std::vector<std::vector<std::vector<std::vector<std::vector<Biome>>>>> gridData;
+    std::transform(m_chunkGrid.begin(), m_chunkGrid.end(), std::back_inserter(gridData), [](std::vector<BiomeChunk>& row) {
+        std::vector<std::vector<std::vector<std::vector<Biome>>>> rowData;
+        std::transform(row.begin(), row.end(), std::back_inserter(rowData), [](BiomeChunk& chunk) {
+            return chunk.save();
+        });
+        return rowData;
+    });
+
+    return json{
+        {"grid", gridData},
+        {"cols", m_cols},
+        {"rows", m_rows}
+    };
+
+}
+
+void BiomeGrid::load(json saveData) {
+    reset();
+
+    m_cols = saveData["cols"].get<unsigned int>();
+    m_rows = saveData["rows"].get<unsigned int>();
+
+    auto gridData = saveData["grid"].get<std::vector<std::vector<std::vector<std::vector<std::vector<Biome>>>>>>();
+
+    unsigned int i = 0;
+    for (auto& row : gridData) {
+        unsigned int j = 0;
+        m_chunkGrid.emplace_back();
+        for (auto& chunkData : row) {
+            m_chunkGrid.at(i).push_back(BiomeChunk{
+                chunkData, i * CHUNK_SIZE, j * CHUNK_SIZE
+            });
+            m_chunkGrid.at(i).at(j).setup(*m_va, *m_layout, *m_shader);
+            j++;
+        }
+        i++;
+    }
 }
 
 float BiomeGrid::getQuadrantSlopeColour(glm::vec2 pos, Side quadrant) {
-    auto slopeVariant = Game::get().m_stage->m_world->m_elevationGrid->getTileSlopeVariant(glm::floor(pos/ 2.0f));
+    auto slopeVariant = Zoo::zoo->m_world->m_elevationGrid->getTileSlopeVariant(glm::floor(pos / 2.0f));
 
     float F = 0.0f;
     float NW = 1.0f, N = 0.75f, W = 0.5f, NE = 0.25f;

@@ -1,7 +1,9 @@
 #pragma once
 
+#include "pch.h"
+
 #include "UIComponent.h"
-#include "../tools/ToolManager.h"
+#include "tools/ToolManager.h"
 
 class Toolbar : public UIComponent {
 public:

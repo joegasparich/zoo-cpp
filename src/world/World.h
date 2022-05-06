@@ -1,6 +1,7 @@
 #pragma once
 
-#include <memory>
+#include "pch.h"
+
 #include "BiomeGrid.h"
 #include "ElevationGrid.h"
 
@@ -12,6 +13,9 @@ public:
     void update();
     void postUpdate();
     void render();
+
+    json save();
+    void load(json saveData);
 
     std::unique_ptr<BiomeGrid> m_biomeGrid;
     std::unique_ptr<ElevationGrid> m_elevationGrid;

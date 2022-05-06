@@ -1,7 +1,7 @@
 #pragma once
 
 #include <SDL2/SDL.h>
-#include "glm/vec2.hpp"
+#include "pch.h"
 
 #include "components/Component.h"
 #include "util/typeMap.h"

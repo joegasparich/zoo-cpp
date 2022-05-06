@@ -1,5 +1,5 @@
 #include "UIManager.h"
-#include "../renderer/Renderer.h"
+#include "renderer/Renderer.h"
 #include "Toolbar.h"
 
 int id = 0;

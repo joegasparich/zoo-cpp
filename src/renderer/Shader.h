@@ -1,9 +1,6 @@
 #pragma once
 
-#include <iostream>
-#include <unordered_map>
-
-#include "glm/glm.hpp"
+#include "pch.h"
 
 class Shader {
 public:

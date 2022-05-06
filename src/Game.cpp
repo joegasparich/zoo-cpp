@@ -1,4 +1,3 @@
-#include <SDL2/SDL.h>
 #include <cassert>
 
 #include "Game.h"
@@ -7,9 +6,10 @@
 #include "renderer/Renderer.h"
 #include "Debug.h"
 #include "ui/UIManager.h"
+#include "SceneManager.h"
+#include "SaveManager.h"
 
-Game::Game() :
-        m_state{GameState::PLAY} {
+Game::Game() : m_state{GameState::PLAY} {
     Mediator::fire(EventType::ApplicationStarted);
 }
 
@@ -21,7 +21,6 @@ Game::~Game() {
 
 void Game::run() {
     init();
-    m_stage->setup();
 
     Mediator::fire(EventType::ApplicationLoaded);
 
@@ -36,7 +35,6 @@ void Game::init() {
     Renderer::init();
     UIManager::init();
 
-    m_stage = std::make_unique<Stage>();
     m_input = std::make_unique<InputManager>();
 
     AssetManager::loadAssets();
@@ -55,6 +53,8 @@ void Game::init() {
     m_input->registerInput({"ZOOM_OUT", {SDL_SCANCODE_PERIOD}});
 
     Debug::setup();
+
+    SaveManager::newGame();
 }
 
 void Game::doLoop() {
@@ -69,7 +69,9 @@ void Game::doLoop() {
         pollEvents();
 
         while (lag >= MS_PER_UPDATE) {
-            m_stage->update();
+            SceneManager::getCurrentScene()->preUpdate();
+            SceneManager::getCurrentScene()->update();
+            SceneManager::getCurrentScene()->postUpdate();
             lag -= MS_PER_UPDATE;
         }
 
@@ -116,7 +118,7 @@ void Game::render(const double step) const {
     Renderer::clear();
 
     // Do all renders in here
-    m_stage->render(step);
+    SceneManager::getCurrentScene()->render(step);
 
     UIManager::render();
 

@@ -1,6 +1,5 @@
-#include <functional>
-#include "../lib/imgui/imgui.h"
-
+#include <SaveManager.h>
+#include "lib/imgui/imgui.h"
 #include "Toolbar.h"
 
 Toolbar::Toolbar(ToolManager *toolManager) : UIComponent("Toolbar"), m_toolManager{toolManager} {
@@ -38,6 +37,15 @@ void Toolbar::render() {
     });
     renderButton("Elevation", m_toolManager->getActiveTool().getType() == ToolType::Elevation, [this]() {
         m_toolManager->setTool(ToolType::Elevation);
+    });
+    renderButton("New", false, [this]() {
+        SaveManager::newGame();
+    });
+    renderButton("Save", false, [this]() {
+        SaveManager::saveGame("");
+    });
+    renderButton("Load", false, [this]() {
+        SaveManager::loadGame("");
     });
 }
 

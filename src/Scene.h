@@ -1,14 +1,18 @@
 #pragma once
 
-#include <string>
+#include "pch.h"
 
 class Scene {
 public:
-    std::string name;
+    Scene(std::string name) : m_name(std::move(name)) {}
+    virtual ~Scene() {}
 
-    virtual void start();
-    virtual void preUpdate();
-    virtual void update();
-    virtual void postUpdate();
-    virtual void stop();
+    std::string m_name;
+
+    virtual void start() = 0;
+    virtual void preUpdate() = 0;
+    virtual void update() = 0;
+    virtual void postUpdate() = 0;
+    virtual void render(double step) = 0;
+    virtual void stop() = 0;
 };

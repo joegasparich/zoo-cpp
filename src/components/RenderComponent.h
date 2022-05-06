@@ -1,11 +1,11 @@
 #pragma once
 
-#include <memory>
 #include <SDL2/SDL.h>
+#include "pch.h"
 
 #include "Component.h"
-#include "../renderer/Texture.h"
-#include "../util/util.h"
+#include "renderer/Texture.h"
+#include "util/util.h"
 
 class RenderComponent : public Component {
 public:

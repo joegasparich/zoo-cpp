@@ -1,6 +1,6 @@
 #pragma once
 
-#include <memory>
+#include "pch.h"
 
 #include "Tool.h"
 #include "ToolGhost.h"

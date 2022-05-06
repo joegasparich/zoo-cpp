@@ -1,10 +1,10 @@
 #pragma once
 
-#include "../lib/imgui/imgui.h"
+#include "lib/imgui/imgui.h"
 
 #include "UIComponent.h"
-#include "../tools/ToolManager.h"
-#include "../tools/ElevationTool.h"
+#include "tools/ToolManager.h"
+#include "tools/ElevationTool.h"
 
 class ElevationPanel : public UIComponent {
 public:

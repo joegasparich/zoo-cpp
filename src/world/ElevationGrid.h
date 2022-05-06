@@ -1,13 +1,12 @@
 #pragma once
 
-#include <vector>
-#include "glm/glm.hpp"
+#include "pch.h"
 
-#include "../renderer/Renderer.h"
+#include "renderer/Renderer.h"
 
 #define ELEVATION_HEIGHT 0.5f
 
-enum class Elevation {
+enum class Elevation : int {
     Water = -1,
     Flat = 0,
     Hill = 1
@@ -47,6 +46,8 @@ public:
     bool isPositionSlopeCorner(glm::vec2 pos);
     bool isPositionInGrid(glm::vec2 pos) const;
 
+    json save();
+    void load(json saveData);
 private:
     unsigned int m_rows;
     unsigned int m_cols;

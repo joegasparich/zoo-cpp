@@ -3,11 +3,9 @@
 #include <GL/glew.h>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_opengl.h>
-#include <cassert>
-#include <iostream>
+#include "pch.h"
 
-#include "glm/glm.hpp"
-#include "glm/gtc/matrix_transform.hpp"
+#include <cassert>
 
 #include "VertexArray.h"
 #include "IndexBuffer.h"

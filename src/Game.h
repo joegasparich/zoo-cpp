@@ -1,9 +1,5 @@
 #pragma once
 
-#include <memory>
-#include <string>
-#include <iostream>
-
 #include <SDL2/SDL.h>
 
 #include "Stage.h"
@@ -25,7 +21,6 @@ public:
 
     void run();
 
-    std::unique_ptr<Stage> m_stage;
     std::unique_ptr<InputManager> m_input;
 
 private:

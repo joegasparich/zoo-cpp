@@ -1,6 +1,4 @@
 #include <GL/glew.h>
-#include <iostream>
-
 #include "VertexBuffer.h"
 #include "Renderer.h"
 

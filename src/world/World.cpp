@@ -21,3 +21,15 @@ void World::render() {
     m_biomeGrid->render();
     m_elevationGrid->render();
 }
+
+json World::save() {
+    return json{
+        {"elevation", m_elevationGrid->save()},
+        {"biome", m_biomeGrid->save()}
+    };
+}
+
+void World::load(json saveData) {
+    m_elevationGrid->load(saveData["elevation"]);
+    m_biomeGrid->load(saveData["biome"]);
+}

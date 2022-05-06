@@ -1,5 +1,5 @@
 #include "Renderer.h"
-#include "../constants/world.h"
+#include "constants/world.h"
 
 void glClearError() {
     while (glGetError() != GL_NO_ERROR);

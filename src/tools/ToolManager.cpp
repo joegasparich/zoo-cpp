@@ -1,9 +1,9 @@
 #include "ToolManager.h"
 #include "BiomeTool.h"
 #include "NoTool.h"
-#include "../Game.h"
-#include "../ui/Toolbar.h"
-#include "../ui/UIManager.h"
+#include "Game.h"
+#include "ui/Toolbar.h"
+#include "ui/UIManager.h"
 #include "ElevationTool.h"
 
 ToolManager::ToolManager() :

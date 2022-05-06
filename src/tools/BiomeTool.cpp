@@ -1,8 +1,9 @@
 #include "BiomeTool.h"
 #include "ToolManager.h"
-#include "../Game.h"
-#include "../ui/BiomePanel.h"
-#include "../ui/UIManager.h"
+#include "Game.h"
+#include "ui/BiomePanel.h"
+#include "ui/UIManager.h"
+#include "Zoo.h"
 
 BiomeTool::BiomeTool(ToolManager &toolManager) : Tool(toolManager) {}
 BiomeTool::~BiomeTool() = default;
@@ -19,10 +20,9 @@ void BiomeTool::unset() {
 
 void BiomeTool::update() {
     auto& input = Game::get().m_input;
-    auto& biomeGrid = Game::get().m_stage->m_world->m_biomeGrid;
 
     if (input->isMouseButtonHeld(SDL_BUTTON_LEFT)) {
-        biomeGrid->setBiomeInRadius(Renderer::screenToWorldPos(input->getMousePos()), 0.69f, m_currentBiome);
+        Zoo::zoo->m_world->m_biomeGrid->setBiomeInRadius(Renderer::screenToWorldPos(input->getMousePos()), 0.69f, m_currentBiome);
     }
 }
 

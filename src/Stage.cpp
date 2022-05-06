@@ -1,7 +1,4 @@
 #include "Stage.h"
-#include "Entity.h"
-#include "components/RenderComponent.h"
-#include "AssetManager.h"
 #include "constants/assets.h"
 #include "Game.h"
 #include "renderer/Renderer.h"
@@ -14,7 +11,7 @@
 Stage::Stage() : m_entities{} {
     m_tools = std::make_unique<ToolManager>();
     // Aim for 200
-    m_world = std::make_unique<World>(50, 50);
+    m_world = std::make_unique<World>(10, 10);
 }
 
 void Stage::setup() {
@@ -34,8 +31,6 @@ void Stage::setup() {
 }
 
 void Stage::update() {
-    preUpdate();
-
     m_tools->update();
     m_world->update();
 
@@ -56,8 +51,6 @@ void Stage::update() {
 
     if (input->isInputHeld("ZOOM_IN")) camera.scale = exp(lerp(log(camera.scale), log(MAX_ZOOM), 0.01));
     if (input->isInputHeld("ZOOM_OUT")) camera.scale = exp(lerp(log(camera.scale), log(MIN_ZOOM), 0.01));
-
-    postUpdate();
 }
 
 void Stage::preUpdate() {
@@ -78,3 +71,5 @@ void Stage::render(double step) const {
         entity->render(step);
     }
 }
+
+void Stage::reset() {}

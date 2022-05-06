@@ -42,10 +42,10 @@ void Toolbar::render() {
         SaveManager::newGame();
     });
     renderButton("Save", false, [this]() {
-        SaveManager::saveGame("");
+        SaveManager::saveGame("save.json");
     });
     renderButton("Load", false, [this]() {
-        SaveManager::loadGame("");
+        SaveManager::loadGame("save.json");
     });
 }
 

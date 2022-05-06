@@ -10,6 +10,8 @@ public:
     ToolManager();
     ~ToolManager();
 
+    void setup();
+    void reset();
     void update();
     void postUpdate();
     void render();
@@ -20,4 +22,5 @@ public:
     std::unique_ptr<ToolGhost> m_ghost;
 private:
     std::unique_ptr<Tool> m_activeTool;
+    std::string m_toolbarHandle;
 };

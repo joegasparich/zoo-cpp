@@ -1,6 +1,5 @@
 #include "UIManager.h"
 #include "renderer/Renderer.h"
-#include "Toolbar.h"
 
 int id = 0;
 
@@ -51,8 +50,10 @@ void UIManager::render() {
     // Remove closed components
     for (auto const& componentId : instance.m_componentsToRemove) {
         std::cout << "Removing component with id: " << componentId << std::endl;
-        instance.m_components.at(componentId)->onClose();
-        instance.m_components.erase(componentId);
+        if (instance.m_components.contains(componentId)) {
+            instance.m_components.at(componentId)->onClose();
+            instance.m_components.erase(componentId);
+        }
     }
     instance.m_componentsToRemove.clear();
 

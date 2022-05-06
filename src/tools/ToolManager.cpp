@@ -6,14 +6,20 @@
 #include "ui/UIManager.h"
 #include "ElevationTool.h"
 
-ToolManager::ToolManager() :
-    m_ghost{std::make_unique<ToolGhost>()} {
-    setTool(ToolType::None);
-    UIManager::createUIComponent(std::make_unique<Toolbar>(this));
+ToolManager::ToolManager() {}
+ToolManager::~ToolManager() {
+    reset();
 }
 
-ToolManager::~ToolManager() {
+void ToolManager::setup() {
+    m_ghost = std::make_unique<ToolGhost>();
     setTool(ToolType::None);
+    m_toolbarHandle = UIManager::createUIComponent(std::make_unique<Toolbar>(this));
+}
+
+void ToolManager::reset() {
+    setTool(ToolType::None);
+    UIManager::closeUIComponent(m_toolbarHandle);
 }
 
 void ToolManager::update() {

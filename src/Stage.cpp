@@ -14,6 +14,10 @@ Stage::Stage() : m_entities{} {
     m_world = std::make_unique<World>(10, 10);
 }
 
+Stage::~Stage() {
+    reset();
+}
+
 void Stage::setup() {
     m_world->setup();
 
@@ -28,6 +32,8 @@ void Stage::setup() {
     for (auto &entity: m_entities) {
         entity->setup();
     }
+
+    m_tools->setup();
 }
 
 void Stage::update() {
@@ -72,4 +78,9 @@ void Stage::render(double step) const {
     }
 }
 
-void Stage::reset() {}
+void Stage::reset() {
+    m_tools->reset();
+    m_world->reset();
+
+    Renderer::resetCamera();
+}

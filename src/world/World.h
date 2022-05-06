@@ -10,6 +10,7 @@ public:
     World(unsigned int width, unsigned int height);
 
     void setup();
+    void reset();
     void update();
     void postUpdate();
     void render();

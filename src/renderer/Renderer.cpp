@@ -157,3 +157,10 @@ bool Renderer::isPositionOnScreen(glm::vec2 worldPos, float margin) {
     return (screenPos.x > -(margin * WORLD_SCALE) && screenPos.x < WINDOW_WIDTH + (margin * WORLD_SCALE)
          && screenPos.y > -(margin * WORLD_SCALE) && screenPos.y < WINDOW_HEIGHT + (margin * WORLD_SCALE));
 }
+
+void Renderer::resetCamera() {
+    auto& camera = Renderer::get().m_camera;
+
+    camera.scale = 1.0f;
+    camera.pos = {0.0f, 0.0f};
+}

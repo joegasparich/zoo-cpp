@@ -49,6 +49,8 @@ public:
     static glm::vec2 worldToScreenPos(glm::vec2 worldPos);
     static bool isPositionOnScreen(glm::vec2 worldPos, float margin = 0);
 
+    static void resetCamera();
+
     Camera m_camera;
     SDL_Window *m_window;
     SDL_GLContext m_glContext;

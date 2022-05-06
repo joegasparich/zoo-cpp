@@ -9,6 +9,11 @@ void World::setup() {
     m_biomeGrid = std::make_unique<BiomeGrid>(m_width * (int)BIOME_SCALE, m_height * (int)BIOME_SCALE);
 }
 
+void World::reset() {
+    m_biomeGrid->reset();
+    m_elevationGrid->reset();
+}
+
 void World::update() {
 
 }

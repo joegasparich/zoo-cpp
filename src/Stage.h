@@ -19,6 +19,8 @@ public:
     void reset();
     void render(double step) const;
 
+    virtual ~Stage();
+
     std::unique_ptr<World> m_world;
     std::unique_ptr<ToolManager> m_tools;
 private:

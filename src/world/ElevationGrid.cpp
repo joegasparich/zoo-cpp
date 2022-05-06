@@ -4,7 +4,7 @@
 #include "../Game.h"
 #include "../Debug.h"
 
-#define WATER_LEVEL 0.2f
+#define WATER_LEVEL 0.1f
 
 ElevationGrid::ElevationGrid(unsigned int rows, unsigned int cols) : m_rows(rows), m_cols(cols) {}
 
@@ -21,8 +21,6 @@ void ElevationGrid::setup() {
         }
     }
 
-    m_grid.at(2).at(2) = Elevation::Water;
-    m_grid.at(3).at(3) = Elevation::Water;
     generateWaterMesh();
 }
 

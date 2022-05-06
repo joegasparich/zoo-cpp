@@ -150,3 +150,10 @@ glm::vec2 Renderer::worldToScreenPos(glm::vec2 worldPos) {
 
     return (worldPos - camera.pos) * (camera.scale * WORLD_SCALE) + glm::vec2{WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2};
 }
+
+bool Renderer::isPositionOnScreen(glm::vec2 worldPos, float margin) {
+    auto screenPos = worldToScreenPos(worldPos);
+
+    return (screenPos.x > -(margin * WORLD_SCALE) && screenPos.x < WINDOW_WIDTH + (margin * WORLD_SCALE)
+         && screenPos.y > -(margin * WORLD_SCALE) && screenPos.y < WINDOW_HEIGHT + (margin * WORLD_SCALE));
+}

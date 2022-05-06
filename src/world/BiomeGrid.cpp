@@ -98,6 +98,8 @@ void BiomeChunk::generateMesh() {
 };
 
 void BiomeChunk::render() {
+    if (!Renderer::isPositionOnScreen({m_x / BIOME_SCALE, m_y / BIOME_SCALE}, CHUNK_SIZE)) return;
+
     m_va->addBuffer(*m_vb, *m_layout);
     m_va->bind();
     m_shader->bind();

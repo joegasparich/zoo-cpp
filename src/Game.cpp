@@ -40,6 +40,7 @@ void Game::init() {
     m_input = std::make_unique<InputManager>();
 
     AssetManager::loadAssets();
+    AssetManager::loadWalls();
 
     // TODO: Move to consts file
     m_input->registerInput({"Up", {SDL_SCANCODE_UP}});

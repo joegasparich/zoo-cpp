@@ -27,7 +27,7 @@ Texture::Texture(const std::string &path)
         GL_CALL(glBindTexture(GL_TEXTURE_2D, 0));
         stbi_image_free(m_localBuffer);
     } else {
-        std::cout << "\nError: Failed to load texture" << std::endl;
+        std::cout << "\nError: Failed to load texture " << path << std::endl;
         std::cout << stbi_failure_reason() << std::endl;
     }
 }

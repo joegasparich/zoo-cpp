@@ -69,6 +69,7 @@ void Game::doLoop() {
         pollEvents();
 
         while (lag >= MS_PER_UPDATE) {
+            Debug::preUpdate();
             SceneManager::getCurrentScene()->preUpdate();
             SceneManager::getCurrentScene()->update();
             SceneManager::getCurrentScene()->postUpdate();

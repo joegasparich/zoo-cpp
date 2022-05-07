@@ -43,7 +43,7 @@ void ElevationGrid::render() {
     auto mvp = Renderer::getMVPMatrix(glm::vec3(0.0f), 0.0f, DEPTH::WATER, glm::vec3(1.0f), true);
     m_shader->setUniformMat4f("u_MVP", mvp);
 
-    GL_CALL(glDrawElements(GL_TRIANGLE_FAN, m_numIndices, GL_UNSIGNED_INT, nullptr));
+    Renderer::draw(GL_TRIANGLE_FAN, m_numIndices, GL_UNSIGNED_INT, nullptr);
 }
 
 void ElevationGrid::renderDebug() {

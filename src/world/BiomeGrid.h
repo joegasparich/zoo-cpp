@@ -2,6 +2,7 @@
 
 #include "pch.h"
 
+#include "common.h"
 #include "renderer/Renderer.h"
 
 #define CHUNK_SIZE 5
@@ -12,13 +13,6 @@ enum class Biome {
     Grass,
     Sand,
     Snow
-};
-
-enum class Side {
-    North = 0,
-    East = 1,
-    South = 2,
-    West = 3
 };
 
 struct BiomeInfo {

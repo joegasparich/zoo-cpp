@@ -1,5 +1,6 @@
 #include <constants/depth.h>
 #include "Debug.h"
+#include "ui/UIManager.h"
 
 Debug::Debug() = default;
 Debug::~Debug() = default;
@@ -21,6 +22,17 @@ void Debug::setup() {
     debug.m_lineVb = std::make_unique<VertexBuffer>(lineVertices, sizeof(float) * 2 * 2);
     debug.m_va->addBuffer(*debug.m_lineVb, *debug.m_basicLayout);
     debug.m_lineIb = std::make_unique<IndexBuffer>(lineIndices, 2);
+
+    auto component = std::make_unique<DebugInfo>();
+    debug.m_debugInfo = component.get();
+    UIManager::createUIComponent(std::move(component));
+}
+
+void Debug::preUpdate() {
+}
+
+void Debug::addDebugInfo(std::string info) {
+    Debug::get().m_debugInfo->m_text += info + "\n";
 }
 
 void Debug::drawLine(glm::vec2 start, glm::vec2 end, glm::vec4 color, bool inWorldPos) {
@@ -42,5 +54,5 @@ void Debug::drawLine(glm::vec2 start, glm::vec2 end, glm::vec4 color, bool inWor
     debug.m_basicShader->setUniform4f("u_Color", color);
     debug.m_basicShader->setUniformMat4f("u_MVP", mvp);
 
-    GL_CALL(glDrawElements(GL_LINES, 2, GL_UNSIGNED_INT, nullptr));
+    Renderer::draw(GL_LINES, 2, GL_UNSIGNED_INT, nullptr);
 }

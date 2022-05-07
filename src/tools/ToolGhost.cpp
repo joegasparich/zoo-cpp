@@ -71,7 +71,7 @@ void ToolGhost::renderCircle() {
         auto colour = glm::vec4{GHOST_COLOUR, 1.0f};
         m_basicShader->setUniform4f("u_Color", colour);
 
-        GL_CALL(glDrawElements(GL_LINE_LOOP, indexList.size(), GL_UNSIGNED_INT, nullptr));
+        Renderer::draw(GL_LINE_LOOP, indexList.size(), GL_UNSIGNED_INT, nullptr);
     }
     // Draw Fill
     {
@@ -85,7 +85,7 @@ void ToolGhost::renderCircle() {
         auto colour = glm::vec4{GHOST_COLOUR, 0.5f};
         m_basicShader->setUniform4f("u_Color", colour);
 
-        GL_CALL(glDrawElements(GL_TRIANGLE_FAN, indexList.size(), GL_UNSIGNED_INT, nullptr));
+        Renderer::draw(GL_TRIANGLE_FAN, indexList.size(), GL_UNSIGNED_INT, nullptr);
     }
 }
 

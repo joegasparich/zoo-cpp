@@ -1,5 +1,6 @@
 #pragma once
 
+#include <ui/DebugInfo.h>
 #include "glm/glm.hpp"
 #include "pch.h"
 
@@ -13,6 +14,9 @@ public:
     }
 
     static void setup();
+    static void preUpdate();
+    static void addDebugInfo(std::string info);
+
     static void drawLine(glm::vec2 start, glm::vec2 end, glm::vec4 color, bool inWorldPos);
 private:
     Debug();
@@ -23,4 +27,6 @@ private:
     std::unique_ptr<IndexBuffer> m_lineIb;
     std::unique_ptr<VertexBufferLayout> m_basicLayout;
     std::unique_ptr<Shader> m_basicShader;
+
+    DebugInfo* m_debugInfo;
 };

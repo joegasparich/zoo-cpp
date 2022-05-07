@@ -1,5 +1,6 @@
 #include <constants/depth.h>
 #include "Renderer.h"
+#include "Debug.h"
 #include "constants/world.h"
 
 void glClearError() {
@@ -88,6 +89,9 @@ void Renderer::setupBlit() {
 
 void Renderer::doRender() {
     SDL_GL_SwapWindow(Renderer::get().m_window);
+
+    Debug::addDebugInfo("Draw Calls: " + std::to_string(Renderer::get().m_drawCallCount));
+    Renderer::get().m_drawCallCount = 0;
 }
 
 void Renderer::clear() {
@@ -111,7 +115,12 @@ void Renderer::blit(Texture &texture, glm::vec2 pos, float w, float h, bool isWo
     renderer.m_blitShader->setUniformMat4f("u_MVP", mvp);
     renderer.m_blitShader->setUniform1i("u_Texture", 0);
 
-    GL_CALL(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr));
+    Renderer::draw(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
+}
+
+void Renderer::draw(GLenum mode, unsigned int count, GLenum type, const void *indices) {
+    GL_CALL(glDrawElements(mode, count, type, indices));
+    Renderer::get().m_drawCallCount++;
 }
 
 glm::mat4 Renderer::getMVPMatrix(glm::vec2 pos, float rotation, float depth, glm::vec2 scale, bool isWorldPos) {

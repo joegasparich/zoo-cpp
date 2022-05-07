@@ -1,4 +1,4 @@
-#include "lib/stb_image/stb_image.h"
+#include "stb_image/stb_image.h"
 
 #include "Renderer.h"
 #include "Texture.h"

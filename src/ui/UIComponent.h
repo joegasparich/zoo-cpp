@@ -21,4 +21,5 @@ protected:
     bool m_isDraggable = true;
     bool m_isResizeable = true;
     bool m_isScrollable = true;
+    bool m_showBackground = true;
 };

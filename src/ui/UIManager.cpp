@@ -84,7 +84,8 @@ std::string UIManager::createUIComponent(std::unique_ptr<UIComponent> component)
 void UIManager::closeUIComponent(const std::string& componentId) {
     auto& instance = UIManager::get();
 
-    instance.m_components.at(componentId)->m_externallyClosed = true;
-
-    instance.m_componentsToRemove.push_back(componentId);
+    if (instance.m_components.contains(componentId)) {
+        instance.m_components.at(componentId)->m_externallyClosed = true;
+        instance.m_componentsToRemove.push_back(componentId);
+    }
 }

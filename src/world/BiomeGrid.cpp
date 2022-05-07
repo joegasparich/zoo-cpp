@@ -130,7 +130,7 @@ void BiomeChunk::render() {
     auto mvp = Renderer::getMVPMatrix(glm::vec3((float)m_x / BIOME_SCALE, (float)m_y / BIOME_SCALE, 0), 0.0f, DEPTH::BIOME, glm::vec3(1.0f / BIOME_SCALE), true);
     m_shader->setUniformMat4f("u_MVP", mvp);
 
-    GL_CALL(glDrawElements(GL_TRIANGLES, m_cols * m_rows * 12, GL_UNSIGNED_INT, nullptr));
+    Renderer::draw(GL_TRIANGLES, m_cols * m_rows * 12, GL_UNSIGNED_INT, nullptr);
 }
 
 void BiomeChunk::setBiomeInRadius(glm::vec2 pos, float radius, Biome biome) {

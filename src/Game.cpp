@@ -101,13 +101,15 @@ void Game::pollEvents() {
                 m_input->dispatchMouseDown(event.button);
                 break;
             case SDL_MOUSEBUTTONUP:
-                if (mouseOverUI) break;
+//                if (mouseOverUI) break;
                 m_input->dispatchMouseUp(event.button);
                 break;
             case SDL_MOUSEMOTION:
                 if (mouseOverUI) break;
                 m_input->dispatchMouseMove(event.motion);
                 break;
+            case SDL_MOUSEWHEEL:
+                m_input->dispatchMouseScroll(event.wheel);
             default:
                 break;
         }

@@ -3,61 +3,65 @@
 #include "Mediator.h"
 
 InputManager::InputManager() :
-        keysHeld{},
-        keysDown{},
-        keysUp{},
-        inputsHeld{},
-        inputsDown{},
-        inputsUp{}
+        m_keysHeld{},
+        m_keysDown{},
+        m_keysUp{},
+        m_inputsHeld{},
+        m_inputsDown{},
+        m_inputsUp{}
 {}
 
 bool InputManager::isKeyDown(int key) const {
-    return keysDown[key];
+    return m_keysDown[key];
 }
 
 bool InputManager::isKeyHeld(int key) const {
-    return keysHeld[key];
+    return m_keysHeld[key];
 }
 
 bool InputManager::isKeyUp(int key) const {
-    return keysUp[key];
+    return m_keysUp[key];
 }
 
 bool InputManager::isMouseButtonDown(char button) const {
-    return mouseButtonsDown[button];
+    return m_mouseButtonsDown[button];
 }
 
 bool InputManager::isMouseButtonHeld(char button) const {
-    return mouseButtonsHeld[button];
+    return m_mouseButtonsHeld[button];
 }
 
 bool InputManager::isMouseButtonUp(char button) const {
-    return mouseButtonsUp[button];
+    return m_mouseButtonsUp[button];
 }
 
 bool InputManager::isInputDown(std::string inputName) const {
-    return contains_if(inputsDown, [inputName](Input* input) { return input->name == inputName; });
+    return contains_if(m_inputsDown, [inputName](Input* input) { return input->name == inputName; });
 }
 
 bool InputManager::isInputHeld(std::string inputName) const {
-    return contains_if(inputsHeld, [inputName](Input* input) { return input->name == inputName; });
+    return contains_if(m_inputsHeld, [inputName](Input* input) { return input->name == inputName; });
 }
 
 bool InputManager::isInputUp(std::string inputName) const {
-    return contains_if(inputsUp, [inputName](Input* input) { return input->name == inputName; });
+    return contains_if(m_inputsUp, [inputName](Input* input) { return input->name == inputName; });
 }
 
-glm::vec2& InputManager::getMousePos() {
-    return mousePos;
+const glm::vec2& InputManager::getMousePos() {
+    return m_mousePos;
+}
+
+const int InputManager::getMouseScroll() {
+    return m_scrollAmount;
 }
 
 void InputManager::registerInput(Input input) {
     for (auto key : input.keys) {
-        if (registeredInputs.contains(key)) {
+        if (m_registeredInputs.contains(key)) {
             std::cout << "Key: " << key << " already registered to " << input.name << std::endl;
             return;
         }
-        registeredInputs.insert({key, input});
+        m_registeredInputs.insert({key, input});
     }
 }
 
@@ -67,16 +71,16 @@ void InputManager::dispatchKeyDown(SDL_KeyboardEvent& event) {
 
     auto key = event.keysym.scancode;
 
-    keysHeld[key] = true;
-    keysDown[key] = true;
+    m_keysHeld[key] = true;
+    m_keysDown[key] = true;
 
     Mediator::fire(EventType::KeyPressed, SDL_GetKeyName(event.keysym.sym));
 
-    if (registeredInputs.contains(key)) {
-        auto& input{ registeredInputs.at(key) };
+    if (m_registeredInputs.contains(key)) {
+        auto& input{m_registeredInputs.at(key) };
 
-        inputsHeld.insert(&input);
-        inputsDown.insert(&input);
+        m_inputsHeld.insert(&input);
+        m_inputsDown.insert(&input);
 
 //        Mediator::fire(EventType::InputPressed);
     }
@@ -88,14 +92,14 @@ void InputManager::dispatchKeyUp(SDL_KeyboardEvent& event) {
 
     auto key = event.keysym.scancode;
 
-    keysHeld[key] = false;
-    keysUp[key] = true;
+    m_keysHeld[key] = false;
+    m_keysUp[key] = true;
 
-    if (registeredInputs.contains(key)) {
-        Input& input{ registeredInputs.at(key) };
+    if (m_registeredInputs.contains(key)) {
+        Input& input{m_registeredInputs.at(key) };
 
-        inputsHeld.erase(&input);
-        inputsUp.insert(&input);
+        m_inputsHeld.erase(&input);
+        m_inputsUp.insert(&input);
     }
 }
 
@@ -104,8 +108,8 @@ void InputManager::dispatchMouseDown(SDL_MouseButtonEvent &event) {
 
     auto button = event.button;
 
-    mouseButtonsHeld[button] = true;
-    mouseButtonsDown[button] = true;
+    m_mouseButtonsHeld[button] = true;
+    m_mouseButtonsDown[button] = true;
 
     // Fire mediator
 
@@ -117,24 +121,30 @@ void InputManager::dispatchMouseUp(SDL_MouseButtonEvent &event) {
 
     auto button = event.button;
 
-    mouseButtonsHeld[button] = false;
-    mouseButtonsUp[button] = true;
+    m_mouseButtonsHeld[button] = false;
+    m_mouseButtonsUp[button] = true;
 
     // Update inputs
 }
 
 void InputManager::dispatchMouseMove(SDL_MouseMotionEvent &event) {
-    mousePos.x = (float)event.x;
-    mousePos.y = (float)event.y;
+    m_mousePos.x = (float)event.x;
+    m_mousePos.y = (float)event.y;
+}
+
+void InputManager::dispatchMouseScroll(SDL_MouseWheelEvent &event) {
+    m_scrollAmount = event.y;
 }
 
 void InputManager::clearKeys() {
-    std::fill( std::begin( keysDown ), std::end( keysDown ), false );
-    std::fill( std::begin( keysUp ), std::end( keysUp ), false );
+    std::fill(std::begin(m_keysDown ), std::end(m_keysDown ), false );
+    std::fill(std::begin(m_keysUp ), std::end(m_keysUp ), false );
 
-    std::fill( std::begin( mouseButtonsDown ), std::end( mouseButtonsDown ), false );
-    std::fill( std::begin( mouseButtonsUp ), std::end( mouseButtonsUp ), false );
+    std::fill(std::begin(m_mouseButtonsDown ), std::end(m_mouseButtonsDown ), false );
+    std::fill(std::begin(m_mouseButtonsUp ), std::end(m_mouseButtonsUp ), false );
 
-    inputsDown.clear();
-    inputsUp.clear();
+    m_inputsDown.clear();
+    m_inputsUp.clear();
+
+    m_scrollAmount = 0;
 }

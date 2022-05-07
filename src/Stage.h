@@ -25,4 +25,7 @@ public:
     std::unique_ptr<ToolManager> m_tools;
 private:
     std::vector<std::unique_ptr<Entity>> m_entities;
+
+    glm::vec2 m_dragStart;
+    glm::vec2 m_dragCameraOrigin;
 };

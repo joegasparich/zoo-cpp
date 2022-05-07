@@ -27,6 +27,7 @@ void Debug::drawLine(glm::vec2 start, glm::vec2 end, glm::vec4 color, bool inWor
     auto& debug = Debug::get();
     auto& renderer = Renderer::get();
 
+    // TODO: atan2 is slow as, should try figure out a different way to rotate the line
     auto rotation = std::atan2(end.y - start.y, end.x - start.x);
     auto length = glm::distance(start, end);
 

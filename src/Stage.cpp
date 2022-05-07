@@ -1,4 +1,5 @@
 #include <components/RenderComponent.h>
+#include <constants/world.h>
 #include "Stage.h"
 #include "constants/assets.h"
 #include "Game.h"
@@ -6,8 +7,8 @@
 #include "util/math.h"
 #include "AssetManager.h"
 
-#define MIN_ZOOM 0.5
-#define MAX_ZOOM 10
+#define MIN_ZOOM 0.5f
+#define MAX_ZOOM 10.0f
 #define CAMERA_SPEED 0.1f
 
 Stage::Stage() : m_entities{} {
@@ -36,6 +37,11 @@ void Stage::setup() {
     }
 
     m_tools->setup();
+
+    auto &input = Game::get().m_input;
+    auto &camera = Renderer::get().m_camera;
+    m_dragStart = input->getMousePos();
+    m_dragCameraOrigin = camera.pos;
 }
 
 void Stage::update() {
@@ -46,8 +52,8 @@ void Stage::update() {
         entity->update();
     }
 
-    // Camera movement
     // TODO: Refactor this out somewhere
+    // Camera movement
     auto &input = Game::get().m_input;
     auto &camera = Renderer::get().m_camera;
 
@@ -57,8 +63,33 @@ void Stage::update() {
     camera.pos.x += inputHorizontal * CAMERA_SPEED / camera.scale;
     camera.pos.y += inputVertical * CAMERA_SPEED / camera.scale;
 
+    if (input->isMouseButtonDown(SDL_BUTTON_MIDDLE)) {
+        m_dragStart = input->getMousePos();
+        m_dragCameraOrigin = camera.pos;
+    }
+    if (input->isMouseButtonHeld(SDL_BUTTON_MIDDLE)) {
+//        auto a = m_dragStart - input->getMousePos();
+//        auto b = m_dragCameraOrigin - camera.pos;
+
+        camera.pos = m_dragCameraOrigin + (m_dragStart - input->getMousePos()) / (camera.scale * WORLD_SCALE);
+//        std::cout << a.x << ", " << a.y << " | " << b.x << ", " << b.y << std::endl;
+    }
+
+    // Camera zoom
     if (input->isInputHeld("ZOOM_IN")) camera.scale = exp(lerp(log(camera.scale), log(MAX_ZOOM), 0.01));
     if (input->isInputHeld("ZOOM_OUT")) camera.scale = exp(lerp(log(camera.scale), log(MIN_ZOOM), 0.01));
+
+    auto scroll = input->getMouseScroll();
+    while (scroll != 0) {
+        auto dir = glm::sign(scroll);
+        auto mouseWorldPos = Renderer::screenToWorldPos(input->getMousePos());
+        auto oldScale = camera.scale;
+        camera.scale = glm::clamp(camera.scale + ((float)dir * log(camera.scale + 1) * 0.05f), MIN_ZOOM, MAX_ZOOM);
+        if (camera.scale != oldScale) {
+            camera.pos += (mouseWorldPos - camera.pos) * 0.03f * (float)dir;
+        }
+        scroll -= dir;
+    }
 }
 
 void Stage::preUpdate() {

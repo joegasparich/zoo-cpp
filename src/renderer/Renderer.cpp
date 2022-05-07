@@ -52,7 +52,7 @@ void Renderer::init() {
 
     renderer.setupBlit();
 
-    renderer.m_camera = {{0, 0}, 1};
+    renderer.m_camera = {{0, 0}, 1.0f};
 }
 
 Renderer::~Renderer() {
@@ -159,10 +159,11 @@ glm::vec2 Renderer::worldToScreenPos(glm::vec2 worldPos) {
 }
 
 bool Renderer::isPositionOnScreen(glm::vec2 worldPos, float margin) {
+    auto& camera = Renderer::get().m_camera;
     auto screenPos = worldToScreenPos(worldPos);
 
-    return (screenPos.x > -(margin * WORLD_SCALE) && screenPos.x < WINDOW_WIDTH + (margin * WORLD_SCALE)
-         && screenPos.y > -(margin * WORLD_SCALE) && screenPos.y < WINDOW_HEIGHT + (margin * WORLD_SCALE));
+    return (screenPos.x > -(margin * (camera.scale * WORLD_SCALE)) && screenPos.x < WINDOW_WIDTH + (margin * (camera.scale * WORLD_SCALE))
+         && screenPos.y > -(margin * (camera.scale * WORLD_SCALE)) && screenPos.y < WINDOW_HEIGHT + (margin * (camera.scale * WORLD_SCALE)));
 }
 
 void Renderer::resetCamera() {

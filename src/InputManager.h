@@ -24,7 +24,8 @@ public:
     [[nodiscard]] bool isInputDown(std::string inputName) const;
     [[nodiscard]] bool isInputHeld(std::string inputName) const;
     [[nodiscard]] bool isInputUp(std::string inputName) const;
-    [[nodiscard]] glm::vec2& getMousePos();
+    [[nodiscard]] const glm::vec2& getMousePos();
+    [[nodiscard]] const int getMouseScroll();
     void registerInput(Input input);
 
     void dispatchKeyDown(SDL_KeyboardEvent& event);
@@ -32,22 +33,24 @@ public:
     void dispatchMouseDown(SDL_MouseButtonEvent& event);
     void dispatchMouseUp(SDL_MouseButtonEvent& event);
     void dispatchMouseMove(SDL_MouseMotionEvent& event);
+    void dispatchMouseScroll(SDL_MouseWheelEvent& event);
     void clearKeys();
 
 private:
-    std::map<int, Input> registeredInputs;
+    std::map<int, Input> m_registeredInputs;
 
-    bool keysHeld[MAX_KEYBOARD_KEYS];
-    bool keysDown[MAX_KEYBOARD_KEYS];
-    bool keysUp[MAX_KEYBOARD_KEYS];
+    bool m_keysHeld[MAX_KEYBOARD_KEYS];
+    bool m_keysDown[MAX_KEYBOARD_KEYS];
+    bool m_keysUp[MAX_KEYBOARD_KEYS];
 
-    bool mouseButtonsHeld[MAX_MOUSE_BUTTONS];
-    bool mouseButtonsDown[MAX_MOUSE_BUTTONS];
-    bool mouseButtonsUp[MAX_MOUSE_BUTTONS];
+    bool m_mouseButtonsHeld[MAX_MOUSE_BUTTONS];
+    bool m_mouseButtonsDown[MAX_MOUSE_BUTTONS];
+    bool m_mouseButtonsUp[MAX_MOUSE_BUTTONS];
 
-    glm::vec2 mousePos;
+    glm::vec2 m_mousePos;
+    int m_scrollAmount;
 
-    std::set<Input*> inputsHeld;
-    std::set<Input*> inputsDown;
-    std::set<Input*> inputsUp;
+    std::set<Input*> m_inputsHeld;
+    std::set<Input*> m_inputsDown;
+    std::set<Input*> m_inputsUp;
 };

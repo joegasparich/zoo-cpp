@@ -1,3 +1,4 @@
+#include <constants/depth.h>
 #include "BiomeGrid.h"
 #include "util/math.h"
 #include "Game.h"
@@ -126,7 +127,7 @@ void BiomeChunk::render() {
     m_shader->bind();
     m_ib->bind();
 
-    auto mvp = Renderer::getMVPMatrix(glm::vec3((float)m_x / BIOME_SCALE, (float)m_y / BIOME_SCALE, 0), 0.0f, glm::vec3(1.0f / BIOME_SCALE), true);
+    auto mvp = Renderer::getMVPMatrix(glm::vec3((float)m_x / BIOME_SCALE, (float)m_y / BIOME_SCALE, 0), 0.0f, DEPTH::BIOME, glm::vec3(1.0f / BIOME_SCALE), true);
     m_shader->setUniformMat4f("u_MVP", mvp);
 
     GL_CALL(glDrawElements(GL_TRIANGLES, m_cols * m_rows * 12, GL_UNSIGNED_INT, nullptr));

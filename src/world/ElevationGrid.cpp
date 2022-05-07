@@ -1,7 +1,7 @@
+#include <constants/depth.h>
 #include "ElevationGrid.h"
 #include "constants/world.h"
 #include "util/math.h"
-#include "Game.h"
 #include "Debug.h"
 #include "Zoo.h"
 
@@ -40,7 +40,7 @@ void ElevationGrid::render() {
     m_ib->bind();
     m_shader->bind();
 
-    auto mvp = Renderer::getMVPMatrix(glm::vec3(0.0f), 0.0f, glm::vec3(1.0f), true);
+    auto mvp = Renderer::getMVPMatrix(glm::vec3(0.0f), 0.0f, DEPTH::WATER, glm::vec3(1.0f), true);
     m_shader->setUniformMat4f("u_MVP", mvp);
 
     GL_CALL(glDrawElements(GL_TRIANGLE_FAN, m_numIndices, GL_UNSIGNED_INT, nullptr));

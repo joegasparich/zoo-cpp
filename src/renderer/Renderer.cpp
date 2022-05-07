@@ -1,3 +1,4 @@
+#include <constants/depth.h>
 #include "Renderer.h"
 #include "constants/world.h"
 
@@ -46,6 +47,8 @@ void Renderer::init() {
     GL_CALL(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
     GL_CALL(glEnable(GL_PRIMITIVE_RESTART));
     GL_CALL(glPrimitiveRestartIndex(PRIMITIVE_RESTART));
+    GL_CALL(glEnable(GL_DEPTH_TEST));
+    GL_CALL(glDepthFunc(GL_LESS));
 
     renderer.setupBlit();
 
@@ -88,7 +91,7 @@ void Renderer::doRender() {
 }
 
 void Renderer::clear() {
-    GL_CALL(glClear(GL_COLOR_BUFFER_BIT));
+    GL_CALL(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
 }
 
 void Renderer::blit(Texture &texture, glm::vec2 pos, float w, float h, bool isWorldPos) {
@@ -99,7 +102,11 @@ void Renderer::blit(Texture &texture, glm::vec2 pos, float w, float h, bool isWo
     renderer.m_blitShader->bind();
     texture.bind();
 
-    auto mvp = Renderer::getMVPMatrix(pos, 0.0f, glm::vec3(w, h, 1.0f), isWorldPos);
+    // TODO: Is 10000 fine here? Will the map ever be larger than 10,000 units?
+    auto normalisedYValue = glm::clamp(pos.y / 10000, 0.0f, 1.0f);
+    normalisedYValue /= DEPTH::Y_SORTING_MAX;
+
+    auto mvp = Renderer::getMVPMatrix(pos, 0.0f, normalisedYValue, glm::vec3(w, h, 1.0f), isWorldPos);
 
     renderer.m_blitShader->setUniformMat4f("u_MVP", mvp);
     renderer.m_blitShader->setUniform1i("u_Texture", 0);
@@ -107,7 +114,7 @@ void Renderer::blit(Texture &texture, glm::vec2 pos, float w, float h, bool isWo
     GL_CALL(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr));
 }
 
-glm::mat4 Renderer::getMVPMatrix(glm::vec2 pos, float rotation, glm::vec2 scale, bool isWorldPos) {
+glm::mat4 Renderer::getMVPMatrix(glm::vec2 pos, float rotation, float depth, glm::vec2 scale, bool isWorldPos) {
     auto& renderer = Renderer::get();
 
     // Project to screen window
@@ -132,7 +139,7 @@ glm::mat4 Renderer::getMVPMatrix(glm::vec2 pos, float rotation, glm::vec2 scale,
     view = glm::scale(view,  glm::vec3(1.0f, -1.0f, 1.0f));
     // Model
     auto model = glm::mat4(1.0f);
-    model = glm::translate(model, glm::vec3(pos, 0.0f));
+    model = glm::translate(model, glm::vec3(pos, depth));
     model = glm::rotate(model, rotation, glm::vec3(0.0f, 0.0f, 1.0f));
     model = glm::scale(model, glm::vec3(scale, 1.0f));
 

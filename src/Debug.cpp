@@ -1,3 +1,4 @@
+#include <constants/depth.h>
 #include "Debug.h"
 
 Debug::Debug() = default;
@@ -35,7 +36,7 @@ void Debug::drawLine(glm::vec2 start, glm::vec2 end, glm::vec4 color, bool inWor
 
     debug.m_va->addBuffer(*debug.m_lineVb, *debug.m_basicLayout);
 
-    auto mvp = Renderer::getMVPMatrix(start, rotation, {length, 1.0f}, inWorldPos);
+    auto mvp = Renderer::getMVPMatrix(start, rotation, DEPTH::DEBUG, {length, 1.0f}, inWorldPos);
 
     debug.m_basicShader->setUniform4f("u_Color", color);
     debug.m_basicShader->setUniformMat4f("u_MVP", mvp);

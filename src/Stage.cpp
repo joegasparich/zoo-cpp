@@ -1,8 +1,10 @@
+#include <components/RenderComponent.h>
 #include "Stage.h"
 #include "constants/assets.h"
 #include "Game.h"
 #include "renderer/Renderer.h"
 #include "util/math.h"
+#include "AssetManager.h"
 
 #define MIN_ZOOM 0.5
 #define MAX_ZOOM 10
@@ -21,13 +23,13 @@ Stage::~Stage() {
 void Stage::setup() {
     m_world->setup();
 
-//    auto player{std::make_unique<Entity>(0, 0)};
-//    player->addComponent(std::make_unique<RenderComponent>(AssetManager::getTexture(IMG_SHIP)));
-//    auto player2{std::make_unique<Entity>(2, 2)};
-//    player2->addComponent(std::make_unique<RenderComponent>(AssetManager::getTexture(IMG_SHIP)));
-//
-//    m_entities.push_back(std::move(player));
-//    m_entities.push_back(std::move(player2));
+    auto player{std::make_unique<Entity>(1, 1)};
+    player->addComponent(std::make_unique<RenderComponent>(AssetManager::getTexture(IMG_SHIP)));
+    auto player2{std::make_unique<Entity>(0.9, 0.9)};
+    player2->addComponent(std::make_unique<RenderComponent>(AssetManager::getTexture(IMG_SHIP)));
+
+    m_entities.push_back(std::move(player2));
+    m_entities.push_back(std::move(player));
 
     for (auto &entity: m_entities) {
         entity->setup();

@@ -1,3 +1,4 @@
+#include <constants/depth.h>
 #include "ToolGhost.h"
 #include "Game.h"
 #include "Zoo.h"
@@ -53,7 +54,7 @@ void ToolGhost::renderCircle() {
     auto vb = VertexBuffer(&vertices[0], sizeof(float) * vertices.size() * 2);
     m_circleVa->addBuffer(vb, *m_basicLayout);
 
-    auto mvp = Renderer::getMVPMatrix(mousePos, 0.0f, {1.0f, 1.0f}, true);
+    auto mvp = Renderer::getMVPMatrix(mousePos, 0.0f, DEPTH::OVERLAY, {1.0f, 1.0f}, true);
 
     m_circleVa->bind();
     m_basicShader->bind();

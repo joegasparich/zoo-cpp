@@ -4,6 +4,7 @@
 #include "Zoo.h"
 
 #define GHOST_COLOUR glm::vec3{0.4f, 0.8f, 1.0f}
+#define BLOCKED_COLOUR glm::vec3{1.0f, 0.4f, 0.1f}
 #define CIRCLE_RESOLUTION 16
 
 ToolGhost::ToolGhost() {
@@ -23,7 +24,7 @@ void ToolGhost::reset() {
     m_elevate = false;
     m_visible = true;
     m_texture = nullptr;
-    m_canPlace = [](glm::vec2 pos) { return true; };
+    m_canPlace = true;
 
     m_pos = {0.0f, 0.0f};
     m_scale = {1.0f, 1.0f};
@@ -115,6 +116,6 @@ void ToolGhost::renderTexture() {
 void ToolGhost::renderSubTexture() {
     if (!m_subTexture) return;
 
-    auto colour = GHOST_COLOUR;
+    auto colour = m_canPlace ? GHOST_COLOUR : BLOCKED_COLOUR;
     Renderer::blit({nullptr, m_pos + m_offset, m_scale, true, m_subTexture.get(), &colour, DEPTH::UI});
 }

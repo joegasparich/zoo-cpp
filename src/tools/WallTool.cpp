@@ -43,7 +43,9 @@ void WallTool::update() {
 
         while (m_ghosts.size() > 0) {
             auto& ghost = m_ghosts.back();
-            Zoo::zoo->m_world->m_wallGrid->placeWallAtTile(*m_currentWall, glm::floor(ghost->m_pos), m_dragQuadrant);
+            if (ghost->m_canPlace) {
+                Zoo::zoo->m_world->m_wallGrid->placeWallAtTile(*m_currentWall, glm::floor(ghost->m_pos), m_dragQuadrant);
+            }
             m_ghosts.pop_back();
         }
     }
@@ -68,7 +70,6 @@ void WallTool::update() {
             );
             ghost->m_offset = m_toolManager.m_ghost->m_offset;
             ghost->m_scale = m_toolManager.m_ghost->m_scale;
-//            ghost.canPlaceFunction = this.canPlace.bind(this);
             m_ghosts.push_back(std::move(ghost));
         }
 
@@ -92,7 +93,7 @@ void WallTool::update() {
     } else {
         m_toolManager.m_ghost->m_visible = true;
 
-        updateGhostSprite(*m_toolManager.m_ghost, mousePos, mouseQuadrant);
+        updateGhostSprite(*m_toolManager.m_ghost, glm::floor(mousePos), mouseQuadrant);
     }
 }
 
@@ -106,8 +107,19 @@ void WallTool::render() {
 
 void WallTool::updateGhostSprite(ToolGhost& ghost, glm::ivec2 tilePos, Side quadrant) {
     auto wall = Zoo::zoo->m_world->m_wallGrid->getWallAtTile(tilePos, quadrant);
+    auto& elevationGrid = Zoo::zoo->m_world->m_elevationGrid;
 
-    if (!wall) return;
+    if (!wall) {
+        ghost.m_visible = false;
+        return;
+    }
+    ghost.m_visible = true;
+
+    ghost.m_canPlace = true;
+    if (wall->exists) ghost.m_canPlace = false;
+    auto [v1, v2] = Zoo::zoo->m_world->m_wallGrid->getWallVertices(*wall);
+    if (elevationGrid->getElevationAtPos(v1) < 0) ghost.m_canPlace = false;
+    if (elevationGrid->getElevationAtPos(v2) < 0) ghost.m_canPlace = false;
 
     auto [spriteIndex, elevation] = WallGrid::getSpriteInfo(*wall);
 

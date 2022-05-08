@@ -234,10 +234,10 @@ Wall* WallGrid::getWallAtTile(glm::ivec2 tilePos, Side side) {
         } else if (Zoo::zoo->m_world->isPositionInMap(tilePos + glm::ivec2(0, -1)) && side == Side::North) {
             tilePos = tilePos + glm::ivec2(0, -1);
             side = Side::South;
-        } else if (Zoo::zoo->m_world->isPositionInMap(tilePos + glm::ivec2(-1, 0)) && side == Side::East) {
+        } else if (Zoo::zoo->m_world->isPositionInMap(tilePos + glm::ivec2(1, 0)) && side == Side::East) {
             tilePos = tilePos + glm::ivec2(-1, 0);
             side = Side::West;
-        } else if (Zoo::zoo->m_world->isPositionInMap(tilePos + glm::ivec2(1, 0)) && side == Side::West) {
+        } else if (Zoo::zoo->m_world->isPositionInMap(tilePos + glm::ivec2(-1, 0)) && side == Side::West) {
             tilePos = tilePos + glm::ivec2(1, 0);
             side = Side::East;
         } else {
@@ -273,6 +273,21 @@ std::array<glm::ivec2, 2> WallGrid::getAdjacentTiles(const Wall& wall) {
     }
 
     return adjacentTiles;
+}
+
+std::array<glm::vec2, 2> WallGrid::getWallVertices(const Wall &wall) {
+    switch (wall.orientation) {
+        case Orientation::Horizontal:
+            return {
+                glm::vec2{wall.worldPos.x - 0.5f, wall.worldPos.y},
+                glm::vec2{wall.worldPos.x + 0.5f, wall.worldPos.y}
+            };
+        case Orientation::Vertical:
+            return {
+                glm::vec2{wall.worldPos.x, wall.worldPos.y - 0.5f},
+                glm::vec2{wall.worldPos.x, wall.worldPos.y + 0.5f}
+            };
+    }
 }
 
 glm::vec2 WallGrid::wallToWorldPosition(glm::ivec2 gridPos, Orientation orientation) {

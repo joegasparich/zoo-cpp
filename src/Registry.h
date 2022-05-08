@@ -15,6 +15,7 @@ public:
     static void registerWall(std::string assetPath, WallData data);
 
     static WallData getWall(std::string assetPath);
+    static std::vector<WallData> getAllWalls();
 private:
     static std::map<std::string, WallData> m_wallRegistry;
 };

@@ -11,3 +11,14 @@ void Registry::registerWall(std::string assetPath, WallData data) {
 WallData Registry::getWall(std::string assetPath) {
     return m_wallRegistry.at(assetPath);
 }
+
+std::vector<WallData> Registry::getAllWalls() {
+    std::vector<WallData> walls;
+    walls.reserve(m_wallRegistry.size());
+
+    for (auto const& wallPair : m_wallRegistry) {
+        walls.push_back(wallPair.second);
+    }
+
+    return walls;
+}

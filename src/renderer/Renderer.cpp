@@ -106,11 +106,8 @@ void Renderer::blit(Texture &texture, glm::vec2 pos, float w, float h, bool isWo
     renderer.m_blitShader->bind();
     texture.bind();
 
-    // TODO: Is 10000 fine here? Will the map ever be larger than 10,000 units?
-    auto normalisedYValue = glm::clamp(pos.y / 10000, 0.0f, 1.0f);
-    normalisedYValue /= DEPTH::Y_SORTING_MAX;
-
-    auto mvp = Renderer::getMVPMatrix(pos, 0.0f, normalisedYValue, glm::vec3(w, h, 1.0f), isWorldPos);
+    // TODO: instead of h/2 have an origin point?
+    auto mvp = Renderer::getMVPMatrix(pos, 0.0f, getDepth(pos.y + h/2), glm::vec3(w, h, 1.0f), isWorldPos);
 
     renderer.m_blitShader->setUniformMat4f("u_MVP", mvp);
     renderer.m_blitShader->setUniform1i("u_Texture", 0);
@@ -153,6 +150,11 @@ glm::mat4 Renderer::getMVPMatrix(glm::vec2 pos, float rotation, float depth, glm
     model = glm::scale(model, glm::vec3(scale, 1.0f));
 
     return proj * view * model;
+}
+
+float Renderer::getDepth(float yPos) {
+    // TODO: Is 10000 fine here? Will the map ever be larger than 10,000 units?
+    return glm::clamp(yPos / 10000, 0.0f, 1.0f) / DEPTH::Y_SORTING_MAX;
 }
 
 glm::vec2 Renderer::screenToWorldPos(glm::vec2 screenPos) {

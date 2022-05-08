@@ -1,3 +1,5 @@
+#include "pch.h"
+
 #include "InputManager.h"
 #include "util/util.h"
 #include "Mediator.h"
@@ -8,7 +10,10 @@ InputManager::InputManager() :
         m_keysUp{},
         m_inputsHeld{},
         m_inputsDown{},
-        m_inputsUp{}
+        m_inputsUp{},
+        m_mouseButtonsHeld{},
+        m_mouseButtonsDown{},
+        m_mouseButtonsUp{}
 {}
 
 bool InputManager::isKeyDown(int key) const {

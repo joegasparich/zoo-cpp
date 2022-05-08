@@ -2,21 +2,19 @@
 #include "Registry.h"
 #include "constants/assets.h"
 
-AssetManager::AssetManager() : m_textureMap{} {};
+AssetManager::AssetManager() : m_imageMap{} {};
 
-Texture *AssetManager::getTexture(const std::string &key) {
-    return AssetManager::get().m_textureMap[key];
+Image* AssetManager::getImage(const std::string &key) {
+    return get().m_imageMap[key].get();
 }
 
 SpriteSheet *AssetManager::getSpriteSheet(const std::string &key) {
-    return AssetManager::get().m_spriteSheetMap[key];
+    return get().m_spriteSheetMap[key].get();
 }
 
 void AssetManager::loadAssets() {
     for (auto path: assets::images) {
-        // TODO: smart pointer?
-        Texture *texture = new Texture{path};
-        AssetManager::get().m_textureMap.insert({path, texture});
+        get().loadImage(path);
     }
 }
 
@@ -34,8 +32,8 @@ void AssetManager::loadWalls() {
 
         // Map to Wall
         auto imagePath = json["spriteSheet"].get<std::string>();
-        auto texture = new Texture{imagePath};
-        loadSpriteSheet(imagePath, texture, json["cellWidth"].get<int>(),json["cellHeight"].get<int>());
+        auto image = loadImage(imagePath);
+        loadSpriteSheet(imagePath, image, json["cellWidth"].get<int>(),json["cellHeight"].get<int>());
 
         Registry::registerWall(path, {
                 path,
@@ -47,13 +45,24 @@ void AssetManager::loadWalls() {
     }
 }
 
-SpriteSheet* AssetManager::loadSpriteSheet(std::string assetPath, Texture* texture, int cellWidth, int cellHeight) {
-    // TODO: smart pointer?
-    auto spriteSheet = new SpriteSheet{
-         cellWidth,
-         cellHeight,
-         texture
-     };
+Image* AssetManager::loadImage(const std::string &path) {
+    if (!get().m_imageMap.contains(path)) {
+        get().m_imageMap.insert({path, std::make_unique<Image>(path)});
+    }
 
-    AssetManager::get().m_spriteSheetMap.insert({assetPath, spriteSheet});
+    return get().m_imageMap[path].get();
+}
+
+SpriteSheet* AssetManager::loadSpriteSheet(std::string assetPath, Image* image, int cellWidth, int cellHeight) {
+    if (!get().m_spriteSheetMap.contains(assetPath)) {
+        get().m_spriteSheetMap.insert({assetPath, std::make_unique<SpriteSheet>(
+            SpriteSheet{
+                cellWidth,
+                cellHeight,
+                image
+            }
+        )});
+    }
+
+    return get().m_spriteSheetMap[assetPath].get();
 }

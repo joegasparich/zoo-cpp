@@ -22,4 +22,5 @@ protected:
     bool m_isResizeable = true;
     bool m_isScrollable = true;
     bool m_showBackground = true;
+    bool m_ignoreInputs = false;
 };

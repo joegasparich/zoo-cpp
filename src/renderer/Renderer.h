@@ -45,6 +45,7 @@ public:
     static void blit(Texture &texture, glm::vec2 pos, float w, float h, bool isWorldPos);
     static void draw(GLenum mode, unsigned int count, GLenum type, const void *indices);
     static glm::mat4 getMVPMatrix(glm::vec2 pos, float rotation, float depth, glm::vec2 scale, bool isWorldPos);
+    static float getDepth(float yPos);
 
     static glm::vec2 screenToWorldPos(glm::vec2 screenPos);
     static glm::vec2 worldToScreenPos(glm::vec2 worldPos);

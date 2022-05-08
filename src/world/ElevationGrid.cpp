@@ -53,16 +53,16 @@ void ElevationGrid::renderDebug() {
         for (unsigned int j = 0; j < m_rows; j++) {
             if (i < m_cols - 1) {
                 Debug::drawLine(
-                    {i * WORLD_SCALE, (j - (float)(int)m_grid.at(i).at(j) * ELEVATION_HEIGHT) * WORLD_SCALE},
-                    {(i + 1) * WORLD_SCALE, (j - (float)(int)m_grid.at(i + 1).at(j) * ELEVATION_HEIGHT) * WORLD_SCALE},
+                    {i, (j - (float)(int)m_grid.at(i).at(j) * ELEVATION_HEIGHT)},
+                    {(i + 1), (j - (float)(int)m_grid.at(i + 1).at(j) * ELEVATION_HEIGHT)},
                     {1.0f, 1.0f, 1.0f, 1.0f},
                         true
                 );
             }
             if (j < m_rows - 1) {
                 Debug::drawLine(
-                        {i * WORLD_SCALE, (j - (float)(int)m_grid.at(i).at(j) * ELEVATION_HEIGHT) * WORLD_SCALE},
-                        {i * WORLD_SCALE, (j - (float)(int)m_grid.at(i).at(j + 1) * ELEVATION_HEIGHT + 1) * WORLD_SCALE},
+                        {i, (j - (float)(int)m_grid.at(i).at(j) * ELEVATION_HEIGHT)},
+                        {i, (j - (float)(int)m_grid.at(i).at(j + 1) * ELEVATION_HEIGHT + 1)},
                         {1.0f, 1.0f, 1.0f, 1.0f},
                         true
                 );

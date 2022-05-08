@@ -25,12 +25,16 @@ void Stage::setup() {
     m_world->setup();
 
     auto player{std::make_unique<Entity>(1, 1)};
-    player->addComponent(std::make_unique<RenderComponent>(AssetManager::getTexture(IMG_SHIP)));
+    player->addComponent(std::make_unique<RenderComponent>(new Texture(AssetManager::getImage(IMG_SHIP))));
     auto player2{std::make_unique<Entity>(0.9, 0.9)};
-    player2->addComponent(std::make_unique<RenderComponent>(AssetManager::getTexture(IMG_SHIP)));
+    player2->addComponent(std::make_unique<RenderComponent>(new Texture(AssetManager::getImage(IMG_SHIP))));
 
     m_entities.push_back(std::move(player2));
     m_entities.push_back(std::move(player));
+
+    auto ironBarFence = Registry::getWall(WALL_IRON_FENCE);
+    m_world->m_wallGrid->placeWallAtTile(ironBarFence, {2, 2}, Side::North);
+    m_world->m_wallGrid->placeWallAtTile(ironBarFence, {4, 3}, Side::East);
 
     for (auto &entity: m_entities) {
         entity->setup();
@@ -68,11 +72,8 @@ void Stage::update() {
         m_dragCameraOrigin = camera.pos;
     }
     if (input->isMouseButtonHeld(SDL_BUTTON_MIDDLE)) {
-//        auto a = m_dragStart - input->getMousePos();
-//        auto b = m_dragCameraOrigin - camera.pos;
 
         camera.pos = m_dragCameraOrigin + (m_dragStart - input->getMousePos()) / (camera.scale * WORLD_SCALE);
-//        std::cout << a.x << ", " << a.y << " | " << b.x << ", " << b.y << std::endl;
     }
 
     // Camera zoom

@@ -13,7 +13,8 @@ void UIComponent::render() {
             (!m_isResizeable ? ImGuiWindowFlags_NoResize : ImGuiWindowFlags_None) |
             (!m_isDraggable ? ImGuiWindowFlags_NoMove : ImGuiWindowFlags_None) |
             (!m_showBackground ?  ImGuiWindowFlags_NoBackground : ImGuiWindowFlags_None) |
-            (!m_isScrollable ? ImGuiWindowFlags_NoScrollbar : ImGuiWindowFlags_None));
+            (!m_isScrollable ? ImGuiWindowFlags_NoScrollbar : ImGuiWindowFlags_None) |
+            (m_ignoreInputs ? ImGuiWindowFlags_NoInputs : ImGuiWindowFlags_None));
 }
 
 void UIComponent::postRender() {

@@ -1,15 +1,10 @@
 #pragma once
 
-#include "pch.h"
 #include <SDL2/SDL.h>
 
-#include "renderer/Texture.h"
-
-struct SpriteSheet {
-    int cellWidth;
-    int cellHeight;
-    Texture* texture;
-};
+#include "pch.h"
+#include <renderer/Image.h>
+#include <renderer/SpriteSheet.h>
 
 class AssetManager {
 public:
@@ -20,17 +15,18 @@ public:
         return instance;
     }
 
-    static Texture* getTexture(const std::string &key);
+    static Image* getImage(const std::string &key);
     static SpriteSheet* getSpriteSheet(const std::string &key);
 
     static void loadAssets();
     static void loadWalls();
 
-    static SpriteSheet* loadSpriteSheet(std::string assetPath, Texture* texture, int cellWidth, int cellHeight);
+    static Image* loadImage(const std::string& path);
+    static SpriteSheet* loadSpriteSheet(std::string assetPath, Image* image, int cellWidth, int cellHeight);
 
 private:
     AssetManager();
 
-    std::map<std::string, Texture*> m_textureMap;
-    std::map<std::string, SpriteSheet*> m_spriteSheetMap;
+    std::map<std::string, std::unique_ptr<Image>> m_imageMap;
+    std::map<std::string, std::unique_ptr<SpriteSheet>> m_spriteSheetMap;
 };

@@ -8,6 +8,7 @@ DebugInfo::DebugInfo() :
     m_isResizeable = false;
     m_isScrollable = false;
     m_showBackground = false;
+    m_ignoreInputs = true;
 }
 
 DebugInfo::~DebugInfo() = default;

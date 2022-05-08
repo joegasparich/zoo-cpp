@@ -1,4 +1,5 @@
 #include "ElevationTool.h"
+#include "ToolManager.h"
 #include "Game.h"
 #include "ui/ElevationPanel.h"
 #include "ui/UIManager.h"

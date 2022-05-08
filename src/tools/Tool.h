@@ -7,7 +7,8 @@ class ToolManager;
 enum class ToolType {
     None,
     Biome,
-    Elevation
+    Elevation,
+    Wall
 };
 
 class Tool {

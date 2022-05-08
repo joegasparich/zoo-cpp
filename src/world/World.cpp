@@ -1,3 +1,4 @@
+#include <constants/world.h>
 #include "World.h"
 
 World::World(unsigned int width, unsigned int height) : m_width(width), m_height(height) {}
@@ -29,7 +30,6 @@ void World::postUpdate() {
 void World::render() {
     m_biomeGrid->render();
     m_elevationGrid->render();
-//    m_elevationGrid->renderDebug();
     m_wallGrid->render();
 }
 
@@ -50,4 +50,14 @@ void World::load(json saveData) {
     m_elevationGrid->load(saveData["elevation"]);
     m_biomeGrid->load(saveData["biome"]);
     m_wallGrid->load(saveData["wall"]);
+}
+
+Side World::getQuadrantAtPos(glm::vec2 pos) {
+    auto xrel = fmod(pos.x + LARGER_THAN_WORLD, 1) - 0.5f;
+    auto yrel = fmod(pos.y + LARGER_THAN_WORLD, 1) - 0.5f;
+
+    if (yrel <= 0 && abs(yrel) >= abs(xrel)) return Side::North;
+    if (xrel >= 0 && abs(xrel) >= abs(yrel)) return Side::East;
+    if (yrel >= 0 && abs(yrel) >= abs(xrel)) return Side::South;
+    if (xrel <= 0 && abs(xrel) >= abs(yrel)) return Side::West;
 }

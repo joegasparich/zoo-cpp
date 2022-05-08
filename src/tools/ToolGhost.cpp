@@ -23,9 +23,21 @@ void ToolGhost::reset() {
     m_elevate = false;
     m_texture = nullptr;
     m_canPlace = [](glm::vec2 pos) { return true; };
+
+    m_pos = {0.0f, 0.0f};
+    m_scale = {1.0f, 1.0f};
+    m_offset = {0.0f, 0.0f};
 }
 
 void ToolGhost::render() {
+    if (m_follow) {
+        auto& input = Game::get().m_input;
+        m_pos = Renderer::screenToWorldPos(input->getMousePos());
+    }
+    if (m_snap) {
+        m_pos = glm::floor(m_pos);
+    }
+
     switch(m_type) {
         case GhostType::Circle: renderCircle();
         case GhostType::Square: renderSquare();
@@ -36,9 +48,6 @@ void ToolGhost::render() {
 
 void ToolGhost::renderCircle() {
     auto& renderer = Renderer::get();
-    auto& input = Game::get().m_input;
-
-    auto mousePos = Renderer::screenToWorldPos(input->getMousePos());
 
     std::vector<glm::vec2> vertices{};
     vertices.resize(CIRCLE_RESOLUTION);
@@ -47,14 +56,14 @@ void ToolGhost::renderCircle() {
         vertices[n].x = (float)cos(2.0 * M_PI * n / CIRCLE_RESOLUTION);
         vertices[n].y = (float)sin(2.0 * M_PI * n / CIRCLE_RESOLUTION);
 
-        vertices[n].y -= Zoo::zoo->m_world->m_elevationGrid->getElevationAtPos(mousePos + vertices[n]);
+        vertices[n].y -= Zoo::zoo->m_world->m_elevationGrid->getElevationAtPos(m_pos + vertices[n]);
     }
     vertices.insert(vertices.begin(), glm::vec2{0.0f, 0.0f});
 
     auto vb = VertexBuffer(&vertices[0], sizeof(float) * vertices.size() * 2);
     m_circleVa->addBuffer(vb, *m_basicLayout);
 
-    auto mvp = Renderer::getMVPMatrix(mousePos, 0.0f, DEPTH::OVERLAY, {1.0f, 1.0f}, true);
+    auto mvp = Renderer::getMVPMatrix(m_pos, 0.0f, DEPTH::OVERLAY, {1.0f, 1.0f}, true);
 
     m_circleVa->bind();
     m_basicShader->bind();
@@ -94,5 +103,7 @@ void ToolGhost::renderSquare() {
 }
 
 void ToolGhost::renderTexture() {
+    if (!m_texture) return;
 
+    Renderer::blit(*m_texture, m_pos + m_offset, m_scale, true);
 }

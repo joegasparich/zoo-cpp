@@ -38,6 +38,9 @@ void Toolbar::render() {
     renderButton("Elevation", m_toolManager->getActiveTool().getType() == ToolType::Elevation, [this]() {
         m_toolManager->setTool(ToolType::Elevation);
     });
+    renderButton("Wall", m_toolManager->getActiveTool().getType() == ToolType::Wall, [this]() {
+        m_toolManager->setTool(ToolType::Wall);
+    });
     renderButton("New", false, [this]() {
         SaveManager::newGame();
     });
@@ -50,5 +53,4 @@ void Toolbar::render() {
 }
 
 void Toolbar::onOpen() {}
-
 void Toolbar::onClose() {}

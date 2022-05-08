@@ -8,14 +8,11 @@
 class Toolbar : public UIComponent {
 public:
     Toolbar(ToolManager *toolManager);
+    ~Toolbar() override;
+    void onClose() override;
     void render() override;
 
     void onOpen() override;
-
-    void onClose() override;
-
-    ~Toolbar() override;
-
 private:
     ToolManager* m_toolManager;
 };

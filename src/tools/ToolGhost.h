@@ -25,6 +25,10 @@ public:
     bool m_elevate;
     std::unique_ptr<Texture> m_texture;
     std::function<bool(glm::vec2 pos)> m_canPlace;
+    glm::vec2 m_pos;
+    glm::vec2 m_scale;
+    glm::vec2 m_offset;
+
 private:
     void renderCircle();
     void renderSquare();

@@ -5,6 +5,7 @@
 #include "ui/Toolbar.h"
 #include "ui/UIManager.h"
 #include "ElevationTool.h"
+#include "WallTool.h"
 
 ToolManager::ToolManager() {}
 ToolManager::~ToolManager() {
@@ -48,12 +49,16 @@ void ToolManager::setTool(ToolType type) {
         m_ghost->reset();
     }
 
+    // TODO: can we automate this
     switch(type) {
         case ToolType::Biome:
             m_activeTool = std::make_unique<BiomeTool>(*this);
             break;
         case ToolType::Elevation:
             m_activeTool = std::make_unique<ElevationTool>(*this);
+            break;
+        case ToolType::Wall:
+            m_activeTool = std::make_unique<WallTool>(*this);
             break;
         case ToolType::None:
         default:

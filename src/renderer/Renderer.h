@@ -42,7 +42,7 @@ public:
     static void init();
     static void doRender();
     static void clear();
-    static void blit(Texture &texture, glm::vec2 pos, float w, float h, bool isWorldPos);
+    static void blit(Texture &texture, glm::vec2 pos, glm::vec2 scale, bool isWorldPos);
     static void draw(GLenum mode, unsigned int count, GLenum type, const void *indices);
     static glm::mat4 getMVPMatrix(glm::vec2 pos, float rotation, float depth, glm::vec2 scale, bool isWorldPos);
     static float getDepth(float yPos);

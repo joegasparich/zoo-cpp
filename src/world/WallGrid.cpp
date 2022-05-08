@@ -24,8 +24,8 @@ void WallGrid::setup() {
 
     auto walls = Registry::getAllWalls();
 
-    for(auto const& wall : walls) {
-        m_textureArray->pushTexture(wall.spriteSheetPath);
+    for(auto wall : walls) {
+        m_textureArray->pushTexture(*AssetManager::getSpriteSheet(wall->spriteSheetPath)->m_image);
     }
 
     for (int i = 0; i < m_cols * 2 + 1; i++) {
@@ -84,7 +84,7 @@ void WallGrid::regenerateMesh() {
                 auto [ spriteIndex, elevation ] = WallGrid::getSpriteInfo(wall);
                 auto pos = orientation == Orientation::Horizontal ? glm::vec2{i / 2.0f, j} : glm::vec2{i / 2.0f, j + 1};
                 pos -= glm::vec2{0.5f, 2.0f + elevation}; // Offset cell size
-                auto texCoord = AssetManager::getSpriteSheet(wall.data.spriteSheetPath)->getTexCoords((unsigned int)spriteIndex);
+                auto texCoord = AssetManager::getSpriteSheet(wall.data.spriteSheetPath)->getTexCoords(spriteIndex);
                 auto depth = Renderer::getDepth(wall.worldPos.y);
 
                 vertices.push_back({pos + glm::vec2{0.0f, 0.0f}, depth, {texCoord[0]}, textureIndex});
@@ -316,17 +316,17 @@ SpriteInfo WallGrid::getSpriteInfo(Wall& wall) {
         auto right = Zoo::zoo->m_world->m_elevationGrid->getElevationAtPos({wall.worldPos.x + 0.5f, wall.worldPos.y});
         auto elevation = std::min(left, right);
 
-        if (left == right) return { wall.isDoor ? WallSpriteIndex::DoorHorizontal : WallSpriteIndex::Horizontal, elevation };
-        if (left > right) return { wall.isDoor ? WallSpriteIndex::DoorHorizontal : WallSpriteIndex::HillWest, elevation };
-        if (left < right) return { wall.isDoor ? WallSpriteIndex::DoorHorizontal : WallSpriteIndex::HillEast, elevation };
+        if (left == right) return { wall.isDoor ? (unsigned int)WallSpriteIndex::DoorHorizontal : (unsigned int)WallSpriteIndex::Horizontal, elevation };
+        if (left > right) return { wall.isDoor ? (unsigned int)WallSpriteIndex::DoorHorizontal : (unsigned int)WallSpriteIndex::HillWest, elevation };
+        if (left < right) return { wall.isDoor ? (unsigned int)WallSpriteIndex::DoorHorizontal : (unsigned int)WallSpriteIndex::HillEast, elevation };
     } else {
         auto up = Zoo::zoo->m_world->m_elevationGrid->getElevationAtPos({wall.worldPos.x, wall.worldPos.y - 0.5f});
         auto down = Zoo::zoo->m_world->m_elevationGrid->getElevationAtPos({wall.worldPos.x, wall.worldPos.y + 0.5f});
         auto elevation = std::min(up, down);
 
-        if (up == down) return { wall.isDoor ? WallSpriteIndex::DoorVertical : WallSpriteIndex::Vertical, elevation };
-        if (up > down) return { wall.isDoor ? WallSpriteIndex::DoorVertical : WallSpriteIndex::HillNorth, elevation };
-        if (up < down) return { wall.isDoor ? WallSpriteIndex::DoorVertical : WallSpriteIndex::HillSouth, elevation + ELEVATION_HEIGHT };
+        if (up == down) return { wall.isDoor ? (unsigned int)WallSpriteIndex::DoorVertical : (unsigned int)WallSpriteIndex::Vertical, elevation };
+        if (up > down) return { wall.isDoor ? (unsigned int)WallSpriteIndex::DoorVertical : (unsigned int)WallSpriteIndex::HillNorth, elevation };
+        if (up < down) return { wall.isDoor ? (unsigned int)WallSpriteIndex::DoorVertical : (unsigned int)WallSpriteIndex::HillSouth, elevation + ELEVATION_HEIGHT };
     }
 }
 

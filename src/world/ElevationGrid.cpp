@@ -135,6 +135,7 @@ void ElevationGrid::setElevationInCircle(glm::vec2 pos, float radius, Elevation 
 
     // Regenerate meshes
     Zoo::zoo->m_world->m_biomeGrid->redrawChunksInRadius(pos * 2.0f, radius + 6.0f);
+    Zoo::zoo->m_world->m_wallGrid->regenerateMesh();
     generateWaterMesh();
 }
 

@@ -18,9 +18,8 @@ void Mediator::fire(const EventType event) {
     Mediator::fire(event, "");
 }
 
+// TODO: pass json data here? Is that bypassing the type system too much
 void Mediator::fire(const EventType event, const std::string& data) {
-    std::cout << getEventName(event) << " Event fired with data " << data << std::endl;
-
     if (!Mediator::get().listeners.contains(event)) return;
 
     for (const auto& listener : Mediator::get().listeners.at(event)) {

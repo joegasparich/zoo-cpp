@@ -80,7 +80,6 @@ void Renderer::setupBlit() {
     m_blitLayout = std::make_unique<VertexBufferLayout>();
     m_blitLayout->push<float>(2);
     m_blitLayout->push<float>(2);
-    m_blitVa->addBuffer(*m_blitVb, *m_blitLayout);
 
     m_blitIb = std::make_unique<IndexBuffer>(indices, 6);
 
@@ -98,16 +97,30 @@ void Renderer::clear() {
     GL_CALL(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
 }
 
-void Renderer::blit(Texture &texture, glm::vec2 pos, float w, float h, bool isWorldPos) {
+// TODO: Use array texture to batch these into one draw call
+// Separate subtexture blits so that we aren't vb every blit
+void Renderer::blit(Texture &texture, glm::vec2 pos, glm::vec2 scale, bool isWorldPos) {
     auto& renderer = Renderer::get();
 
+    float vertices[] = {
+        0.0f, 0.0f,     texture.m_texCoord.x, texture.m_texCoord.y,
+        1.0f, 0.0f,     texture.m_texCoord.x + texture.m_texBounds.x, texture.m_texCoord.y,
+        1.0f, 1.0f,     texture.m_texCoord.x + texture.m_texBounds.x, texture.m_texCoord.y + texture.m_texBounds.y,
+        0.0f, 1.0f,     texture.m_texCoord.x, texture.m_texCoord.y + texture.m_texBounds.y
+    };
+    auto vb = VertexBuffer{
+        vertices,
+        sizeof(float) * 4 * 4
+    };
+
+    renderer.m_blitVa->addBuffer(vb, *renderer.m_blitLayout);
     renderer.m_blitVa->bind();
     renderer.m_blitIb->bind();
     renderer.m_blitShader->bind();
     texture.bind();
 
     // TODO: instead of h/2 have an origin point?
-    auto mvp = Renderer::getMVPMatrix(pos, 0.0f, getDepth(pos.y + h/2), glm::vec3(w, h, 1.0f), isWorldPos);
+    auto mvp = Renderer::getMVPMatrix(pos, 0.0f, getDepth(pos.y + scale.y/2), glm::vec3(scale, 1.0f), isWorldPos);
 
     renderer.m_blitShader->setUniformMat4f("u_MVP", mvp);
     renderer.m_blitShader->setUniform1i("u_Texture", 0);
@@ -153,8 +166,7 @@ glm::mat4 Renderer::getMVPMatrix(glm::vec2 pos, float rotation, float depth, glm
 }
 
 float Renderer::getDepth(float yPos) {
-    // TODO: Is 10000 fine here? Will the map ever be larger than 10,000 units?
-    return glm::clamp(yPos / 10000, 0.0f, 1.0f) / DEPTH::Y_SORTING_MAX;
+    return glm::clamp(yPos / LARGER_THAN_WORLD, 0.0f, 1.0f) / DEPTH::Y_SORTING_MAX;
 }
 
 glm::vec2 Renderer::screenToWorldPos(glm::vec2 screenPos) {

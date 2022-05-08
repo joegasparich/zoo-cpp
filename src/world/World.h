@@ -17,6 +17,8 @@ public:
     void render();
     bool isPositionInMap(glm::vec2 pos) const;
 
+    static Side getQuadrantAtPos(glm::vec2 pos);
+
     json save();
     void load(json saveData);
 

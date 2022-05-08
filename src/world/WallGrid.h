@@ -37,7 +37,7 @@ struct GridPos {
     Orientation orientation;
 };
 struct SpriteInfo {
-    WallSpriteIndex index;
+    unsigned int index;
     float elevation;
 };
 

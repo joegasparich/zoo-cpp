@@ -35,6 +35,7 @@ void Debug::addDebugInfo(std::string info) {
     Debug::get().m_debugInfo->m_text += info + "\n";
 }
 
+// TODO: Batch these
 void Debug::drawLine(glm::vec2 start, glm::vec2 end, glm::vec4 color, bool inWorldPos) {
     auto& debug = Debug::get();
     auto& renderer = Renderer::get();

@@ -9,7 +9,8 @@ enum class GhostType {
     None,
     Circle,
     Square,
-    Sprite
+    Sprite,
+    SpriteSheet
 };
 
 class ToolGhost {
@@ -23,8 +24,10 @@ public:
     bool m_snap;
     bool m_follow;
     bool m_elevate;
-    std::unique_ptr<Texture> m_texture;
-    std::function<bool(glm::vec2 pos)> m_canPlace;
+    bool m_visible;
+    bool m_canPlace;
+    std::unique_ptr<SubTexture> m_subTexture;
+    std::shared_ptr<Texture> m_texture;
     glm::vec2 m_pos;
     glm::vec2 m_scale;
     glm::vec2 m_offset;
@@ -33,6 +36,7 @@ private:
     void renderCircle();
     void renderSquare();
     void renderTexture();
+    void renderSubTexture();
 
     std::unique_ptr<Shader> m_basicShader;
     std::unique_ptr<VertexBufferLayout> m_basicLayout;

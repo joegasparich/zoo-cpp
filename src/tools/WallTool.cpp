@@ -11,7 +11,7 @@ WallTool::~WallTool() = default;
 void WallTool::set() {
     m_currentWall = nullptr;
     // m_panelId = UIManager::createUIComponent(std::make_unique<ElevationPanel>(m_toolManager, *this));
-    m_toolManager.m_ghost->m_type = GhostType::Sprite;
+    m_toolManager.m_ghost->m_type = GhostType::SpriteSheet;
     m_toolManager.m_ghost->m_snap = true;
     m_toolManager.m_ghost->m_scale = {1.0f, 2.0f};
     m_toolManager.m_ghost->m_offset = {0.0f, -1.0f};
@@ -31,46 +31,112 @@ void WallTool::update() {
     auto& wallGrid = Zoo::zoo->m_world->m_wallGrid;
 
     auto mousePos = Renderer::screenToWorldPos(input->getMousePos());
-    auto side = World::getQuadrantAtPos(mousePos);
-    auto wall = Zoo::zoo->m_world->m_wallGrid->getWallAtTile(mousePos, side);
+    auto mouseQuadrant = World::getQuadrantAtPos(mousePos);
+
+    if (input->isMouseButtonDown(SDL_BUTTON_LEFT)) {
+        m_isDragging = true;
+        m_dragTile = glm::floor(mousePos);
+        m_dragQuadrant = mouseQuadrant;
+    }
+    if (input->isMouseButtonUp(SDL_BUTTON_LEFT)) {
+        m_isDragging = false;
+
+        while (m_ghosts.size() > 0) {
+            auto& ghost = m_ghosts.back();
+            Zoo::zoo->m_world->m_wallGrid->placeWallAtTile(*m_currentWall, glm::floor(ghost->m_pos), m_dragQuadrant);
+            m_ghosts.pop_back();
+        }
+    }
+    if (input->isMouseButtonHeld(SDL_BUTTON_LEFT)) {
+        // Dragging
+        m_toolManager.m_ghost->m_visible = false;
+
+        auto xDif = glm::floor(mousePos).x - m_dragTile.x;
+        auto yDif = glm::floor(mousePos).y - m_dragTile.y;
+        auto horizontal = m_dragQuadrant == Side::North || m_dragQuadrant == Side::South;
+        auto length = (horizontal ? abs(xDif) : abs(yDif)) + 1;
+
+        // Push new ghosts to reach length
+        while (m_ghosts.size() < length) {
+            auto ghost = std::make_unique<ToolGhost>();
+            ghost->m_type = GhostType::SpriteSheet;
+            ghost->m_follow = false;
+            ghost->m_subTexture = std::make_unique<SubTexture>(
+                m_toolManager.m_ghost->m_subTexture->m_texture,
+                m_toolManager.m_ghost->m_subTexture->m_texCoord,
+                m_toolManager.m_ghost->m_subTexture->m_texBounds
+            );
+            ghost->m_offset = m_toolManager.m_ghost->m_offset;
+            ghost->m_scale = m_toolManager.m_ghost->m_scale;
+//            ghost.canPlaceFunction = this.canPlace.bind(this);
+            m_ghosts.push_back(std::move(ghost));
+        }
+
+        auto i = glm::floor(m_dragTile.x);
+        auto j = glm::floor(m_dragTile.y);
+        for (auto& ghost : m_ghosts) {
+            ghost->m_pos = {i, j};
+            updateGhostSprite(*ghost, {i, j}, m_dragQuadrant);
+
+            if (horizontal) {
+                i += glm::sign(glm::floor(mousePos).x - i);
+            } else {
+                j += glm::sign(glm::floor(mousePos).y - j);
+            }
+        }
+
+        // Pop additional ghosts
+        while (m_ghosts.size() > length) {
+            m_ghosts.pop_back();
+        }
+    } else {
+        m_toolManager.m_ghost->m_visible = true;
+
+        updateGhostSprite(*m_toolManager.m_ghost, mousePos, mouseQuadrant);
+    }
+}
+
+void WallTool::postUpdate() {}
+
+void WallTool::render() {
+    for (auto& ghost : m_ghosts) {
+        ghost->render();
+    }
+}
+
+void WallTool::updateGhostSprite(ToolGhost& ghost, glm::ivec2 tilePos, Side quadrant) {
+    auto wall = Zoo::zoo->m_world->m_wallGrid->getWallAtTile(tilePos, quadrant);
 
     if (!wall) return;
 
     auto [spriteIndex, elevation] = WallGrid::getSpriteInfo(*wall);
 
     auto spriteSheet = AssetManager::getSpriteSheet(m_currentWall->spriteSheetPath);
-    m_toolManager.m_ghost->m_texture->m_texCoord = spriteSheet->getTexCoords(spriteIndex)[0];
+    ghost.m_subTexture->m_texCoord = spriteSheet->getTexCoords(spriteIndex)[0];
 
-    switch (side) {
+    switch (quadrant) {
         case Side::North:
-            m_toolManager.m_ghost->m_offset = {0.0f, -2.0f - elevation};
+            ghost.m_offset = {0.0f, -2.0f - elevation};
             break;
         case Side::South:
-            m_toolManager.m_ghost->m_offset = {0.0f, -1.0f - elevation};
+            ghost.m_offset = {0.0f, -1.0f - elevation};
             break;
         case Side::West:
-            m_toolManager.m_ghost->m_offset = {-0.5f, -1.0f - elevation};
+            ghost.m_offset = {-0.5f, -1.0f - elevation};
             break;
         case Side::East:
-            m_toolManager.m_ghost->m_offset = {0.5f, -1.0f - elevation};
+            ghost.m_offset = {0.5f, -1.0f - elevation};
             break;
         default:
             break;
     }
-
-    if (input->isMouseButtonDown(SDL_BUTTON_LEFT)) {
-        // Place wall
-        Zoo::zoo->m_world->m_wallGrid->placeWallAtTile(*m_currentWall, glm::floor(mousePos), side);
-    }
 }
-
-void WallTool::postUpdate() {}
 
 void WallTool::setCurrentWall(WallData& wall) {
     m_currentWall = &wall;
     auto spriteSheet = AssetManager::getSpriteSheet(wall.spriteSheetPath);
-    m_toolManager.m_ghost->m_texture = std::make_unique<Texture>(
-        spriteSheet->m_image,
+    m_toolManager.m_ghost->m_subTexture = std::make_unique<SubTexture>(
+        std::make_shared<Texture>(spriteSheet->m_image),
         glm::vec2{0.0f, 0.0f},
         glm::vec2{
             (float)spriteSheet->m_cellWidth / (float)spriteSheet->m_image->m_width,

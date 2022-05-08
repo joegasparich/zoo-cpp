@@ -39,6 +39,7 @@ void ToolManager::postUpdate() {
 
 void ToolManager::render() {
     m_ghost->render();
+    m_activeTool->render();
 }
 
 void ToolManager::setTool(ToolType type) {

@@ -21,6 +21,7 @@ void ToolGhost::reset() {
     m_snap = false;
     m_follow = true;
     m_elevate = false;
+    m_visible = true;
     m_texture = nullptr;
     m_canPlace = [](glm::vec2 pos) { return true; };
 
@@ -30,6 +31,8 @@ void ToolGhost::reset() {
 }
 
 void ToolGhost::render() {
+    if (!m_visible) return;
+
     if (m_follow) {
         auto& input = Game::get().m_input;
         m_pos = Renderer::screenToWorldPos(input->getMousePos());
@@ -39,9 +42,10 @@ void ToolGhost::render() {
     }
 
     switch(m_type) {
-        case GhostType::Circle: renderCircle();
-        case GhostType::Square: renderSquare();
-        case GhostType::Sprite: renderTexture();
+        case GhostType::Circle: renderCircle(); break;
+        case GhostType::Square: renderSquare(); break;
+        case GhostType::Sprite: renderTexture(); break;
+        case GhostType::SpriteSheet: renderSubTexture(); break;
         case GhostType::None: break;
     }
 }
@@ -105,5 +109,12 @@ void ToolGhost::renderSquare() {
 void ToolGhost::renderTexture() {
     if (!m_texture) return;
 
-    Renderer::blit(*m_texture, m_pos + m_offset, m_scale, true);
+    Renderer::blit({m_texture.get(), m_pos + m_offset, m_scale, true});
+}
+
+void ToolGhost::renderSubTexture() {
+    if (!m_subTexture) return;
+
+    auto colour = GHOST_COLOUR;
+    Renderer::blit({nullptr, m_pos + m_offset, m_scale, true, m_subTexture.get(), &colour, DEPTH::UI});
 }

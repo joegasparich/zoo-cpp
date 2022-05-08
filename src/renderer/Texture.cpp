@@ -3,15 +3,9 @@
 #include "Renderer.h"
 #include "Texture.h"
 
-Texture::Texture(Image *image) :
-    Texture(image, {0, 0}, {1.0, 1.0})
-{}
-
-Texture::Texture(Image* image, const glm::vec2 &texCoord, const glm::vec2 &texBounds)
+Texture::Texture(Image *image)
     : m_rendererID{0},
-      m_image{image},
-      m_texCoord(texCoord),
-      m_texBounds(texBounds)
+      m_image{image}
 {
     GL_CALL(glGenTextures(1, &m_rendererID));
     GL_CALL(glBindTexture(GL_TEXTURE_2D, m_rendererID));

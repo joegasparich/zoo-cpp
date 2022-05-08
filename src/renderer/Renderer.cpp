@@ -7,16 +7,12 @@ void glClearError() {
     while (glGetError() != GL_NO_ERROR);
 }
 
-void logVec(glm::vec2 vec) {
-    std::cout << vec.x << ", " << vec.y << std::endl;
-}
-
 bool glLogCall(const char* function, const char* file, int line) {
     while (GLenum error = glGetError()) {
         std::cout << "[OpenGL Error] (" << std::hex << error << "): " << function << " " << file << " line: " << line << std::endl;
         return false;
     }
-return true;
+    return true;
 }
 
 Renderer::Renderer() : m_window{nullptr} {}
@@ -84,6 +80,7 @@ void Renderer::setupBlit() {
     m_blitIb = std::make_unique<IndexBuffer>(indices, 6);
 
     m_blitShader = std::make_unique<Shader>("./shaders/TextureVertex.shader", "./shaders/TextureFragment.shader");
+    m_blitColourShader = std::make_unique<Shader>("./shaders/ColourTextureVertex.shader", "./shaders/ColourTextureFragment.shader");
 }
 
 void Renderer::doRender() {
@@ -97,33 +94,56 @@ void Renderer::clear() {
     GL_CALL(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
 }
 
-// TODO: Use array texture to batch these into one draw call
-// Separate subtexture blits so that we aren't vb every blit
-void Renderer::blit(Texture &texture, glm::vec2 pos, glm::vec2 scale, bool isWorldPos) {
+void Renderer::blit(BlitOptions opts) {
     auto& renderer = Renderer::get();
 
-    float vertices[] = {
-        0.0f, 0.0f,     texture.m_texCoord.x, texture.m_texCoord.y,
-        1.0f, 0.0f,     texture.m_texCoord.x + texture.m_texBounds.x, texture.m_texCoord.y,
-        1.0f, 1.0f,     texture.m_texCoord.x + texture.m_texBounds.x, texture.m_texCoord.y + texture.m_texBounds.y,
-        0.0f, 1.0f,     texture.m_texCoord.x, texture.m_texCoord.y + texture.m_texBounds.y
-    };
-    auto vb = VertexBuffer{
-        vertices,
-        sizeof(float) * 4 * 4
-    };
+    std::vector<float> vertices{};
+    std::unique_ptr<VertexBuffer> vb;
 
-    renderer.m_blitVa->addBuffer(vb, *renderer.m_blitLayout);
     renderer.m_blitVa->bind();
     renderer.m_blitIb->bind();
-    renderer.m_blitShader->bind();
-    texture.bind();
+
+    if (opts.texture) {
+        renderer.m_blitVa->addBuffer(*renderer.m_blitVb, *renderer.m_blitLayout);
+        opts.texture->bind();
+    } else if (opts.subTexture) {
+        vertices = {
+            0.0f, 0.0f, opts.subTexture->m_texCoord.x, opts.subTexture->m_texCoord.y,
+            1.0f, 0.0f, opts.subTexture->m_texCoord.x + opts.subTexture->m_texBounds.x, opts.subTexture->m_texCoord.y,
+            1.0f, 1.0f, opts.subTexture->m_texCoord.x + opts.subTexture->m_texBounds.x, opts.subTexture->m_texCoord.y + opts.subTexture->m_texBounds.y,
+            0.0f, 1.0f, opts.subTexture->m_texCoord.x, opts.subTexture->m_texCoord.y + opts.subTexture->m_texBounds.y
+        };
+        vb = std::make_unique<VertexBuffer>(
+            &vertices[0],
+            sizeof(float) * 4 * 4
+        );
+
+        renderer.m_blitVa->addBuffer(*vb, *renderer.m_blitLayout);
+        opts.subTexture->m_texture->bind();
+    } else {
+        std::cout << "A texture must be provided to blit()" << std::endl;
+        return;
+    }
+
+    float depth = getDepth(opts.pos.y + opts.scale.y/2);
+    if (opts.depth) {
+        depth = opts.depth;
+    }
 
     // TODO: instead of h/2 have an origin point?
-    auto mvp = Renderer::getMVPMatrix(pos, 0.0f, getDepth(pos.y + scale.y/2), glm::vec3(scale, 1.0f), isWorldPos);
+    auto mvp = Renderer::getMVPMatrix(opts.pos, 0.0f, depth, glm::vec3(opts.scale, 1.0f), opts.isWorldPos);
 
-    renderer.m_blitShader->setUniformMat4f("u_MVP", mvp);
-    renderer.m_blitShader->setUniform1i("u_Texture", 0);
+    Shader* shader;
+    if (opts.colour) {
+        shader = renderer.m_blitColourShader.get();
+        renderer.m_blitColourShader->bind();
+        shader->setUniform3f("u_Colour", *opts.colour);
+    } else {
+        shader = renderer.m_blitShader.get();
+        renderer.m_blitShader->bind();
+    }
+    shader->setUniformMat4f("u_MVP", mvp);
+    shader->setUniform1i("u_Texture", 0);
 
     Renderer::draw(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
 }
@@ -186,7 +206,7 @@ bool Renderer::isPositionOnScreen(glm::vec2 worldPos, float margin) {
     auto screenPos = worldToScreenPos(worldPos);
 
     return (screenPos.x > -(margin * (camera.scale * WORLD_SCALE)) && screenPos.x < WINDOW_WIDTH + (margin * (camera.scale * WORLD_SCALE))
-         && screenPos.y > -(margin * (camera.scale * WORLD_SCALE)) && screenPos.y < WINDOW_HEIGHT + (margin * (camera.scale * WORLD_SCALE)));
+            && screenPos.y > -(margin * (camera.scale * WORLD_SCALE)) && screenPos.y < WINDOW_HEIGHT + (margin * (camera.scale * WORLD_SCALE)));
 }
 
 void Renderer::resetCamera() {

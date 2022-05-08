@@ -17,7 +17,7 @@ void RenderComponent::start(Entity &entity) {
 
 void RenderComponent::render(double step) {
     // TODO: Batch renders
-    Renderer::blit(*m_texture, entity->pos, {1.0f, 1.0f}, true);
+    Renderer::blit({m_texture, entity->pos, {1.0f, 1.0f}, true});
 }
 
 Texture &RenderComponent::getTexture() const {

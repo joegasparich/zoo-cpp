@@ -18,8 +18,9 @@ public:
 
     virtual void set() = 0;
     virtual void unset() = 0;
-    virtual void update() = 0;
-    virtual void postUpdate() = 0;
+    virtual void update() {};
+    virtual void postUpdate() {};
+    virtual void render() {};
     virtual std::string getName();
     virtual ToolType getType();
 

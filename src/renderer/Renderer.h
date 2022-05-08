@@ -11,6 +11,7 @@
 #include "IndexBuffer.h"
 #include "Texture.h"
 #include "Shader.h"
+#include "SubTexture.h"
 
 #define WINDOW_WIDTH 1280
 #define WINDOW_HEIGHT 720
@@ -30,6 +31,16 @@ struct Camera {
     float scale;
 };
 
+struct BlitOptions {
+    Texture* texture;
+    glm::vec2 pos;
+    glm::vec2 scale;
+    bool isWorldPos;
+    SubTexture* subTexture;
+    glm::vec3* colour;
+    float depth;
+};
+
 class Renderer {
 public:
     Renderer(const Renderer &) = delete;
@@ -42,7 +53,7 @@ public:
     static void init();
     static void doRender();
     static void clear();
-    static void blit(Texture &texture, glm::vec2 pos, glm::vec2 scale, bool isWorldPos);
+    static void blit(BlitOptions opts);
     static void draw(GLenum mode, unsigned int count, GLenum type, const void *indices);
     static glm::mat4 getMVPMatrix(glm::vec2 pos, float rotation, float depth, glm::vec2 scale, bool isWorldPos);
     static float getDepth(float yPos);
@@ -68,6 +79,7 @@ private:
     std::unique_ptr<VertexBufferLayout> m_blitLayout;
     std::unique_ptr<IndexBuffer> m_blitIb;
     std::unique_ptr<Shader> m_blitShader;
+    std::unique_ptr<Shader> m_blitColourShader;
 
     unsigned int m_drawCallCount;
 };

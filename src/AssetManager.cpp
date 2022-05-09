@@ -53,7 +53,7 @@ Image* AssetManager::loadImage(const std::string &path) {
     return get().m_imageMap[path].get();
 }
 
-SpriteSheet* AssetManager::loadSpriteSheet(std::string assetPath, Image* image, int cellWidth, int cellHeight) {
+SpriteSheet* AssetManager::loadSpriteSheet(const std::string& assetPath, Image* image, int cellWidth, int cellHeight) {
     if (!get().m_spriteSheetMap.contains(assetPath)) {
         get().m_spriteSheetMap.insert({assetPath, std::make_unique<SpriteSheet>(
             SpriteSheet{
@@ -65,4 +65,14 @@ SpriteSheet* AssetManager::loadSpriteSheet(std::string assetPath, Image* image, 
     }
 
     return get().m_spriteSheetMap[assetPath].get();
+}
+
+Texture* AssetManager::loadTexture(Image* image) {
+    auto& texmap = get().m_textureMap;
+    if (get().m_textureMap.contains(image->m_filePath)) {
+        return get().m_textureMap.at(image->m_filePath).get();
+    }
+
+    get().m_textureMap.insert({image->m_filePath, std::make_unique<Texture>(image)});
+    return get().m_textureMap.at(image->m_filePath).get();
 }

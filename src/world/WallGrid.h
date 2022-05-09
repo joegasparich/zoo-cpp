@@ -56,6 +56,7 @@ public:
     Wall* getWallAtTile(glm::ivec2 tilePos, Side side);
     std::array<glm::ivec2, 2> getAdjacentTiles(const Wall& wall);
     std::array<glm::vec2, 2> getWallVertices(const Wall& wall);
+    std::vector<Wall*> getSurroundingWalls(glm::ivec2 gridPos);
 
     static glm::vec2 wallToWorldPosition(glm::ivec2 gridPos, Orientation orientation);
     static GridPos getGridPosition(glm::ivec2 tilePos, Side side);

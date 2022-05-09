@@ -4,12 +4,12 @@
 
 #include "UIComponent.h"
 #include "tools/ToolManager.h"
-#include "tools/ElevationTool.h"
+#include "tools/WallTool.h"
 
-class ElevationPanel : public UIComponent {
+class WallPanel : public UIComponent {
 public:
-    ElevationPanel(ToolManager &toolManager, ElevationTool &biomeTool);
-    ~ElevationPanel() override;
+    WallPanel(ToolManager& toolManager, WallTool& wallTool);
+    ~WallPanel() override;
 
     void render() override;
     void onOpen() override;
@@ -17,5 +17,6 @@ public:
 
 private:
     ToolManager& m_toolManager;
-    ElevationTool& m_elevationTool;
+    WallTool& m_wallTool;
+    std::vector<WallData *> m_allWalls;
 };

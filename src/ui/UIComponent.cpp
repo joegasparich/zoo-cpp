@@ -1,6 +1,6 @@
 #include "UIComponent.h"
 
-#include "lib/imgui/imgui.h"
+#include "imgui/imgui.h"
 
 UIComponent::UIComponent(std::string name) : m_name(std::move(name)) {}
 UIComponent::~UIComponent() {}

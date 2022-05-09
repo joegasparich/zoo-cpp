@@ -168,6 +168,13 @@ void ElevationGrid::generateWaterMesh() {
 }
 
 bool ElevationGrid::canElevate(glm::ivec2 gridPos, Elevation elevation) {
+    if (elevation == Elevation::Water) {
+        // Check 4 surrounding wall slots for walls
+        for (auto wall : Zoo::zoo->m_world->m_wallGrid->getSurroundingWalls(gridPos)) {
+            if (wall->exists) return false;
+        }
+    }
+
     return true;
 }
 

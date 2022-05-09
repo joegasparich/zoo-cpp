@@ -290,6 +290,17 @@ std::array<glm::vec2, 2> WallGrid::getWallVertices(const Wall &wall) {
     }
 }
 
+std::vector<Wall*> WallGrid::getSurroundingWalls(glm::ivec2 gridPos) {
+    std::vector<Wall*> walls{};
+
+    walls.push_back(getWallAtTile(gridPos, Side::North));
+    walls.push_back(getWallAtTile(gridPos, Side::West));
+    walls.push_back(getWallAtTile(gridPos - glm::ivec2{1.0f, 1.0f}, Side::South));
+    walls.push_back(getWallAtTile(gridPos - glm::ivec2{1.0f, 1.0f}, Side::East));
+
+    return walls;
+}
+
 glm::vec2 WallGrid::wallToWorldPosition(glm::ivec2 gridPos, Orientation orientation) {
     if (orientation == Orientation::Horizontal) {
         return {(float)gridPos.x / 2.0f, (float)gridPos.y};
@@ -346,9 +357,56 @@ SpriteInfo WallGrid::getSpriteInfo(Wall& wall) {
 }
 
 json WallGrid::save() {
-    return json();
+    std::vector<std::vector<json>> saveData;
+    std::transform(m_wallGrid.begin(), m_wallGrid.end(), std::back_inserter(saveData), [](std::vector<Wall>& row) {
+        std::vector<json> rowData;
+        std::transform(row.begin(), row.end(), std::back_inserter(rowData), [](Wall& wall) {
+            return json({
+                {"assetPath", wall.data.assetPath},
+                {"exists", wall.exists},
+                {"indestructable", wall.indestructable},
+                {"isDoor", wall.isDoor}
+            });
+        });
+        return rowData;
+    });
+
+    return json({
+        {"grid", saveData},
+        {"cols", m_cols},
+        {"rows", m_rows}
+    });
 }
 
 void WallGrid::load(json saveData) {
+    reset();
 
+    m_cols = saveData["cols"].get<unsigned int>();
+    m_rows = saveData["rows"].get<unsigned int>();
+
+    auto gridData = saveData["grid"].get<std::vector<std::vector<json>>>();
+
+    for (int i = 0; i < m_cols * 2 + 1; i++) {
+        auto orientation = (Orientation)(i % 2);
+        m_wallGrid.emplace_back();
+        for (int j = 0; j < m_rows + (int)orientation; j++) {
+            auto worldPos = WallGrid::wallToWorldPosition({i, j}, orientation);
+            auto wallData = gridData[i][j];
+            auto exists = wallData["exists"].get<bool>();
+
+            m_wallGrid[i].push_back({
+                exists ? Registry::getWall(wallData["assetPath"].get<std::string>()) : WallData{},
+                orientation,
+                worldPos,
+                {i, j},
+                exists,
+                wallData["indestructable"].get<bool>(),
+                wallData["isDoor"].get<bool>(),
+            });
+        }
+    }
+
+    regenerateMesh();
+
+    m_isSetup = true;
 }

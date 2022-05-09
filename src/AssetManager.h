@@ -5,6 +5,7 @@
 #include "pch.h"
 #include <renderer/Image.h>
 #include <renderer/SpriteSheet.h>
+#include <renderer/Texture.h>
 
 class AssetManager {
 public:
@@ -22,11 +23,13 @@ public:
     static void loadWalls();
 
     static Image* loadImage(const std::string& path);
-    static SpriteSheet* loadSpriteSheet(std::string assetPath, Image* image, int cellWidth, int cellHeight);
+    static SpriteSheet* loadSpriteSheet(const std::string& assetPath, Image* image, int cellWidth, int cellHeight);
+    static Texture* loadTexture(Image* image);
 
 private:
     AssetManager();
 
     std::map<std::string, std::unique_ptr<Image>> m_imageMap;
     std::map<std::string, std::unique_ptr<SpriteSheet>> m_spriteSheetMap;
+    std::map<std::string, std::unique_ptr<Texture>> m_textureMap;
 };

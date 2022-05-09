@@ -1,5 +1,5 @@
 #include <SaveManager.h>
-#include "lib/imgui/imgui.h"
+#include "imgui/imgui.h"
 #include "Toolbar.h"
 
 Toolbar::Toolbar(ToolManager *toolManager) : UIComponent("Toolbar"), m_toolManager{toolManager} {

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Registry.h>
+#include "world/World.h"
 #include "Tool.h"
 
 class WallTool : public Tool {

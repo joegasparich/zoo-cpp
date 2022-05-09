@@ -3,9 +3,8 @@
 BiomePanel::BiomePanel(ToolManager& toolManager, BiomeTool& biomeTool) :
     UIComponent("Biome"),
     m_toolManager{toolManager},
-    m_biomeTool{biomeTool} {
-    m_showHeader = true;
-    m_isDraggable = true;
+    m_biomeTool{biomeTool}
+{
     m_isResizeable = false;
     m_isScrollable = false;
 }

@@ -2,6 +2,7 @@
 #include <Game.h>
 #include <Zoo.h>
 #include <constants/assets.h>
+#include <ui/WallPanel.h>
 #include "WallTool.h"
 #include "ToolManager.h"
 
@@ -10,7 +11,7 @@ WallTool::~WallTool() = default;
 
 void WallTool::set() {
     m_currentWall = nullptr;
-    // m_panelId = UIManager::createUIComponent(std::make_unique<ElevationPanel>(m_toolManager, *this));
+    m_panelId = UIManager::createUIComponent(std::make_unique<WallPanel>(m_toolManager, *this));
     m_toolManager.m_ghost->m_type = GhostType::SpriteSheet;
     m_toolManager.m_ghost->m_snap = true;
     m_toolManager.m_ghost->m_scale = {1.0f, 2.0f};
@@ -148,7 +149,7 @@ void WallTool::setCurrentWall(WallData& wall) {
     m_currentWall = &wall;
     auto spriteSheet = AssetManager::getSpriteSheet(wall.spriteSheetPath);
     m_toolManager.m_ghost->m_subTexture = std::make_unique<SubTexture>(
-        std::make_shared<Texture>(spriteSheet->m_image),
+        AssetManager::loadTexture(spriteSheet->m_image),
         glm::vec2{0.0f, 0.0f},
         glm::vec2{
             (float)spriteSheet->m_cellWidth / (float)spriteSheet->m_image->m_width,

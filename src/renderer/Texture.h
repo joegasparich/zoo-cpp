@@ -10,6 +10,9 @@ public:
 
     void bind(unsigned int slot = 0) const;
     void unbind() const;
+
+    unsigned int getRendererId() const;
+
     Image* m_image;
 private:
     unsigned int m_rendererID;

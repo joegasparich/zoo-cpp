@@ -1,6 +1,6 @@
 #pragma once
 
-#include "lib/imgui/imgui.h"
+#include "imgui/imgui.h"
 
 #include "UIComponent.h"
 #include "tools/ToolManager.h"

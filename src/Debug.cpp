@@ -8,20 +8,12 @@ Debug::~Debug() = default;
 void Debug::setup() {
     auto& debug = Debug::get();
 
-    float lineVertices[] = {
-        0.0f, 0.0f,
-        1.0f, 0.0f,
-    };
-    unsigned int lineIndices[] = { 0, 1 };
-
-    debug.m_basicLayout = std::make_unique<VertexBufferLayout>();
-    debug.m_basicLayout->push<float>(2);
-    debug.m_basicShader = std::make_unique<Shader>("./shaders/BasicVertex.shader", "./shaders/BasicFragment.shader");
+    debug.m_layout = std::make_unique<VertexBufferLayout>();
+    debug.m_layout->push<float>(2); // Pos
+    debug.m_layout->push<float>(4); // Colour
+    debug.m_shader = std::make_unique<Shader>("./shaders/ColourVertex.shader", "./shaders/ColourFragment.shader");
 
     debug.m_va = std::make_unique<VertexArray>();
-    debug.m_lineVb = std::make_unique<VertexBuffer>(lineVertices, sizeof(float) * 2 * 2);
-    debug.m_va->addBuffer(*debug.m_lineVb, *debug.m_basicLayout);
-    debug.m_lineIb = std::make_unique<IndexBuffer>(lineIndices, 2);
 
     auto component = std::make_unique<DebugInfo>();
     debug.m_debugInfo = component.get();
@@ -31,29 +23,47 @@ void Debug::setup() {
 void Debug::preUpdate() {
 }
 
+void Debug::render() {
+    auto& debug = Debug::get();
+    auto& renderer = Renderer::get();
+
+    auto vb = VertexBuffer{
+        &debug.m_vertices[0],
+        debug.m_vertices.size() * sizeof(lineVertex)
+    };
+
+    std::vector<unsigned int> indices{};
+    indices.resize(debug.m_vertices.size() * 2);
+    for (int i = 0; i < debug.m_vertices.size(); i++) {
+        indices.push_back(i * 2);
+        indices.push_back((i * 2) + 1);
+    }
+    auto ib = IndexBuffer{
+        &indices[0],
+        (unsigned int)indices.size()
+    };
+
+    debug.m_va->addBuffer(vb, *debug.m_layout);
+    debug.m_va->bind();
+    ib.bind();
+    debug.m_shader->bind();
+
+    auto mvp = Renderer::getMVPMatrix({0.0f, 0.0f}, 0.0f, DEPTH::DEBUG, {1.0f, 1.0f}, true);
+    debug.m_shader->setUniformMat4f("u_MVP", mvp);
+
+    Renderer::draw(GL_LINES, indices.size(), GL_UNSIGNED_INT, nullptr);
+
+    debug.m_vertices.clear();
+}
+
 void Debug::addDebugInfo(std::string info) {
     Debug::get().m_debugInfo->m_text += info + "\n";
 }
 
 // TODO: Batch these
-void Debug::drawLine(glm::vec2 start, glm::vec2 end, glm::vec4 color, bool inWorldPos) {
+void Debug::drawLine(glm::vec2 start, glm::vec2 end, glm::vec4 colour) {
     auto& debug = Debug::get();
-    auto& renderer = Renderer::get();
 
-    // TODO: atan2 is slow as, should try figure out a different way to rotate the line
-    auto rotation = std::atan2(end.y - start.y, end.x - start.x);
-    auto length = glm::distance(start, end);
-
-    debug.m_va->bind();
-    debug.m_lineIb->bind();
-    debug.m_basicShader->bind();
-
-    debug.m_va->addBuffer(*debug.m_lineVb, *debug.m_basicLayout);
-
-    auto mvp = Renderer::getMVPMatrix(start, rotation, DEPTH::DEBUG, {length, 1.0f}, inWorldPos);
-
-    debug.m_basicShader->setUniform4f("u_Color", color);
-    debug.m_basicShader->setUniformMat4f("u_MVP", mvp);
-
-    Renderer::draw(GL_LINES, 2, GL_UNSIGNED_INT, nullptr);
+    debug.m_vertices.push_back({start, colour});
+    debug.m_vertices.push_back({end, colour});
 }

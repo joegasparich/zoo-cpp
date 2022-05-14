@@ -110,12 +110,12 @@ void ToolGhost::renderSquare() {
 void ToolGhost::renderTexture() {
     if (!m_texture) return;
 
-    Renderer::blit({m_texture.get(), m_pos + m_offset, m_scale, true});
+    Renderer::blit({m_texture.get(), m_pos + m_offset, m_scale});
 }
 
 void ToolGhost::renderSubTexture() {
     if (!m_subTexture) return;
 
     auto colour = m_canPlace ? GHOST_COLOUR : BLOCKED_COLOUR;
-    Renderer::blit({nullptr, m_pos + m_offset, m_scale, true, m_subTexture.get(), &colour, DEPTH::UI});
+    Renderer::blit({nullptr, m_pos + m_offset, m_scale, m_subTexture.get(), &colour, DEPTH::UI});
 }

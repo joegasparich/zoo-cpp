@@ -1,6 +1,7 @@
 #pragma once
 
-#include <algorithm>
+#include "pch.h"
+#include <SDL2/SDL.h>
 
 template<typename C, typename P>
 bool contains_if(C container, P pred) {
@@ -22,3 +23,11 @@ struct SDL_RendererDestroyer {
         SDL_DestroyRenderer(r);
     }
 };
+
+inline std::string vecToString(glm::vec2 v) {
+    return std::to_string(v.x) + "," + std::to_string(v.y);
+}
+
+inline glm::vec2 stringToVec(std::string s) {
+    return glm::vec2((int)s[0], (int)s[2]);
+}

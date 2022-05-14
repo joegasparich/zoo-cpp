@@ -39,6 +39,7 @@ void Game::init() {
 
     AssetManager::loadAssets();
     AssetManager::loadWalls();
+    AssetManager::loadObjects();
 
     // TODO: Move to consts file
     m_input->registerInput({"Up", {SDL_SCANCODE_UP}});
@@ -124,6 +125,8 @@ void Game::render(const double step) const {
     SceneManager::getCurrentScene()->render(step);
 
     UIManager::render();
+
+    Debug::render();
 
     Renderer::doRender();
 }

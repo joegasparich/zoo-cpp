@@ -55,16 +55,14 @@ void ElevationGrid::renderDebug() {
                 Debug::drawLine(
                     {i, (j - (float)(int)m_grid.at(i).at(j) * ELEVATION_HEIGHT)},
                     {(i + 1), (j - (float)(int)m_grid.at(i + 1).at(j) * ELEVATION_HEIGHT)},
-                    {1.0f, 1.0f, 1.0f, 1.0f},
-                        true
+                    {1.0f, 1.0f, 1.0f, 1.0f}
                 );
             }
             if (j < m_rows - 1) {
                 Debug::drawLine(
                         {i, (j - (float)(int)m_grid.at(i).at(j) * ELEVATION_HEIGHT)},
                         {i, (j - (float)(int)m_grid.at(i).at(j + 1) * ELEVATION_HEIGHT + 1)},
-                        {1.0f, 1.0f, 1.0f, 1.0f},
-                        true
+                        {1.0f, 1.0f, 1.0f, 1.0f}
                 );
             }
         }

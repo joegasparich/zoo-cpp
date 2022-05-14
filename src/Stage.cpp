@@ -1,4 +1,3 @@
-#include <components/RenderComponent.h>
 #include <constants/world.h>
 #include "Stage.h"
 #include "constants/assets.h"
@@ -6,6 +5,7 @@
 #include "renderer/Renderer.h"
 #include "util/math.h"
 #include "AssetManager.h"
+#include "entities/entityGenerators.h"
 
 #define MIN_ZOOM 0.5f
 #define MAX_ZOOM 10.0f
@@ -24,13 +24,13 @@ Stage::~Stage() {
 void Stage::setup() {
     m_world->setup();
 
-    auto player{std::make_unique<Entity>(1, 1)};
-    player->addComponent(std::make_unique<RenderComponent>(AssetManager::loadTexture(AssetManager::getImage(IMG_SHIP))));
-    auto player2{std::make_unique<Entity>(0.9, 0.9)};
-    player2->addComponent(std::make_unique<RenderComponent>(AssetManager::loadTexture(AssetManager::getImage(IMG_SHIP))));
+    auto player{std::make_unique<Entity>(glm::vec2{1, 1})};
+    player->addComponent(std::make_unique<RenderComponent>(AssetManager::loadTexture(AssetManager::getImage(IMG_KEEPER))));
 
-    m_entities.push_back(std::move(player2));
     m_entities.push_back(std::move(player));
+
+    auto tree = createTileObject(OBJ_TREE, {3, 3});
+    m_entities.push_back(std::move(tree));
 
     for (auto &entity: m_entities) {
         entity->setup();
@@ -68,7 +68,6 @@ void Stage::update() {
         m_dragCameraOrigin = camera.pos;
     }
     if (input->isMouseButtonHeld(SDL_BUTTON_MIDDLE)) {
-
         camera.pos = m_dragCameraOrigin + (m_dragStart - input->getMousePos()) / (camera.scale * WORLD_SCALE);
     }
 

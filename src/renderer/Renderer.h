@@ -12,11 +12,16 @@
 #include "Texture.h"
 #include "Shader.h"
 #include "SubTexture.h"
+#include "ArrayTexture.h"
 
 #define WINDOW_WIDTH 1280
 #define WINDOW_HEIGHT 720
 
 #define PRIMITIVE_RESTART 12345
+
+#define MAX_BLIT_WIDTH 64
+#define MAX_BLIT_HEIGHT 64
+#define MAX_BLIT_TEXTURES 100
 
 #define GL_CALL(x) glClearError();\
     x;                           \
@@ -35,10 +40,15 @@ struct BlitOptions {
     Texture* texture;
     glm::vec2 pos;
     glm::vec2 scale;
-    bool isWorldPos;
     SubTexture* subTexture;
     glm::vec3* colour;
     float depth;
+};
+
+struct BlitVertex {
+    glm::vec3 pos;
+    glm::vec3 texCoord;
+//    glm::vec3 colour;
 };
 
 class Renderer {
@@ -73,13 +83,15 @@ private:
     ~Renderer();
 
     void setupBlit();
+    void renderBlitArray();
 
     std::unique_ptr<VertexArray> m_blitVa;
     std::unique_ptr<VertexBuffer> m_blitVb;
     std::unique_ptr<VertexBufferLayout> m_blitLayout;
-    std::unique_ptr<IndexBuffer> m_blitIb;
     std::unique_ptr<Shader> m_blitShader;
-    std::unique_ptr<Shader> m_blitColourShader;
+
+    std::unique_ptr<ArrayTexture> m_arrayTexture;
+    std::vector<BlitVertex> m_blitVertices;
 
     unsigned int m_drawCallCount;
 };

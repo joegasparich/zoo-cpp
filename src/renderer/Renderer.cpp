@@ -1,4 +1,5 @@
 #include <constants/depth.h>
+#include <util/math.h>
 #include "Renderer.h"
 #include "Debug.h"
 #include "constants/world.h"
@@ -58,36 +59,32 @@ Renderer::~Renderer() {
 }
 
 void Renderer::setupBlit() {
-    float positions[] = {
-            0.0f, 0.0f,     0.0f, 0.0f, // 0
-            1.0f, 0.0f,     1.0f, 0.0f, // 1
-            1.0f, 1.0f,     1.0f, 1.0f, // 2
-            0.0f, 1.0f,     0.0f, 1.0f  // 3
-    };
-
-    unsigned int indices[] = {
-            0, 1, 2,
-            2, 3, 0
-    };
-
     m_blitVa = std::make_unique<VertexArray>();
-    m_blitVb = std::make_unique<VertexBuffer>(positions, sizeof(float) * 4 * 4);
+    // TODO: Do we need more than 1000 blits? probably
+    m_blitVb = std::make_unique<VertexBuffer>(nullptr, sizeof(BlitVertex) * 4 * 1000, true);
 
     m_blitLayout = std::make_unique<VertexBufferLayout>();
-    m_blitLayout->push<float>(2);
-    m_blitLayout->push<float>(2);
+    m_blitLayout->push<float>(3); // pos
+    m_blitLayout->push<float>(3); // texCoord
+//    m_blitLayout->push<float>(3); // colour
 
-    m_blitIb = std::make_unique<IndexBuffer>(indices, 6);
+    m_blitVa->addBuffer(*m_blitVb, *m_blitLayout);
 
-    m_blitShader = std::make_unique<Shader>("./shaders/TextureVertex.shader", "./shaders/TextureFragment.shader");
-    m_blitColourShader = std::make_unique<Shader>("./shaders/ColourTextureVertex.shader", "./shaders/ColourTextureFragment.shader");
+    m_blitShader = std::make_unique<Shader>("./shaders/ArrayTextureVertex.shader", "./shaders/ArrayTextureFragment.shader");
+
+    m_arrayTexture = std::make_unique<ArrayTexture>(MAX_BLIT_WIDTH, MAX_BLIT_HEIGHT, MAX_BLIT_TEXTURES);
 }
 
 void Renderer::doRender() {
+    auto& renderer = Renderer::get();
+
+    renderer.renderBlitArray();
+    renderer.m_blitVertices.clear();
+
     SDL_GL_SwapWindow(Renderer::get().m_window);
 
-    Debug::addDebugInfo("Draw Calls: " + std::to_string(Renderer::get().m_drawCallCount));
-    Renderer::get().m_drawCallCount = 0;
+    Debug::addDebugInfo("Draw Calls: " + std::to_string(renderer.m_drawCallCount));
+    renderer.m_drawCallCount = 0;
 }
 
 void Renderer::clear() {
@@ -97,55 +94,52 @@ void Renderer::clear() {
 void Renderer::blit(BlitOptions opts) {
     auto& renderer = Renderer::get();
 
-    std::vector<float> vertices{};
-    std::unique_ptr<VertexBuffer> vb;
+    auto colour = opts.colour ? *opts.colour : glm::vec3{1.0f, 1.0f, 1.0f};
+    auto texCoord = opts.subTexture ? opts.subTexture->m_texCoord : glm::vec2{0.0f, 0.0f};
+    auto texBounds = opts.subTexture ? opts.subTexture->m_texBounds : glm::vec2{1.0f, 1.0f};
+    auto image = opts.subTexture ? opts.subTexture->m_texture->m_image : opts.texture->m_image;
+    texCoord = multVect(texCoord, glm::vec2{(float)image->m_width / (float)MAX_BLIT_WIDTH, (float)image->m_height / (float)MAX_BLIT_HEIGHT});
+    texBounds = multVect(texBounds, glm::vec2{(float)image->m_width / (float)MAX_BLIT_WIDTH, (float)image->m_height / (float)MAX_BLIT_HEIGHT});
 
-    renderer.m_blitVa->bind();
-    renderer.m_blitIb->bind();
+    auto texId = opts.subTexture ?
+            renderer.m_arrayTexture->pushTexture(*opts.subTexture->m_texture->m_image) :
+            renderer.m_arrayTexture->pushTexture(*opts.texture->m_image);
 
-    if (opts.texture) {
-        renderer.m_blitVa->addBuffer(*renderer.m_blitVb, *renderer.m_blitLayout);
-        opts.texture->bind();
-    } else if (opts.subTexture) {
-        vertices = {
-            0.0f, 0.0f, opts.subTexture->m_texCoord.x, opts.subTexture->m_texCoord.y,
-            1.0f, 0.0f, opts.subTexture->m_texCoord.x + opts.subTexture->m_texBounds.x, opts.subTexture->m_texCoord.y,
-            1.0f, 1.0f, opts.subTexture->m_texCoord.x + opts.subTexture->m_texBounds.x, opts.subTexture->m_texCoord.y + opts.subTexture->m_texBounds.y,
-            0.0f, 1.0f, opts.subTexture->m_texCoord.x, opts.subTexture->m_texCoord.y + opts.subTexture->m_texBounds.y
-        };
-        vb = std::make_unique<VertexBuffer>(
-            &vertices[0],
-            sizeof(float) * 4 * 4
-        );
-
-        renderer.m_blitVa->addBuffer(*vb, *renderer.m_blitLayout);
-        opts.subTexture->m_texture->bind();
-    } else {
-        std::cout << "A texture must be provided to blit()" << std::endl;
+    if (texId >= MAX_BLIT_TEXTURES) {
+        std::cout << "Error loading texture" << std::endl;
         return;
     }
 
-    float depth = getDepth(opts.pos.y + opts.scale.y/2);
-    if (opts.depth) {
-        depth = opts.depth;
+    renderer.m_blitVertices.push_back({{opts.pos + glm::vec2{0.0f,                0.0f},                opts.depth}, {texCoord.x,               texCoord.y,               (float)texId}}); // , colour});
+    renderer.m_blitVertices.push_back({{opts.pos + glm::vec2{1.0f * opts.scale.x, 0.0f},                opts.depth}, {texCoord.x + texBounds.x, texCoord.y,               (float)texId}}); // , colour});
+    renderer.m_blitVertices.push_back({{opts.pos + glm::vec2{1.0f * opts.scale.x, 1.0f * opts.scale.y}, opts.depth}, {texCoord.x + texBounds.x, texCoord.y + texBounds.y, (float)texId}}); // , colour});
+    renderer.m_blitVertices.push_back({{opts.pos + glm::vec2{0.0f,                1.0f * opts.scale.y}, opts.depth}, {texCoord.x,               texCoord.y + texBounds.y, (float)texId}}); // , colour});
+
+}
+
+void Renderer::renderBlitArray() {
+    auto& renderer = Renderer::get();
+
+    std::vector<std::array<unsigned int, 6>> indices{};
+
+    for (int i = 0; i < renderer.m_blitVertices.size() / 4; i++) {
+        unsigned int base = i * 4;
+        indices.push_back({base, base + 1, base + 2,
+                           base + 2, base + 3, base});
     }
+    auto ib = IndexBuffer{&indices[0], (unsigned int)indices.size() * 6};
 
-    // TODO: instead of h/2 have an origin point?
-    auto mvp = Renderer::getMVPMatrix(opts.pos, 0.0f, depth, glm::vec3(opts.scale, 1.0f), opts.isWorldPos);
+    renderer.m_blitVb->updateData(&renderer.m_blitVertices[0], renderer.m_blitVertices.size() * sizeof(BlitVertex), 0);
+    renderer.m_blitVa->bind();
+    ib.bind();
+    renderer.m_blitShader->bind();
+    renderer.m_arrayTexture->bind();
 
-    Shader* shader;
-    if (opts.colour) {
-        shader = renderer.m_blitColourShader.get();
-        renderer.m_blitColourShader->bind();
-        shader->setUniform3f("u_Colour", *opts.colour);
-    } else {
-        shader = renderer.m_blitShader.get();
-        renderer.m_blitShader->bind();
-    }
-    shader->setUniformMat4f("u_MVP", mvp);
-    shader->setUniform1i("u_Texture", 0);
+    auto mvp = Renderer::getMVPMatrix({0.0f, 0.0f}, 0.0f, 0.0f, glm::vec3(1.0f), true);
+    renderer.m_blitShader->setUniformMat4f("u_MVP", mvp);
+    renderer.m_blitShader->setUniform1i("u_Textures", 0);
 
-    Renderer::draw(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
+    Renderer::draw(GL_TRIANGLES, indices.size() * 6, GL_UNSIGNED_INT, nullptr);
 }
 
 void Renderer::draw(GLenum mode, unsigned int count, GLenum type, const void *indices) {
@@ -162,7 +156,7 @@ glm::mat4 Renderer::getMVPMatrix(glm::vec2 pos, float rotation, float depth, glm
     auto view = glm::mat4(1.0f);
     // Move window to top left
     view = glm::translate(view, glm::vec3(WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2, 0.0f));
-    // Translate into world pos
+    // Translate into world m_pos
     if (isWorldPos) {
         // Scale to camera zoom
         view = glm::scale(view,  glm::vec3(renderer.m_camera.scale * WORLD_SCALE, renderer.m_camera.scale * WORLD_SCALE, 1.0f));

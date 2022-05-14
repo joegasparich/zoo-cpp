@@ -227,7 +227,7 @@ Wall* WallGrid::getWallAtTile(glm::ivec2 tilePos, Side side) {
     if (!m_isSetup) return nullptr;
 
     if (!isWallPosInMap(tilePos, side)) {
-        // Invert position and side if tile pos is correct but on the outside of the map
+        // Invert position and side if tile m_pos is correct but on the outside of the map
         if (Zoo::zoo->m_world->isPositionInMap(tilePos + glm::ivec2(0, 1)) && side == Side::South) {
             tilePos = tilePos + glm::ivec2(0, 1);
             side = Side::North;

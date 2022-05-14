@@ -2,7 +2,7 @@
 
 #include "pch.h"
 
-#include "Entity.h"
+#include "entities/Entity.h"
 #include "world/BiomeGrid.h"
 #include "tools/ToolManager.h"
 #include "world/ElevationGrid.h"

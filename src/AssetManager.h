@@ -20,6 +20,7 @@ public:
     static SpriteSheet* getSpriteSheet(const std::string &key);
 
     static void loadAssets();
+    static void loadObjects();
     static void loadWalls();
 
     static Image* loadImage(const std::string& path);

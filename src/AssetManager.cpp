@@ -1,6 +1,13 @@
+#include <util/json.h>
 #include "AssetManager.h"
 #include "Registry.h"
 #include "constants/assets.h"
+#include "Debug.h"
+
+struct serialisedVector {
+    float x;
+    float y;
+};
 
 AssetManager::AssetManager() : m_imageMap{} {};
 
@@ -18,30 +25,54 @@ void AssetManager::loadAssets() {
     }
 }
 
+void AssetManager::loadObjects() {
+    for (auto path : assets::objects) {
+        try {
+            auto j = readJSON(path);
+
+            // Map to Object
+            loadImage(j["sprite"].get<std::string>());
+
+            Registry::registerObject(path, {
+                    path,
+                    j["name"].get<std::string>(),
+                    j["sprite"].get<std::string>(),
+                    getObjectType(j["type"].get<std::string>()),
+                    fromJSON(j["pivot"]),
+                    fromJSON(j["size"]),
+                    j["solid"].get<bool>(),
+                    j["canPlaceOnSlopes"].get<bool>(),
+                    j["canPlaceInWater"].get<bool>()
+
+            });
+        } catch(const std::exception& error) {
+            std::cout << "Error loading object: " << path << std::endl;
+            std::cout << error.what() << std::endl;
+        }
+    }
+}
+
 void AssetManager::loadWalls() {
     for (auto path : assets::walls) {
-        // Load file
-        std::ifstream t(path);
-        std::stringstream buffer;
-        buffer << t.rdbuf();
+        try {
+            auto json = readJSON(path);
 
-        // Parse JSON
-        auto json = json::parse(buffer.str());
+            // Map to Wall
+            auto imagePath = json["spriteSheet"].get<std::string>();
+            auto image = loadImage(imagePath);
+            loadSpriteSheet(imagePath, image, json["cellWidth"].get<int>(),json["cellHeight"].get<int>());
 
-        std::cout << json.dump() << std::endl;
-
-        // Map to Wall
-        auto imagePath = json["spriteSheet"].get<std::string>();
-        auto image = loadImage(imagePath);
-        loadSpriteSheet(imagePath, image, json["cellWidth"].get<int>(),json["cellHeight"].get<int>());
-
-        Registry::registerWall(path, {
-                path,
-                json["name"].get<std::string>(),
-                json["type"].get<std::string>(),
-                json["solid"].get<bool>(),
-                imagePath
-        });
+            Registry::registerWall(path, {
+                    path,
+                    json["name"].get<std::string>(),
+                    json["type"].get<std::string>(),
+                    json["solid"].get<bool>(),
+                    imagePath
+            });
+        } catch(const std::exception& error) {
+            std::cout << "Error loading wall: " << path << std::endl;
+            std::cout << error.what() << std::endl;
+        }
     }
 }
 

@@ -8,7 +8,8 @@ public:
     ArrayTexture(int width, int height, int maxLayers);
     virtual ~ArrayTexture();
 
-    void pushTexture(const Image& image);
+    unsigned int pushTexture(const Image& image);
+    unsigned int getLayerId(const Image& image);
 
     void bind(unsigned int slot = 0) const;
     void unbind() const;
@@ -20,4 +21,6 @@ private:
     int m_width{}, m_height{};
     GLsizei m_layers{}, m_maxLayers{};
     unsigned int m_rendererID{};
+
+    std::unordered_map<std::string, unsigned int> m_layerMap;
 };

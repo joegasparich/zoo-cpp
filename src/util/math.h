@@ -33,6 +33,20 @@ inline bool circleIntersectsRect(glm::vec2 boxPos, glm::vec2 boxDim, glm::vec2 c
     return dx * dx + dy * dy <= circleRad * circleRad;
 }
 
+inline glm::vec2 multVect(glm::vec2 a, glm::vec2 b) {
+    return {
+        a.x * b.x,
+        a.y * b.y
+    };
+}
+
+inline glm::vec2 divVect(glm::vec2 a, glm::vec2 b) {
+    return {
+        a.x / b.x,
+        a.y / b.y
+    };
+}
+
 inline glm::vec3 rgb2hsv(glm::vec3 in) {
     glm::vec3 out;
     double min, max, delta;

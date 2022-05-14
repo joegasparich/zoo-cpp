@@ -5,16 +5,17 @@
 class Entity;
 
 enum COMPONENT {
-    RENDER_COMPONENT
+    RENDER_COMPONENT,
+    TILE_OBJECT_COMPONENT
 };
 
 class Component {
 public:
-    COMPONENT id;
-    COMPONENT type;
-    std::set<COMPONENT> requiredComponents;
+    virtual COMPONENT getId() = 0;
+    virtual COMPONENT getType() = 0;
+    virtual std::set<COMPONENT> getRequiredComponents() = 0;
 
-    bool disabled;
+    bool m_disabled;
 
     Component();
 
@@ -26,6 +27,6 @@ public:
     virtual void end();
 
 protected:
-    Entity *entity;
-    bool hasStarted;
+    Entity* m_entity;
+    bool m_hasStarted;
 };

@@ -108,7 +108,8 @@ void WallTool::render() {
 
 void WallTool::updateGhostSprite(ToolGhost& ghost, glm::ivec2 tilePos, Side quadrant) {
     auto wall = Zoo::zoo->m_world->m_wallGrid->getWallAtTile(tilePos, quadrant);
-    auto& elevationGrid = Zoo::zoo->m_world->m_elevationGrid;
+    auto& world = Zoo::zoo->m_world;
+    auto& elevationGrid = world->m_elevationGrid;
 
     if (!wall) {
         ghost.m_visible = false;
@@ -118,9 +119,13 @@ void WallTool::updateGhostSprite(ToolGhost& ghost, glm::ivec2 tilePos, Side quad
 
     ghost.m_canPlace = true;
     if (wall->exists) ghost.m_canPlace = false;
-    auto [v1, v2] = Zoo::zoo->m_world->m_wallGrid->getWallVertices(*wall);
+    auto [v1, v2] = world->m_wallGrid->getWallVertices(*wall);
     if (elevationGrid->getElevationAtPos(v1) < 0) ghost.m_canPlace = false;
     if (elevationGrid->getElevationAtPos(v2) < 0) ghost.m_canPlace = false;
+    auto [t1, t2] = world->m_wallGrid->getAdjacentTiles(*wall);
+    auto obj1 = world->getTileObjectAtPosition(t1);
+    auto obj2 = world->getTileObjectAtPosition(t2);
+    if (obj1 && obj2 && obj1->getId() == obj2->getId()) ghost.m_canPlace = false;
 
     auto [spriteIndex, elevation] = WallGrid::getSpriteInfo(*wall);
 

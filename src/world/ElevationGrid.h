@@ -36,7 +36,6 @@ public:
     Elevation getElevationAtGridPos(glm::ivec2 gridPos);
     SlopeVariant getTileSlopeVariant(glm::ivec2 tile);
     float getTileBaseElevation(glm::ivec2 tile);
-    std::vector<glm::vec2> getTileWaterVertices(glm::ivec2 gridPos);
     std::vector<glm::ivec2> getSurroundingTiles(glm::ivec2 gridPos);
     std::vector<glm::ivec2> getAdjacentGridPositions(glm::ivec2 gridPos);
     std::vector<glm::ivec2> getAdjacentGridPositions(glm::ivec2 gridPos, bool diagonals);
@@ -59,4 +58,6 @@ private:
     std::unique_ptr<IndexBuffer> m_ib;
     std::unique_ptr<VertexBufferLayout> m_layout;
     std::unique_ptr<Shader> m_shader;
+
+    std::vector<glm::vec2> getTileWaterVertices(glm::ivec2 gridPos);
 };

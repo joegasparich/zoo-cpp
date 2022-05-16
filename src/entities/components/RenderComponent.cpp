@@ -9,27 +9,23 @@ std::set<COMPONENT> RenderComponent::getRequiredComponents() {
     return {};
 }
 
-RenderComponent::RenderComponent() {}
-
-RenderComponent::RenderComponent(Texture *texture) {
+RenderComponent::RenderComponent(Entity *entity, Texture *texture) : Component(entity) {
     if (texture) {
         setTexture(*texture);
     }
 }
+RenderComponent::RenderComponent(Entity *entity, std::unique_ptr<SubTexture> subTexture) : Component(entity) {
+    if (subTexture) {
+        setSubTexture(std::move(subTexture));
+    }
+}
 
-void RenderComponent::start(Entity &entity) {
-    Component::start(entity);
+void RenderComponent::start() {
+    Component::start();
 }
 
 void RenderComponent::render(double step) {
-    auto height = (float)m_texture->m_image->m_height;
-    auto width = (float)m_texture->m_image->m_width;
-    auto max = std::max(height, width);
-    auto dimensions = glm::vec2{width/max, height/max};
-    auto offset = glm::vec2{m_pivot.x * dimensions.x, m_pivot.y * dimensions.y};
-
-    // TODO: Batch renders
-    Renderer::blit({ m_texture, m_entity->m_pos - offset, dimensions });
+    Renderer::blit({ m_texture, m_subTexture.get(), m_entity->m_pos, Renderer::getDepth(m_entity->m_pos.y), {1.0f, 1.0f}, &m_pivot });
 }
 
 Texture &RenderComponent::getTexture() const {
@@ -37,5 +33,11 @@ Texture &RenderComponent::getTexture() const {
 }
 
 void RenderComponent::setTexture(Texture &texture) {
+    m_subTexture = nullptr;
     m_texture = &texture;
+}
+
+void RenderComponent::setSubTexture(std::unique_ptr<SubTexture> subTexture) {
+    m_texture = nullptr;
+    m_subTexture = std::move(subTexture);
 }

@@ -29,6 +29,7 @@ void ToolGhost::reset() {
     m_pos = {0.0f, 0.0f};
     m_scale = {1.0f, 1.0f};
     m_offset = {0.0f, 0.0f};
+    m_pivot = {0.0f, 0.0f};
 }
 
 void ToolGhost::render() {
@@ -110,12 +111,13 @@ void ToolGhost::renderSquare() {
 void ToolGhost::renderTexture() {
     if (!m_texture) return;
 
-    Renderer::blit({m_texture.get(), m_pos + m_offset, m_scale});
+    auto colour = m_canPlace ? GHOST_COLOUR : BLOCKED_COLOUR;
+    Renderer::blit({m_texture, nullptr, m_pos + m_offset, DEPTH::UI, m_scale, &m_pivot, &colour});
 }
 
 void ToolGhost::renderSubTexture() {
     if (!m_subTexture) return;
 
     auto colour = m_canPlace ? GHOST_COLOUR : BLOCKED_COLOUR;
-    Renderer::blit({nullptr, m_pos + m_offset, m_scale, m_subTexture.get(), &colour, DEPTH::UI});
+    Renderer::blit({nullptr, m_subTexture.get(), m_pos + m_offset, DEPTH::UI, m_scale, &m_pivot, &colour});
 }

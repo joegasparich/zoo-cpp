@@ -3,6 +3,7 @@
 layout(location = 0) out vec4 color;
 
 in vec3 v_TexCoord;
+in vec3 v_Colour;
 
 uniform sampler2DArray u_Textures;
 
@@ -13,5 +14,5 @@ void main(){
          discard;
     }
 
-    color = texColor;
+    color = texColor * vec4(v_Colour, 1.0);
 }

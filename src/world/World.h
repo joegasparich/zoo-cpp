@@ -24,8 +24,8 @@ public:
 
     // Getters & Setters
     bool isPositionInMap(glm::vec2 pos) const;
-    bool isTileFree(glm::ivec2 pos) const;
     static Side getQuadrantAtPos(glm::vec2 pos);
+    Entity* getTileObjectAtPosition(glm::vec2 pos);
 
     // Save & Load
     json save();

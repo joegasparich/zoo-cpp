@@ -3,12 +3,13 @@
 #include "Game.h"
 
 Entity::Entity(glm::vec2 pos) : m_pos{pos}, m_components{}, m_hasStarted{false} {}
+Entity::~Entity() = default;
 
 void Entity::setup() {
     m_hasStarted = true;
 
     for (auto &component: m_components) {
-        component.second->start(*this);
+        component.second->start();
     }
 }
 
@@ -34,6 +35,10 @@ void Entity::render(const double step) const {
     // TODO: Toggleable
     Debug::drawLine(m_pos - glm::vec2{0.25f, 0.25f}, m_pos + glm::vec2{0.25f, 0.25f}, glm::vec4{1.0f, 0.0f, 0.0f, 1.0f});
     Debug::drawLine(m_pos - glm::vec2{-0.25f, 0.25f}, m_pos + glm::vec2{-0.25f, 0.25f}, glm::vec4{1.0f, 0.0f, 0.0f, 1.0f});
+}
+
+void Entity::setId(const std::string &id) {
+    m_id = id;
 }
 
 const std::string &Entity::getId() const {

@@ -6,6 +6,7 @@
 #include "ui/UIManager.h"
 #include "ElevationTool.h"
 #include "WallTool.h"
+#include "TileObjectTool.h"
 
 ToolManager::ToolManager() {}
 ToolManager::~ToolManager() {
@@ -60,6 +61,9 @@ void ToolManager::setTool(ToolType type) {
             break;
         case ToolType::Wall:
             m_activeTool = std::make_unique<WallTool>(*this);
+            break;
+        case ToolType::TileObject:
+            m_activeTool = std::make_unique<TileObjectTool>(*this);
             break;
         case ToolType::None:
         default:

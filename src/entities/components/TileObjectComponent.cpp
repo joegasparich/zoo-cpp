@@ -7,10 +7,21 @@ std::set<COMPONENT> TileObjectComponent::getRequiredComponents() {
     return { RENDER_COMPONENT };
 }
 
-TileObjectComponent::TileObjectComponent(const ObjectData &data) : m_data(data) {}
+TileObjectComponent::TileObjectComponent(Entity *entity, const ObjectData &data) : Component(entity), m_data(data) {}
 
-void TileObjectComponent::start(Entity &entity) {
-    Component::start(entity);
+void TileObjectComponent::start() {
+    Component::start();
 
-    Zoo::zoo->m_world->registerTileObject(&entity);
+    Zoo::zoo->m_world->registerTileObject(m_entity);
+}
+
+std::vector<glm::ivec2> TileObjectComponent::getTiles() {
+    std::vector<glm::ivec2> tiles{};
+    glm::ivec2 base = glm::floor(m_entity->m_pos - m_data.size/2.0f);
+    for (int i = 0; i < m_data.size.x; i++) {
+        for (int j = 0; j < m_data.size.y; j++) {
+            tiles.push_back(base + glm::ivec2{i, j});
+        }
+    }
+    return tiles;
 }

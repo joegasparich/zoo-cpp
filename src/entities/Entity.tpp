@@ -7,7 +7,7 @@ T* Entity::addComponent(std::unique_ptr<T> component) {
     auto comp = getComponent<T>();
 
     if (m_hasStarted) {
-        comp->start(*this);
+        comp->start();
     }
 
     return comp;

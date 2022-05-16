@@ -17,10 +17,12 @@
 #define WINDOW_WIDTH 1280
 #define WINDOW_HEIGHT 720
 
+#define PIXEL_SCALE 2
+
 #define PRIMITIVE_RESTART 12345
 
-#define MAX_BLIT_WIDTH 64
-#define MAX_BLIT_HEIGHT 64
+#define MAX_BLIT_WIDTH 128
+#define MAX_BLIT_HEIGHT 128
 #define MAX_BLIT_TEXTURES 100
 
 #define GL_CALL(x) glClearError();\
@@ -38,17 +40,18 @@ struct Camera {
 
 struct BlitOptions {
     Texture* texture;
-    glm::vec2 pos;
-    glm::vec2 scale;
     SubTexture* subTexture;
-    glm::vec3* colour;
+    glm::vec2 pos;
     float depth;
+    glm::vec2 scale;
+    glm::vec2* pivot;
+    glm::vec3* colour;
 };
 
-struct BlitVertex {
+struct ArrayTextureVertex {
     glm::vec3 pos;
     glm::vec3 texCoord;
-//    glm::vec3 colour;
+    glm::vec3 colour;
 };
 
 class Renderer {
@@ -61,6 +64,7 @@ public:
     }
 
     static void init();
+    static void renderBlits();
     static void doRender();
     static void clear();
     static void blit(BlitOptions opts);
@@ -83,7 +87,6 @@ private:
     ~Renderer();
 
     void setupBlit();
-    void renderBlitArray();
 
     std::unique_ptr<VertexArray> m_blitVa;
     std::unique_ptr<VertexBuffer> m_blitVb;
@@ -91,7 +94,7 @@ private:
     std::unique_ptr<Shader> m_blitShader;
 
     std::unique_ptr<ArrayTexture> m_arrayTexture;
-    std::vector<BlitVertex> m_blitVertices;
+    std::vector<ArrayTextureVertex> m_blitVertices;
 
     unsigned int m_drawCallCount;
 };

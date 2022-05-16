@@ -19,12 +19,18 @@ public:
     void reset();
     void render(double step) const;
 
+    std::string registerEntity(std::unique_ptr<Entity> entity);
+    void unregisterEntity(std::string entityId);
+    Entity* getEntityById(std::string entityId);
+
     virtual ~Stage();
 
     std::unique_ptr<World> m_world;
     std::unique_ptr<ToolManager> m_tools;
 private:
-    std::vector<std::unique_ptr<Entity>> m_entities;
+    std::unordered_map<std::string, std::unique_ptr<Entity>> m_entities;
+    std::vector<std::unique_ptr<Entity>> m_entitiesToAdd;
+    std::vector<std::string> m_entitiesToDelete;
 
     glm::vec2 m_dragStart;
     glm::vec2 m_dragCameraOrigin;

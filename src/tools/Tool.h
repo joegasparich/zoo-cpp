@@ -8,7 +8,8 @@ enum class ToolType {
     None,
     Biome,
     Elevation,
-    Wall
+    Wall,
+    TileObject
 };
 
 class Tool {

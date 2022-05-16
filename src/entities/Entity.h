@@ -9,6 +9,7 @@
 class Entity {
 public:
     Entity(glm::vec2 pos);
+    ~Entity();
 
     glm::vec2 m_pos;
 
@@ -24,6 +25,7 @@ public:
     bool hasComponent() const;
     bool hasComponent(COMPONENT type);
 
+    void setId(const std::string &id);
     const std::string &getId() const;
 
 private:

@@ -17,9 +17,9 @@ public:
 
     bool m_disabled;
 
-    Component();
+    Component(Entity* entity);
 
-    virtual void start(Entity &_entity);
+    virtual void start();
     virtual void preUpdate();
     virtual void update();
     virtual void postUpdate();

@@ -40,15 +40,20 @@ void World::registerTileObject(Entity *tileObject) {
     auto component = tileObject->getComponent<TileObjectComponent>();
 
     m_tileObjects.insert({tileObject->getId(), tileObject});
-    for (int i = 0; i < component->m_data.size.x; i++) {
-        for (int j = 0; j < component->m_data.size.y; j++) {
-            m_tileObjectMap.insert({vecToString(glm::floor(tileObject->m_pos) + glm::vec2{i, j}), tileObject});
-        }
+    for (auto tile : component->getTiles()) {
+        m_tileObjectMap.insert({vecToString(tile), tileObject});
     }
 }
 
 void World::unregisterTileObject(Entity *tileObject) {
 
+}
+
+Entity *World::getTileObjectAtPosition(glm::vec2 pos) {
+    glm::ivec2 tilePos = glm::floor(pos);
+    if (!isPositionInMap(tilePos)) return nullptr;
+    if (!m_tileObjectMap.contains(vecToString(tilePos))) return nullptr;
+    return m_tileObjectMap.at(vecToString(tilePos));
 }
 
 bool World::isPositionInMap(glm::vec2 pos) const {

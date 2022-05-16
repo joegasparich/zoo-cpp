@@ -1,10 +1,6 @@
 #pragma once
 
 #include "pch.h"
-#include <boost/uuid/uuid.hpp>
-#include <boost/uuid/uuid_generators.hpp>
-
-using namespace boost::uuids;
 
 enum class EventType {
     ApplicationStarted, ApplicationLoaded, ApplicationEnding,
@@ -43,14 +39,14 @@ public:
         return instance;
     }
 
-    static uuid on(const EventType event, std::function<void(std::string)>);
+    static std::string on(const EventType event, std::function<void(std::string)>);
     static void fire(const EventType event);
     static void fire(const EventType event, const std::string& data);
-    static void unsubscribe(const EventType event, uuid handle);
+    static void unsubscribe(const EventType event, std::string handle);
 
 private:
     Mediator();
     ~Mediator() noexcept;
 
-    std::map<EventType, std::map<uuid, std::function<void(std::string)>>> listeners;
+    std::map<EventType, std::map<std::string, std::function<void(std::string)>>> listeners;
 };

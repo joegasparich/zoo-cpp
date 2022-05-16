@@ -6,20 +6,13 @@
 
 WallGrid::WallGrid(unsigned int cols, unsigned int rows) : m_cols(cols), m_rows(rows) {}
 
-struct WallVertex {
-    glm::vec2 pos;
-    float depth;
-    glm::vec2 texCoord;
-    float texIndex;
-};
-
 void WallGrid::setup() {
     m_va = std::make_unique<VertexArray>();
     m_layout = std::make_unique<VertexBufferLayout>();
-    m_layout->push<float>(3);
-    m_layout->push<float>(3);
+    m_layout->push<float>(3); // pos
+    m_layout->push<float>(3); // texCoord
+    m_layout->push<float>(3); // colour
     m_shader = std::make_unique<Shader>("./shaders/ArrayTextureVertex.shader", "./shaders/ArrayTextureFragment.shader");
-    // TODO: Dynamically read height
     m_textureArray = std::make_unique<ArrayTexture>(128, 32, 2);
 
     auto walls = Registry::getAllWalls();
@@ -73,7 +66,7 @@ void WallGrid::render() {
 void WallGrid::regenerateMesh() {
     float textureIndex = 0.0f;
 
-    std::vector<WallVertex> vertices{};
+    std::vector<ArrayTextureVertex> vertices{};
     std::vector<std::array<unsigned int, 6>> indices{};
 
     for (int i = 0; i < m_cols * 2 + 1; i++) {
@@ -87,10 +80,10 @@ void WallGrid::regenerateMesh() {
                 auto texCoord = AssetManager::getSpriteSheet(wall.data.spriteSheetPath)->getTexCoords(spriteIndex);
                 auto depth = Renderer::getDepth(wall.worldPos.y);
 
-                vertices.push_back({pos + glm::vec2{0.0f, 0.0f}, depth, {texCoord[0]}, textureIndex});
-                vertices.push_back({pos + glm::vec2{1.0f, 0.0f}, depth, {texCoord[1]}, textureIndex});
-                vertices.push_back({pos + glm::vec2{1.0f, 2.0f}, depth, {texCoord[2]}, textureIndex});
-                vertices.push_back({pos + glm::vec2{0.0f, 2.0f}, depth, {texCoord[3]}, textureIndex});
+                vertices.push_back({glm::vec3{pos + glm::vec2{0.0f, 0.0f}, depth}, {texCoord[0], textureIndex}, glm::vec3{1.0f, 1.0f, 1.0f}});
+                vertices.push_back({glm::vec3{pos + glm::vec2{1.0f, 0.0f}, depth}, {texCoord[1], textureIndex}, glm::vec3{1.0f, 1.0f, 1.0f}});
+                vertices.push_back({glm::vec3{pos + glm::vec2{1.0f, 2.0f}, depth}, {texCoord[2], textureIndex}, glm::vec3{1.0f, 1.0f, 1.0f}});
+                vertices.push_back({glm::vec3{pos + glm::vec2{0.0f, 2.0f}, depth}, {texCoord[3], textureIndex}, glm::vec3{1.0f, 1.0f, 1.0f}});
                 unsigned int base = indices.size() * 4;
                 indices.push_back({
                       base, base + 1, base + 2,
@@ -100,7 +93,7 @@ void WallGrid::regenerateMesh() {
         }
     }
 
-    m_vb = std::make_unique<VertexBuffer>(&vertices[0], vertices.size() * sizeof(WallVertex));
+    m_vb = std::make_unique<VertexBuffer>(&vertices[0], vertices.size() * sizeof(ArrayTextureVertex));
     m_va->addBuffer(*m_vb, *m_layout);
     m_ib = std::make_unique<IndexBuffer>(&indices[0], (unsigned int)indices.size() * 6);
     m_numIndices = indices.size() * 6;
@@ -262,7 +255,7 @@ std::array<glm::ivec2, 2> WallGrid::getAdjacentTiles(const Wall& wall) {
     if (!m_isSetup) return {};
 
     std::array<glm::ivec2, 2> adjacentTiles{};
-    auto x = wall.gridPos.x; auto y = wall.gridPos.y;
+    auto x = wall.worldPos.x; auto y = wall.worldPos.y;
 
     if (wall.orientation == Orientation::Horizontal) {
         if (Zoo::zoo->m_world->isPositionInMap(glm::vec2(x - 0.5f, y - 1.0f))) adjacentTiles[0] = glm::vec2(x - 0.5f, y - 1.0f);

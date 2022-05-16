@@ -121,12 +121,11 @@ void Game::pollEvents() {
 void Game::render(const double step) const {
     Renderer::clear();
 
-    // Do all renders in here
     SceneManager::getCurrentScene()->render(step);
-
+    Renderer::renderBlits();
+    Debug::render();
     UIManager::render();
 
-    Debug::render();
-
     Renderer::doRender();
+
 }

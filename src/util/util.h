@@ -24,6 +24,10 @@ struct SDL_RendererDestroyer {
     }
 };
 
+inline std::string vecToString(glm::ivec2 v) {
+    return std::to_string(v.x) + "," + std::to_string(v.y);
+}
+
 inline std::string vecToString(glm::vec2 v) {
     return std::to_string(v.x) + "," + std::to_string(v.y);
 }

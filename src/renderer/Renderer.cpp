@@ -61,12 +61,12 @@ Renderer::~Renderer() {
 void Renderer::setupBlit() {
     m_blitVa = std::make_unique<VertexArray>();
     // TODO: Do we need more than 1000 blits? probably
-    m_blitVb = std::make_unique<VertexBuffer>(nullptr, sizeof(BlitVertex) * 4 * 1000, true);
+    m_blitVb = std::make_unique<VertexBuffer>(nullptr, sizeof(ArrayTextureVertex) * 4 * 1000, true);
 
     m_blitLayout = std::make_unique<VertexBufferLayout>();
     m_blitLayout->push<float>(3); // pos
     m_blitLayout->push<float>(3); // texCoord
-//    m_blitLayout->push<float>(3); // colour
+    m_blitLayout->push<float>(3); // colour
 
     m_blitVa->addBuffer(*m_blitVb, *m_blitLayout);
 
@@ -78,7 +78,6 @@ void Renderer::setupBlit() {
 void Renderer::doRender() {
     auto& renderer = Renderer::get();
 
-    renderer.renderBlitArray();
     renderer.m_blitVertices.clear();
 
     SDL_GL_SwapWindow(Renderer::get().m_window);
@@ -98,6 +97,10 @@ void Renderer::blit(BlitOptions opts) {
     auto texCoord = opts.subTexture ? opts.subTexture->m_texCoord : glm::vec2{0.0f, 0.0f};
     auto texBounds = opts.subTexture ? opts.subTexture->m_texBounds : glm::vec2{1.0f, 1.0f};
     auto image = opts.subTexture ? opts.subTexture->m_texture->m_image : opts.texture->m_image;
+
+    auto width = (float)image->m_width * (float)texBounds.x * (float)PIXEL_SCALE / (float)WORLD_SCALE;
+    auto height = (float)image->m_height * (float)texBounds.y * (float)PIXEL_SCALE / (float)WORLD_SCALE;
+
     texCoord = multVect(texCoord, glm::vec2{(float)image->m_width / (float)MAX_BLIT_WIDTH, (float)image->m_height / (float)MAX_BLIT_HEIGHT});
     texBounds = multVect(texBounds, glm::vec2{(float)image->m_width / (float)MAX_BLIT_WIDTH, (float)image->m_height / (float)MAX_BLIT_HEIGHT});
 
@@ -110,14 +113,17 @@ void Renderer::blit(BlitOptions opts) {
         return;
     }
 
-    renderer.m_blitVertices.push_back({{opts.pos + glm::vec2{0.0f,                0.0f},                opts.depth}, {texCoord.x,               texCoord.y,               (float)texId}}); // , colour});
-    renderer.m_blitVertices.push_back({{opts.pos + glm::vec2{1.0f * opts.scale.x, 0.0f},                opts.depth}, {texCoord.x + texBounds.x, texCoord.y,               (float)texId}}); // , colour});
-    renderer.m_blitVertices.push_back({{opts.pos + glm::vec2{1.0f * opts.scale.x, 1.0f * opts.scale.y}, opts.depth}, {texCoord.x + texBounds.x, texCoord.y + texBounds.y, (float)texId}}); // , colour});
-    renderer.m_blitVertices.push_back({{opts.pos + glm::vec2{0.0f,                1.0f * opts.scale.y}, opts.depth}, {texCoord.x,               texCoord.y + texBounds.y, (float)texId}}); // , colour});
+    auto pivot = opts.pivot ? *opts.pivot : glm::vec2{0.0f};
+    auto offset = -glm::vec2{pivot.x * width, pivot.y * height};
+
+    renderer.m_blitVertices.push_back({{opts.pos + offset + glm::vec2{0.0f,         0.0f},          opts.depth}, {texCoord.x,               texCoord.y,               (float)texId}, colour});
+    renderer.m_blitVertices.push_back({{opts.pos + offset + glm::vec2{1.0f * width, 0.0f},          opts.depth}, {texCoord.x + texBounds.x, texCoord.y,               (float)texId}, colour});
+    renderer.m_blitVertices.push_back({{opts.pos + offset + glm::vec2{1.0f * width, 1.0f * height}, opts.depth}, {texCoord.x + texBounds.x, texCoord.y + texBounds.y, (float)texId}, colour});
+    renderer.m_blitVertices.push_back({{opts.pos + offset + glm::vec2{0.0f,         1.0f * height}, opts.depth}, {texCoord.x,               texCoord.y + texBounds.y, (float)texId}, colour});
 
 }
 
-void Renderer::renderBlitArray() {
+void Renderer::renderBlits() {
     auto& renderer = Renderer::get();
 
     std::vector<std::array<unsigned int, 6>> indices{};
@@ -129,7 +135,7 @@ void Renderer::renderBlitArray() {
     }
     auto ib = IndexBuffer{&indices[0], (unsigned int)indices.size() * 6};
 
-    renderer.m_blitVb->updateData(&renderer.m_blitVertices[0], renderer.m_blitVertices.size() * sizeof(BlitVertex), 0);
+    renderer.m_blitVb->updateData(&renderer.m_blitVertices[0], renderer.m_blitVertices.size() * sizeof(ArrayTextureVertex), 0);
     renderer.m_blitVa->bind();
     ib.bind();
     renderer.m_blitShader->bind();
@@ -180,7 +186,7 @@ glm::mat4 Renderer::getMVPMatrix(glm::vec2 pos, float rotation, float depth, glm
 }
 
 float Renderer::getDepth(float yPos) {
-    return glm::clamp(yPos / LARGER_THAN_WORLD, 0.0f, 1.0f) / DEPTH::Y_SORTING_MAX;
+    return glm::clamp(yPos / LARGER_THAN_WORLD, 0.0f, 1.0f) * 0.1f + DEPTH::Y_SORTING;
 }
 
 glm::vec2 Renderer::screenToWorldPos(glm::vec2 screenPos) {

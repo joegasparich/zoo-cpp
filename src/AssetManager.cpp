@@ -4,18 +4,21 @@
 #include "constants/assets.h"
 #include "Debug.h"
 
-struct serialisedVector {
-    float x;
-    float y;
-};
-
 AssetManager::AssetManager() : m_imageMap{} {};
 
 Image* AssetManager::getImage(const std::string &key) {
+    if (!get().m_imageMap.contains(key)) {
+        return nullptr;
+    }
+
     return get().m_imageMap[key].get();
 }
 
 SpriteSheet *AssetManager::getSpriteSheet(const std::string &key) {
+    if (!get().m_spriteSheetMap.contains(key)) {
+        return nullptr;
+    }
+
     return get().m_spriteSheetMap[key].get();
 }
 
@@ -31,12 +34,25 @@ void AssetManager::loadObjects() {
             auto j = readJSON(path);
 
             // Map to Object
-            loadImage(j["sprite"].get<std::string>());
+            Image* image = nullptr;
+            SpriteSheet* spriteSheet = nullptr;
+            if (j["sprite"].is_string()) {
+                image = loadImage(j["sprite"].get<std::string>());
+            }
+            if (j["spriteSheet"].is_string()) {
+                spriteSheet = loadSpriteSheet(
+                    j["spriteSheet"].get<std::string>(),
+                    loadImage(j["spriteSheet"].get<std::string>()),
+                    j["cellWidth"].get<int>(),
+                    j["cellHeight"].get<int>()
+                );
+            }
 
             Registry::registerObject(path, {
                     path,
                     j["name"].get<std::string>(),
-                    j["sprite"].get<std::string>(),
+                    image,
+                    spriteSheet,
                     getObjectType(j["type"].get<std::string>()),
                     fromJSON(j["pivot"]),
                     fromJSON(j["size"]),
@@ -85,6 +101,8 @@ Image* AssetManager::loadImage(const std::string &path) {
 }
 
 SpriteSheet* AssetManager::loadSpriteSheet(const std::string& assetPath, Image* image, int cellWidth, int cellHeight) {
+    if (!image) return nullptr;
+
     if (!get().m_spriteSheetMap.contains(assetPath)) {
         get().m_spriteSheetMap.insert({assetPath, std::make_unique<SpriteSheet>(
             SpriteSheet{
@@ -99,6 +117,8 @@ SpriteSheet* AssetManager::loadSpriteSheet(const std::string& assetPath, Image* 
 }
 
 Texture* AssetManager::loadTexture(Image* image) {
+    if (!image) return nullptr;
+
     auto& texmap = get().m_textureMap;
     if (get().m_textureMap.contains(image->m_filePath)) {
         return get().m_textureMap.at(image->m_filePath).get();

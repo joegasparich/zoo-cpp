@@ -27,10 +27,11 @@ public:
     bool m_visible;
     bool m_canPlace;
     std::unique_ptr<SubTexture> m_subTexture;
-    std::shared_ptr<Texture> m_texture;
+    Texture* m_texture;
     glm::vec2 m_pos;
     glm::vec2 m_scale;
     glm::vec2 m_offset;
+    glm::vec2 m_pivot = glm::vec2{0.5f, 0.5f};
 
 private:
     void renderCircle();

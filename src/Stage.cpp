@@ -1,4 +1,5 @@
 #include <constants/world.h>
+#include <util/uuid.h>
 #include "Stage.h"
 #include "constants/assets.h"
 #include "Game.h"
@@ -11,7 +12,11 @@
 #define MAX_ZOOM 10.0f
 #define CAMERA_SPEED 0.1f
 
-Stage::Stage() : m_entities{} {
+Stage::Stage() :
+    m_entities{},
+    m_entitiesToAdd{},
+    m_entitiesToDelete{}
+{
     m_tools = std::make_unique<ToolManager>();
     // Aim for 200
     m_world = std::make_unique<World>(10, 10);
@@ -25,15 +30,12 @@ void Stage::setup() {
     m_world->setup();
 
     auto player{std::make_unique<Entity>(glm::vec2{1, 1})};
-    player->addComponent(std::make_unique<RenderComponent>(AssetManager::loadTexture(AssetManager::getImage(IMG_KEEPER))));
+    player->addComponent(std::make_unique<RenderComponent>(player.get(), AssetManager::loadTexture(AssetManager::getImage(IMG_KEEPER))));
 
-    m_entities.push_back(std::move(player));
+    registerEntity(std::move(player));
 
-    auto tree = createTileObject(OBJ_TREE, {3, 3});
-    m_entities.push_back(std::move(tree));
-
-    for (auto &entity: m_entities) {
-        entity->setup();
+    for (auto& pair: m_entities) {
+        pair.second->setup();
     }
 
     m_tools->setup();
@@ -48,8 +50,8 @@ void Stage::update() {
     m_tools->update();
     m_world->update();
 
-    for (auto &entity: m_entities) {
-        entity->update();
+    for (auto& pair: m_entities) {
+        pair.second->update();
     }
 
     // TODO: Refactor this out somewhere
@@ -97,14 +99,21 @@ void Stage::preUpdate() {
 void Stage::postUpdate() {
     m_world->postUpdate();
     m_tools->postUpdate();
+
+    for (auto& entity : m_entitiesToAdd) {
+        entity->setup();
+        m_entities.insert({entity->getId(), std::move(entity)});
+    }
+
+    m_entitiesToAdd.clear();
 }
 
 void Stage::render(double step) const {
     m_world->render();
     m_tools->render();
 
-    for (auto &entity: m_entities) {
-        entity->render(step);
+    for (auto& pair : m_entities) {
+        pair.second->render(step);
     }
 }
 
@@ -113,4 +122,22 @@ void Stage::reset() {
     m_world->reset();
 
     Renderer::resetCamera();
+}
+
+std::string Stage::registerEntity(std::unique_ptr<Entity> entity) {
+    auto id = uuid::generate();
+    entity->setId(id);
+    m_entitiesToAdd.push_back(std::move(entity));
+
+    return id;
+}
+
+void Stage::unregisterEntity(std::string entityId) {
+    // TODO: Implement
+}
+
+Entity *Stage::getEntityById(std::string entityId) {
+    auto& ptr = m_entities.at(entityId);
+    if (ptr) return ptr.get();
+    return nullptr;
 }

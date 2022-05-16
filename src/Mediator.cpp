@@ -1,10 +1,11 @@
+#include <util/uuid.h>
 #include "Mediator.h"
 
 Mediator::Mediator() : listeners{} {};
 Mediator::~Mediator() noexcept = default;
 
-uuid Mediator::on(const EventType event, std::function<void(std::string)> callback) {
-    auto handle{ random_generator()() };
+std::string Mediator::on(const EventType event, std::function<void(std::string)> callback) {
+    auto handle{ uuid::generate() };
 
     if (!Mediator::get().listeners.contains(event)) {
         Mediator::get().listeners.insert({event, {}});
@@ -27,7 +28,7 @@ void Mediator::fire(const EventType event, const std::string& data) {
     }
 }
 
-void Mediator::unsubscribe(const EventType event, uuid handle) {
+void Mediator::unsubscribe(const EventType event, std::string handle) {
     if (!Mediator::get().listeners.contains(event)) return;
     if (!Mediator::get().listeners.at(event).contains((handle))) return;
 

@@ -1,10 +1,11 @@
 #include "Component.h"
 #include "entities/Entity.h"
 
-Component::Component() {}
+Component::Component(Entity* entity) {
+    m_entity = entity;
+}
 
-void Component::start(Entity& _entity) {
-    m_entity = &_entity;
+void Component::start() {
     m_hasStarted = true;
 
     for (auto component: getRequiredComponents()) {

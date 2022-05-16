@@ -1,4 +1,5 @@
 #include <constants/depth.h>
+#include <entities/components/TileObjectComponent.h>
 #include "ElevationGrid.h"
 #include "constants/world.h"
 #include "util/math.h"
@@ -170,6 +171,22 @@ bool ElevationGrid::canElevate(glm::ivec2 gridPos, Elevation elevation) {
         // Check 4 surrounding wall slots for walls
         for (auto wall : Zoo::zoo->m_world->m_wallGrid->getSurroundingWalls(gridPos)) {
             if (wall->exists) return false;
+        }
+        // Check 4 surrounding tiles for tile objects
+        for (auto tile : getSurroundingTiles(gridPos)) {
+            auto entity = Zoo::zoo->m_world->getTileObjectAtPosition(tile);
+            if (!entity) continue;
+            auto tileObject = entity->getComponent<TileObjectComponent>();
+            if (tileObject && !tileObject->m_data.canPlaceInWater) return false;
+        }
+    }
+    if (elevation == Elevation::Hill) {
+        // Check 4 surrounding tiles for tile objects
+        for (auto tile : getSurroundingTiles(gridPos)) {
+            auto entity = Zoo::zoo->m_world->getTileObjectAtPosition(tile);
+            if (!entity) continue;
+            auto tileObject = entity->getComponent<TileObjectComponent>();
+            if (tileObject && !tileObject->m_data.canPlaceOnSlopes) return false;
         }
     }
 
@@ -382,6 +399,15 @@ float ElevationGrid::getElevationAtPos(glm::vec2 pos) {
     }
 }
 
+std::vector<glm::ivec2> ElevationGrid::getSurroundingTiles(glm::ivec2 gridPos) {
+    return {
+        gridPos + glm::ivec2{-1, -1},
+        gridPos + glm::ivec2{-1, 0},
+        gridPos + glm::ivec2{0, -1},
+        gridPos + glm::ivec2{0, 0},
+    };
+}
+
 bool ElevationGrid::isPositionInGrid(glm::vec2 pos) const {
     return pos.x >= 0 && pos.x < (float)m_cols && pos.y >= 0 && pos.y < (float)m_rows;
 }
@@ -405,7 +431,8 @@ bool ElevationGrid::isPositionWater(glm::vec2 pos) {
 }
 
 bool ElevationGrid::isTileWater(glm::ivec2 pos) {
-    return m_grid.at(pos.x).at(pos.y) == Elevation::Water;
+    if (!isPositionInGrid(pos)) return false;
+    return getTileBaseElevation(pos) < 0;
 }
 
 std::vector<glm::ivec2> ElevationGrid::getAdjacentGridPositions(glm::ivec2 gridPos) {

@@ -19,7 +19,8 @@ inline ObjectType getObjectType(const std::string& typeString) {
 struct ObjectData {
     std::string assetPath;
     std::string name;
-    std::string spritePath;
+    Image* image;
+    SpriteSheet* spriteSheet;
     ObjectType type;
     glm::vec2 pivot;
     glm::vec2 size;

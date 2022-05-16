@@ -2,7 +2,7 @@
 
 #include "pch.h"
 
-inline glm::ivec3 intToColour(unsigned int number) {
+inline glm::ivec3 intToColour256(unsigned int number) {
     return {
         (number >>  0) & 255,
         (number >>  8) & 255,
@@ -10,8 +10,8 @@ inline glm::ivec3 intToColour(unsigned int number) {
     };
 }
 
-inline unsigned int colourToInt(glm::ivec3 colour) {
-    return ( colour.r << 0 ) | ( colour.g << 8 ) | ( colour.b << 16 );
+inline unsigned int colour256ToInt(glm::ivec3 colour256) {
+    return ( colour256.r << 0 ) | ( colour256.g << 8 ) | ( colour256.b << 16 );
 }
 
 inline glm::vec3 rgb2hsv(glm::vec3 in) {

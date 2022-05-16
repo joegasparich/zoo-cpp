@@ -133,6 +133,8 @@ unsigned int Stage::registerEntity(std::unique_ptr<Entity> entity) {
     entity->setId(id);
     m_entitiesToAdd.push_back(std::move(entity));
 
+    std::cout << "Registered entity with id " << id << std::endl;
+
     return id;
 }
 

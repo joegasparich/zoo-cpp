@@ -154,10 +154,9 @@ void Renderer::renderBlits() {
     renderer.m_pickFrameBuffer->bind();
     GL_CALL(glClearColor(1.0f, 1.0f, 1.0f, 1.0f));
     GL_CALL(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
-    GL_CALL(glEnable(GL_DEPTH_TEST));
 
     for (int i = 0; i < renderer.m_blitVertices.size(); i++) {
-        renderer.m_blitVertices[i].colour = intToColour(renderer.m_pickIds[i]);
+        renderer.m_blitVertices[i].colour = glm::vec3{intToColour256(renderer.m_pickIds[i / 4])} / 255.0f;
     }
     renderer.m_blitVb->updateData(&renderer.m_blitVertices[0], renderer.m_blitVertices.size() * sizeof(ArrayTextureVertex), 0);
     renderer.m_pickShader->bind();
@@ -166,8 +165,8 @@ void Renderer::renderBlits() {
 
     Renderer::draw(GL_TRIANGLES, indices.size() * 6, GL_UNSIGNED_INT, nullptr);
 
-    GL_CALL(glDisable(GL_DEPTH_TEST));
     renderer.m_pickFrameBuffer->unbind();
+    renderer.m_pickIds.clear();
 }
 
 void Renderer::draw(GLenum mode, unsigned int count, GLenum type, const void *indices) {
@@ -188,7 +187,7 @@ int Renderer::pick(glm::ivec2 screenPos) {
 
     renderer.m_pickFrameBuffer->unbind();
 
-    auto id = colourToInt({data[0], data[1], data[2]});
+    auto id = colour256ToInt({data[0], data[1], data[2]});
     if (id == 0xFFFFFF) return -1;
 
     return id;

@@ -20,7 +20,7 @@ public:
 private:
     int m_width{}, m_height{};
     GLsizei m_layers{}, m_maxLayers{};
-    unsigned int m_rendererID{};
+    unsigned int m_rendererId{};
 
     std::unordered_map<std::string, unsigned int> m_layerMap;
 };

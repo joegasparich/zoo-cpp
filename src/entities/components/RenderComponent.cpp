@@ -25,7 +25,15 @@ void RenderComponent::start() {
 }
 
 void RenderComponent::render(double step) {
-    Renderer::blit({ m_texture, m_subTexture.get(), m_entity->m_pos, Renderer::getDepth(m_entity->m_pos.y), {1.0f, 1.0f}, &m_pivot });
+    BlitOptions opts;
+    opts.texture = m_texture;
+    opts.subTexture = m_subTexture.get();
+    opts.pos = m_entity->m_pos;
+    opts.depth = Renderer::getDepth(m_entity->m_pos.y);
+    opts.pivot = m_pivot;
+    opts.pickId = m_entity->getId();
+
+    Renderer::blit(opts);
 }
 
 Texture &RenderComponent::getTexture() const {

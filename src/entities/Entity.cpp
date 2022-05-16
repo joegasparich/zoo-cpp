@@ -37,11 +37,11 @@ void Entity::render(const double step) const {
     Debug::drawLine(m_pos - glm::vec2{-0.25f, 0.25f}, m_pos + glm::vec2{-0.25f, 0.25f}, glm::vec4{1.0f, 0.0f, 0.0f, 1.0f});
 }
 
-void Entity::setId(const std::string &id) {
+void Entity::setId(unsigned int id) {
     m_id = id;
 }
 
-const std::string &Entity::getId() const {
+unsigned int Entity::getId() {
     return m_id;
 }
 

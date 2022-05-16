@@ -21,6 +21,8 @@ void DebugInfo::render() {
     ImGui::Text("%.1f FPS", ImGui::GetIO().Framerate);
     ImGui::Text("%s", m_text.c_str());
     m_text = "";
+
+    ImGui::Image((void*)(intptr_t)Renderer::get().m_pickFrameBuffer->m_textureId, {100, 100});
 }
 
 void DebugInfo::onOpen() {}

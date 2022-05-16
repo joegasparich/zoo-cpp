@@ -75,9 +75,9 @@ void Game::doLoop() {
             SceneManager::getCurrentScene()->update();
             SceneManager::getCurrentScene()->postUpdate();
             lag -= MS_PER_UPDATE;
+            m_input->clearKeys();
         }
 
-        m_input->clearKeys();
 
         render((double) lag / (double) MS_PER_UPDATE);
     }

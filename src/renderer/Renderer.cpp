@@ -1,5 +1,6 @@
 #include <constants/depth.h>
 #include <util/math.h>
+#include <util/colour.h>
 #include "Renderer.h"
 #include "Debug.h"
 #include "constants/world.h"
@@ -49,6 +50,8 @@ void Renderer::init() {
     GL_CALL(glDepthFunc(GL_LESS));
 
     renderer.setupBlit();
+    renderer.m_pickFrameBuffer = std::make_unique<FrameBuffer>();
+    renderer.m_pickShader = std::make_unique<Shader>("./shaders/PickVertex.shader", "./shaders/PickFragment.shader");
 
     renderer.m_camera = {{0, 0}, 1.0f};
 }
@@ -87,13 +90,13 @@ void Renderer::doRender() {
 }
 
 void Renderer::clear() {
+    GL_CALL(glClearColor(0.0f, 0.0f, 0.0f, 1.0f));
     GL_CALL(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
 }
 
 void Renderer::blit(BlitOptions opts) {
     auto& renderer = Renderer::get();
 
-    auto colour = opts.colour ? *opts.colour : glm::vec3{1.0f, 1.0f, 1.0f};
     auto texCoord = opts.subTexture ? opts.subTexture->m_texCoord : glm::vec2{0.0f, 0.0f};
     auto texBounds = opts.subTexture ? opts.subTexture->m_texBounds : glm::vec2{1.0f, 1.0f};
     auto image = opts.subTexture ? opts.subTexture->m_texture->m_image : opts.texture->m_image;
@@ -113,14 +116,14 @@ void Renderer::blit(BlitOptions opts) {
         return;
     }
 
-    auto pivot = opts.pivot ? *opts.pivot : glm::vec2{0.0f};
-    auto offset = -glm::vec2{pivot.x * width, pivot.y * height};
+    auto offset = -glm::vec2{opts.pivot.x * width, opts.pivot.y * height};
 
-    renderer.m_blitVertices.push_back({{opts.pos + offset + glm::vec2{0.0f,         0.0f},          opts.depth}, {texCoord.x,               texCoord.y,               (float)texId}, colour});
-    renderer.m_blitVertices.push_back({{opts.pos + offset + glm::vec2{1.0f * width, 0.0f},          opts.depth}, {texCoord.x + texBounds.x, texCoord.y,               (float)texId}, colour});
-    renderer.m_blitVertices.push_back({{opts.pos + offset + glm::vec2{1.0f * width, 1.0f * height}, opts.depth}, {texCoord.x + texBounds.x, texCoord.y + texBounds.y, (float)texId}, colour});
-    renderer.m_blitVertices.push_back({{opts.pos + offset + glm::vec2{0.0f,         1.0f * height}, opts.depth}, {texCoord.x,               texCoord.y + texBounds.y, (float)texId}, colour});
+    renderer.m_blitVertices.push_back({{opts.pos + offset + glm::vec2{0.0f,         0.0f},          opts.depth}, {texCoord.x,               texCoord.y,               (float)texId}, opts.colour});
+    renderer.m_blitVertices.push_back({{opts.pos + offset + glm::vec2{1.0f * width, 0.0f},          opts.depth}, {texCoord.x + texBounds.x, texCoord.y,               (float)texId}, opts.colour});
+    renderer.m_blitVertices.push_back({{opts.pos + offset + glm::vec2{1.0f * width, 1.0f * height}, opts.depth}, {texCoord.x + texBounds.x, texCoord.y + texBounds.y, (float)texId}, opts.colour});
+    renderer.m_blitVertices.push_back({{opts.pos + offset + glm::vec2{0.0f,         1.0f * height}, opts.depth}, {texCoord.x,               texCoord.y + texBounds.y, (float)texId}, opts.colour});
 
+    renderer.m_pickIds.push_back(opts.pickId);
 }
 
 void Renderer::renderBlits() {
@@ -146,11 +149,49 @@ void Renderer::renderBlits() {
     renderer.m_blitShader->setUniform1i("u_Textures", 0);
 
     Renderer::draw(GL_TRIANGLES, indices.size() * 6, GL_UNSIGNED_INT, nullptr);
+
+    // Pick
+    renderer.m_pickFrameBuffer->bind();
+    GL_CALL(glClearColor(1.0f, 1.0f, 1.0f, 1.0f));
+    GL_CALL(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
+    GL_CALL(glEnable(GL_DEPTH_TEST));
+
+    for (int i = 0; i < renderer.m_blitVertices.size(); i++) {
+        renderer.m_blitVertices[i].colour = intToColour(renderer.m_pickIds[i]);
+    }
+    renderer.m_blitVb->updateData(&renderer.m_blitVertices[0], renderer.m_blitVertices.size() * sizeof(ArrayTextureVertex), 0);
+    renderer.m_pickShader->bind();
+    renderer.m_pickShader->setUniformMat4f("u_MVP", mvp);
+    renderer.m_pickShader->setUniform1i("u_Textures", 0);
+
+    Renderer::draw(GL_TRIANGLES, indices.size() * 6, GL_UNSIGNED_INT, nullptr);
+
+    GL_CALL(glDisable(GL_DEPTH_TEST));
+    renderer.m_pickFrameBuffer->unbind();
 }
 
 void Renderer::draw(GLenum mode, unsigned int count, GLenum type, const void *indices) {
     GL_CALL(glDrawElements(mode, count, type, indices));
     Renderer::get().m_drawCallCount++;
+}
+
+int Renderer::pick(glm::ivec2 screenPos) {
+    auto& renderer = Renderer::get();
+
+    renderer.m_pickFrameBuffer->bind();
+    GL_CALL(glFlush());
+    GL_CALL(glFinish());
+    GL_CALL(glPixelStorei(GL_UNPACK_ALIGNMENT, 1));
+
+    unsigned char data[4];
+    GL_CALL(glReadPixels(screenPos.x, WINDOW_HEIGHT - screenPos.y, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, data));
+
+    renderer.m_pickFrameBuffer->unbind();
+
+    auto id = colourToInt({data[0], data[1], data[2]});
+    if (id == 0xFFFFFF) return -1;
+
+    return id;
 }
 
 glm::mat4 Renderer::getMVPMatrix(glm::vec2 pos, float rotation, float depth, glm::vec2 scale, bool isWorldPos) {

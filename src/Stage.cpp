@@ -89,6 +89,10 @@ void Stage::update() {
         }
         scroll -= dir;
     }
+
+    if (input->isMouseButtonDown(SDL_BUTTON_LEFT)) {
+        std::cout << Renderer::pick(glm::floor(input->getMousePos())) << std::endl;
+    }
 }
 
 void Stage::preUpdate() {
@@ -124,19 +128,19 @@ void Stage::reset() {
     Renderer::resetCamera();
 }
 
-std::string Stage::registerEntity(std::unique_ptr<Entity> entity) {
-    auto id = uuid::generate();
+unsigned int Stage::registerEntity(std::unique_ptr<Entity> entity) {
+    auto id = m_nextEntityId++;
     entity->setId(id);
     m_entitiesToAdd.push_back(std::move(entity));
 
     return id;
 }
 
-void Stage::unregisterEntity(std::string entityId) {
+void Stage::unregisterEntity(unsigned int entityId) {
     // TODO: Implement
 }
 
-Entity *Stage::getEntityById(std::string entityId) {
+Entity *Stage::getEntityById(unsigned int entityId) {
     auto& ptr = m_entities.at(entityId);
     if (ptr) return ptr.get();
     return nullptr;

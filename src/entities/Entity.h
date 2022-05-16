@@ -25,11 +25,11 @@ public:
     bool hasComponent() const;
     bool hasComponent(COMPONENT type);
 
-    void setId(const std::string &id);
-    const std::string &getId() const;
+    void setId(unsigned int id);
+    unsigned int getId();
 
 private:
-    std::string m_id;
+    unsigned int m_id;
     TypeMap<std::unique_ptr<Component>> m_components;
     bool m_hasStarted;
 };

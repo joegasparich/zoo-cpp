@@ -1,4 +1,5 @@
 #include <constants/depth.h>
+#include <util/colour.h>
 #include "BiomeGrid.h"
 #include "util/math.h"
 #include "Game.h"

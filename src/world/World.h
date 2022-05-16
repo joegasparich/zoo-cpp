@@ -38,6 +38,6 @@ private:
     unsigned int m_width;
     unsigned int m_height;
 
-    std::unordered_map<std::string, Entity*> m_tileObjects;
+    std::unordered_map<unsigned int, Entity*> m_tileObjects;
     std::unordered_map<std::string, Entity*> m_tileObjectMap;
 };

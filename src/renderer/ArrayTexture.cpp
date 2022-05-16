@@ -5,8 +5,8 @@
 #include "Renderer.h"
 
 ArrayTexture::ArrayTexture(int width, int height, int maxLayers) : m_width(width), m_height(height), m_maxLayers(maxLayers) {
-    GL_CALL(glGenTextures(1, &m_rendererID));
-    GL_CALL(glBindTexture(GL_TEXTURE_2D_ARRAY, m_rendererID));
+    GL_CALL(glGenTextures(1, &m_rendererId));
+    GL_CALL(glBindTexture(GL_TEXTURE_2D_ARRAY, m_rendererId));
 
     glTexParameteri(GL_TEXTURE_2D_ARRAY,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D_ARRAY,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
@@ -18,7 +18,7 @@ ArrayTexture::ArrayTexture(int width, int height, int maxLayers) : m_width(width
     m_layerMap = {};
 }
 ArrayTexture::~ArrayTexture() {
-    GL_CALL(glDeleteTextures(1, &m_rendererID));
+    GL_CALL(glDeleteTextures(1, &m_rendererId));
 };
 
 unsigned int ArrayTexture::pushTexture(const Image& image) {
@@ -48,7 +48,7 @@ unsigned int ArrayTexture::pushTexture(const Image& image) {
 
 void ArrayTexture::bind(unsigned int slot) const {
     GL_CALL(glActiveTexture(GL_TEXTURE0 + slot));
-    GL_CALL(glBindTexture(GL_TEXTURE_2D_ARRAY, m_rendererID));
+    GL_CALL(glBindTexture(GL_TEXTURE_2D_ARRAY, m_rendererId));
 }
 
 void ArrayTexture::unbind() const {

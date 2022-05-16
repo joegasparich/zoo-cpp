@@ -13,6 +13,7 @@
 #include "Shader.h"
 #include "SubTexture.h"
 #include "ArrayTexture.h"
+#include "FrameBuffer.h"
 
 #define WINDOW_WIDTH 1280
 #define WINDOW_HEIGHT 720
@@ -43,9 +44,10 @@ struct BlitOptions {
     SubTexture* subTexture;
     glm::vec2 pos;
     float depth;
-    glm::vec2 scale;
-    glm::vec2* pivot;
-    glm::vec3* colour;
+    glm::vec2 scale = {1.0f, 1.0f};
+    glm::vec2 pivot = {0.0f, 0.0f};
+    glm::vec3 colour = {1.0f, 1.0f, 1.0f};
+    unsigned int pickId = 0xFFFFFF;
 };
 
 struct ArrayTextureVertex {
@@ -69,6 +71,7 @@ public:
     static void clear();
     static void blit(BlitOptions opts);
     static void draw(GLenum mode, unsigned int count, GLenum type, const void *indices);
+    static int pick(glm::ivec2 screenPos);
     static glm::mat4 getMVPMatrix(glm::vec2 pos, float rotation, float depth, glm::vec2 scale, bool isWorldPos);
     static float getDepth(float yPos);
 
@@ -81,6 +84,8 @@ public:
     Camera m_camera;
     SDL_Window *m_window;
     SDL_GLContext m_glContext;
+
+    std::unique_ptr<FrameBuffer> m_pickFrameBuffer;
 
 private:
     Renderer();
@@ -95,6 +100,8 @@ private:
 
     std::unique_ptr<ArrayTexture> m_arrayTexture;
     std::vector<ArrayTextureVertex> m_blitVertices;
+    std::vector<unsigned int> m_pickIds;
+    std::unique_ptr<Shader> m_pickShader;
 
     unsigned int m_drawCallCount;
 };

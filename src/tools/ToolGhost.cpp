@@ -112,12 +112,12 @@ void ToolGhost::renderTexture() {
     if (!m_texture) return;
 
     auto colour = m_canPlace ? GHOST_COLOUR : BLOCKED_COLOUR;
-    Renderer::blit({m_texture, nullptr, m_pos + m_offset, DEPTH::UI, m_scale, &m_pivot, &colour});
+    Renderer::blit({m_texture, nullptr, m_pos + m_offset, DEPTH::UI, m_scale, m_pivot, colour});
 }
 
 void ToolGhost::renderSubTexture() {
     if (!m_subTexture) return;
 
     auto colour = m_canPlace ? GHOST_COLOUR : BLOCKED_COLOUR;
-    Renderer::blit({nullptr, m_subTexture.get(), m_pos + m_offset, DEPTH::UI, m_scale, &m_pivot, &colour});
+    Renderer::blit({nullptr, m_subTexture.get(), m_pos + m_offset, DEPTH::UI, m_scale, m_pivot, colour});
 }

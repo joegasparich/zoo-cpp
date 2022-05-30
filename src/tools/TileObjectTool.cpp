@@ -58,10 +58,10 @@ void TileObjectTool::setObject(ObjectData* object) {
 
     if (object->image) {
         m_toolManager.m_ghost->m_type = GhostType::Sprite;
-        m_toolManager.m_ghost->m_texture = AssetManager::loadTexture(object->image);
+        m_toolManager.m_ghost->m_sprite = std::make_unique<Sprite>(AssetManager::loadTexture(object->image));
     } else if (object->spriteSheet) {
         m_toolManager.m_ghost->m_type = GhostType::SpriteSheet;
-        m_toolManager.m_ghost->m_subTexture = std::make_unique<SubTexture>(
+        m_toolManager.m_ghost->m_sprite = std::make_unique<Sprite>(
             AssetManager::loadTexture(object->spriteSheet->m_image),
             glm::vec2{0.0f, 0.0f},
             glm::vec2{

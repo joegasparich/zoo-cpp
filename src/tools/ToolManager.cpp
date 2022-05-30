@@ -10,7 +10,7 @@
 
 ToolManager::ToolManager() {}
 ToolManager::~ToolManager() {
-    reset();
+    cleanup();
 }
 
 void ToolManager::setup() {
@@ -19,7 +19,7 @@ void ToolManager::setup() {
     m_toolbarHandle = UIManager::createUIComponent(std::make_unique<Toolbar>(this));
 }
 
-void ToolManager::reset() {
+void ToolManager::cleanup() {
     setTool(ToolType::None);
     UIManager::closeUIComponent(m_toolbarHandle);
 }
@@ -48,7 +48,7 @@ void ToolManager::setTool(ToolType type) {
 
     if (m_activeTool) {
         m_activeTool->unset();
-        m_ghost->reset();
+        m_ghost->cleanup();
     }
 
     // TODO: can we automate this

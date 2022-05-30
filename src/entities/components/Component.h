@@ -15,7 +15,7 @@ public:
     virtual COMPONENT getType() = 0;
     virtual std::set<COMPONENT> getRequiredComponents() = 0;
 
-    bool m_disabled;
+    bool m_disabled = false;
 
     Component(Entity* entity);
 
@@ -25,6 +25,9 @@ public:
     virtual void postUpdate();
     virtual void render(double step);
     virtual void end();
+
+    virtual json save();
+    virtual void load(json data);
 
 protected:
     Entity* m_entity;

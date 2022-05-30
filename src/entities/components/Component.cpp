@@ -21,3 +21,14 @@ void Component::update() {}
 void Component::postUpdate() {}
 void Component::render(double step) {}
 void Component::end() {}
+
+json Component::save() {
+    return json({
+        {"id", getId()},
+        {"isDisabled", m_disabled}
+    });
+}
+
+void Component::load(json data) {
+    m_disabled = data["isDisabled"].get<bool>();
+}

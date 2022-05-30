@@ -23,16 +23,11 @@ Stage::Stage() :
 }
 
 Stage::~Stage() {
-    reset();
+    cleanup();
 }
 
 void Stage::setup() {
     m_world->setup();
-
-    auto player{std::make_unique<Entity>(glm::vec2{1, 1})};
-    player->addComponent(std::make_unique<RenderComponent>(player.get(), AssetManager::loadTexture(AssetManager::getImage(IMG_KEEPER))));
-
-    registerEntity(std::move(player));
 
     for (auto& pair: m_entities) {
         pair.second->setup();
@@ -121,15 +116,53 @@ void Stage::render(double step) const {
     }
 }
 
-void Stage::reset() {
-    m_tools->reset();
-    m_world->reset();
+void Stage::cleanup() {
+    m_tools->cleanup();
+    m_world->cleanup();
+
+    m_entities.clear();
+    m_entitiesToAdd.clear();
+    m_entitiesToDelete.clear();
 
     Renderer::resetCamera();
 }
 
+json Stage::save() {
+    std::vector<json> entitiesSaveData;
+
+    for (auto& pair : m_entities) {
+        entitiesSaveData.push_back(pair.second->save());
+    }
+
+    return json{
+        { "world", m_world->save() },
+        { "entities", json{
+            { "nextEntityId", m_nextEntityId },
+            { "entityList", entitiesSaveData }
+        }}
+    };
+}
+
+void Stage::load(json data) {
+    cleanup();
+    setup();
+
+    m_world->load(data["world"]);
+
+    json entitiesData = data["entities"];
+    m_nextEntityId = entitiesData["nextEntityId"].get<unsigned int>();
+    for (auto& entityData : entitiesData["entityList"].get<std::vector<json>>()) {
+        auto entity = std::make_unique<Entity>();
+        entity->load(entityData);
+        registerEntity(std::move(entity), entityData["id"].get<unsigned int>());
+    }
+}
+
 unsigned int Stage::registerEntity(std::unique_ptr<Entity> entity) {
-    auto id = m_nextEntityId++;
+    return registerEntity(std::move(entity), m_nextEntityId++);
+}
+
+unsigned int Stage::registerEntity(std::unique_ptr<Entity> entity, unsigned int id) {
     entity->setId(id);
     m_entitiesToAdd.push_back(std::move(entity));
 

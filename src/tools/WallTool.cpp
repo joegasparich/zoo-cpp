@@ -64,10 +64,10 @@ void WallTool::update() {
             auto ghost = std::make_unique<ToolGhost>();
             ghost->m_type = GhostType::SpriteSheet;
             ghost->m_follow = false;
-            ghost->m_subTexture = std::make_unique<SubTexture>(
-                m_toolManager.m_ghost->m_subTexture->m_texture,
-                m_toolManager.m_ghost->m_subTexture->m_texCoord,
-                m_toolManager.m_ghost->m_subTexture->m_texBounds
+            ghost->m_sprite = std::make_unique<Sprite>(
+                m_toolManager.m_ghost->m_sprite->m_texture,
+                m_toolManager.m_ghost->m_sprite->m_texCoord,
+                m_toolManager.m_ghost->m_sprite->m_texBounds
             );
             ghost->m_offset = m_toolManager.m_ghost->m_offset;
             ghost->m_scale = m_toolManager.m_ghost->m_scale;
@@ -130,7 +130,7 @@ void WallTool::updateGhostSprite(ToolGhost& ghost, glm::ivec2 tilePos, Side quad
     auto [spriteIndex, elevation] = WallGrid::getSpriteInfo(*wall);
 
     auto spriteSheet = AssetManager::getSpriteSheet(m_currentWall->spriteSheetPath);
-    ghost.m_subTexture->m_texCoord = spriteSheet->getTexCoords(spriteIndex)[0];
+    ghost.m_sprite->m_texCoord = spriteSheet->getTexCoords(spriteIndex)[0];
 
     switch (quadrant) {
         case Side::North:
@@ -153,7 +153,7 @@ void WallTool::updateGhostSprite(ToolGhost& ghost, glm::ivec2 tilePos, Side quad
 void WallTool::setCurrentWall(WallData& wall) {
     m_currentWall = &wall;
     auto spriteSheet = AssetManager::getSpriteSheet(wall.spriteSheetPath);
-    m_toolManager.m_ghost->m_subTexture = std::make_unique<SubTexture>(
+    m_toolManager.m_ghost->m_sprite = std::make_unique<Sprite>(
         AssetManager::loadTexture(spriteSheet->m_image),
         glm::vec2{0.0f, 0.0f},
         glm::vec2{

@@ -46,7 +46,7 @@ public:
     WallGrid(unsigned int cols, unsigned int rows);
 
     void setup();
-    void reset();
+    void cleanup();
     void render();
     void regenerateMesh();
     Wall* placeWallAtTile(WallData wall, glm::ivec2 tilePos, Side side);

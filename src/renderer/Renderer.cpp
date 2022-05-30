@@ -97,9 +97,9 @@ void Renderer::clear() {
 void Renderer::blit(BlitOptions opts) {
     auto& renderer = Renderer::get();
 
-    auto texCoord = opts.subTexture ? opts.subTexture->m_texCoord : glm::vec2{0.0f, 0.0f};
-    auto texBounds = opts.subTexture ? opts.subTexture->m_texBounds : glm::vec2{1.0f, 1.0f};
-    auto image = opts.subTexture ? opts.subTexture->m_texture->m_image : opts.texture->m_image;
+    auto texCoord = opts.sprite ? opts.sprite->m_texCoord : glm::vec2{0.0f, 0.0f};
+    auto texBounds = opts.sprite ? opts.sprite->m_texBounds : glm::vec2{1.0f, 1.0f};
+    auto image = opts.sprite ? opts.sprite->m_texture->m_image : opts.texture->m_image;
 
     auto width = (float)image->m_width * (float)texBounds.x * (float)PIXEL_SCALE / (float)WORLD_SCALE;
     auto height = (float)image->m_height * (float)texBounds.y * (float)PIXEL_SCALE / (float)WORLD_SCALE;
@@ -107,8 +107,8 @@ void Renderer::blit(BlitOptions opts) {
     texCoord = multVect(texCoord, glm::vec2{(float)image->m_width / (float)MAX_BLIT_WIDTH, (float)image->m_height / (float)MAX_BLIT_HEIGHT});
     texBounds = multVect(texBounds, glm::vec2{(float)image->m_width / (float)MAX_BLIT_WIDTH, (float)image->m_height / (float)MAX_BLIT_HEIGHT});
 
-    auto texId = opts.subTexture ?
-            renderer.m_arrayTexture->pushTexture(*opts.subTexture->m_texture->m_image) :
+    auto texId = opts.sprite ?
+            renderer.m_arrayTexture->pushTexture(*opts.sprite->m_texture->m_image) :
             renderer.m_arrayTexture->pushTexture(*opts.texture->m_image);
 
     if (texId >= MAX_BLIT_TEXTURES) {

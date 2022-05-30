@@ -7,9 +7,15 @@ void SaveManager::newGame() {
 }
 
 void SaveManager::saveGame(std::string saveFilePath) {
-    auto saveData = json{
-        {"world", Zoo::zoo->m_world->save()}
-    };
+    json saveData;
+    try {
+        saveData = json{
+            {"zoo", Zoo::zoo->save()}
+        };
+    } catch(const std::exception& error) {
+        std::cout << "Error saving game " << std::endl;
+        std::cout << error.what() << std::endl;
+    }
 
     std::ofstream file;
     file.open(saveFilePath);
@@ -32,7 +38,12 @@ void SaveManager::loadGame(std::string saveFilePath) {
         auto saveData = json::parse(contents);
         if (saveData.empty()) return;
 
-        Zoo::zoo->m_world->load(saveData["world"]);
+        try {
+            Zoo::zoo->load(saveData["zoo"]);
+        } catch(const std::exception& error) {
+            std::cout << "Error loading save file: " << saveFilePath << std::endl;
+            std::cout << error.what() << std::endl;
+        }
     }
 
 }

@@ -11,19 +11,22 @@
 class Stage {
 public:
     Stage();
+    virtual ~Stage();
 
     void setup();
     void update();
     void preUpdate();
     void postUpdate();
-    void reset();
+    void cleanup();
     void render(double step) const;
 
     unsigned int registerEntity(std::unique_ptr<Entity> entity);
+    unsigned int registerEntity(std::unique_ptr<Entity> entity, unsigned int id);
     void unregisterEntity(unsigned int entityId);
     Entity* getEntityById(unsigned int entityId);
 
-    virtual ~Stage();
+    json save();
+    void load(json data);
 
     std::unique_ptr<World> m_world;
     std::unique_ptr<ToolManager> m_tools;

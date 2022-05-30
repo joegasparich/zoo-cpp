@@ -18,7 +18,7 @@ public:
     ToolGhost();
 
     void render();
-    void reset();
+    void cleanup();
 
     GhostType m_type;
     bool m_snap;
@@ -26,8 +26,7 @@ public:
     bool m_elevate;
     bool m_visible;
     bool m_canPlace;
-    std::unique_ptr<SubTexture> m_subTexture;
-    Texture* m_texture;
+    std::unique_ptr<Sprite> m_sprite;
     glm::vec2 m_pos;
     glm::vec2 m_scale;
     glm::vec2 m_offset;
@@ -36,8 +35,7 @@ public:
 private:
     void renderCircle();
     void renderSquare();
-    void renderTexture();
-    void renderSubTexture();
+    void renderSprite();
 
     std::unique_ptr<Shader> m_basicShader;
     std::unique_ptr<VertexBufferLayout> m_basicLayout;

@@ -27,6 +27,7 @@ void Debug::render() {
     auto& debug = Debug::get();
     auto& renderer = Renderer::get();
 
+    // TODO: Don't update VB every frame
     auto vb = VertexBuffer{
         &debug.m_vertices[0],
         debug.m_vertices.size() * sizeof(lineVertex)
@@ -60,7 +61,6 @@ void Debug::addDebugInfo(std::string info) {
     Debug::get().m_debugInfo->m_text += info + "\n";
 }
 
-// TODO: Batch these
 void Debug::drawLine(glm::vec2 start, glm::vec2 end, glm::vec4 colour) {
     auto& debug = Debug::get();
 

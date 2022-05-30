@@ -15,10 +15,10 @@ void World::setup() {
     m_wallGrid->setup();
 }
 
-void World::reset() {
-    m_biomeGrid->reset();
-    m_elevationGrid->reset();
-    m_wallGrid->reset();
+void World::cleanup() {
+    m_biomeGrid->cleanup();
+    m_elevationGrid->cleanup();
+    m_wallGrid->cleanup();
 }
 
 void World::update() {
@@ -79,6 +79,8 @@ json World::save() {
 }
 
 void World::load(json saveData) {
+    cleanup();
+
     // TODO: Check these exist first?
     m_elevationGrid->load(saveData["elevation"]);
     m_biomeGrid->load(saveData["biome"]);

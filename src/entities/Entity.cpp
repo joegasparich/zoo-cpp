@@ -1,7 +1,10 @@
 #include <Debug.h>
+#include <util/util.h>
+#include <entities/components/createComponentById.h>
 #include "Entity.h"
 #include "Game.h"
 
+Entity::Entity() : m_pos{}, m_components{}, m_hasStarted{false} {}
 Entity::Entity(glm::vec2 pos) : m_pos{pos}, m_components{}, m_hasStarted{false} {}
 Entity::~Entity() = default;
 
@@ -43,6 +46,29 @@ void Entity::setId(unsigned int id) {
 
 unsigned int Entity::getId() {
     return m_id;
+}
+
+json Entity::save() {
+    std::vector<json> componentSaveData{};
+    for(auto& component : m_components) {
+       componentSaveData.push_back(component.second->save());
+    }
+
+    return json({
+        {"id",  getId()},
+        {"pos", vecToString(m_pos)},
+        {"components", componentSaveData}
+    });
+}
+
+void Entity::load(json data) {
+    m_pos = stringToFVec(data["pos"].get<std::string>());
+
+    for (auto componentData : data["components"].get<std::vector<json>>()) {
+        auto id = componentData["id"].get<COMPONENT>();
+        auto component = createComponentById(id, this);
+        component->load(componentData);
+    }
 }
 
 bool Entity::hasComponent(COMPONENT type) {

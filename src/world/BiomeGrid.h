@@ -73,7 +73,7 @@ public:
     BiomeGrid(unsigned int cols, unsigned int rows);
 
     void setup();
-    void reset();
+    void cleanup();
     void postUpdate();
     void render();
     void setBiomeInRadius(glm::vec2 pos, float radius, Biome biome);

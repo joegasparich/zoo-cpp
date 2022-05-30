@@ -1,3 +1,5 @@
+#include <entities/components/RenderComponent.h>
+#include <constants/assets.h>
 #include "Zoo.h"
 
 std::unique_ptr<Stage> Zoo::zoo = nullptr;
@@ -28,5 +30,5 @@ void Zoo::render(double step) {
 }
 
 void Zoo::stop() {
-    Zoo::zoo->reset();
+    Zoo::zoo->cleanup();
 }

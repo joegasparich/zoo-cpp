@@ -8,6 +8,7 @@
 
 class Entity {
 public:
+    Entity();
     Entity(glm::vec2 pos);
     ~Entity();
 
@@ -27,6 +28,9 @@ public:
 
     void setId(unsigned int id);
     unsigned int getId();
+
+    json save();
+    void load(json data);
 
 private:
     unsigned int m_id;

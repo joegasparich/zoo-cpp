@@ -213,7 +213,7 @@ void BiomeGrid::setup() {
     }
 }
 
-void BiomeGrid::reset() {
+void BiomeGrid::cleanup() {
     m_cols = 0;
     m_rows = 0;
     m_chunkGrid.clear();
@@ -300,7 +300,7 @@ json BiomeGrid::save() {
 }
 
 void BiomeGrid::load(json saveData) {
-    reset();
+    cleanup();
 
     m_cols = saveData["cols"].get<unsigned int>();
     m_rows = saveData["rows"].get<unsigned int>();

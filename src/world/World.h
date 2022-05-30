@@ -13,7 +13,7 @@ public:
 
     // Lifecycle
     void setup();
-    void reset();
+    void cleanup();
     void update();
     void postUpdate();
     void render();

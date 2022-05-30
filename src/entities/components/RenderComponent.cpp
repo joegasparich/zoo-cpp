@@ -9,14 +9,10 @@ std::set<COMPONENT> RenderComponent::getRequiredComponents() {
     return {};
 }
 
-RenderComponent::RenderComponent(Entity *entity, Texture *texture) : Component(entity) {
-    if (texture) {
-        setTexture(*texture);
-    }
-}
-RenderComponent::RenderComponent(Entity *entity, std::unique_ptr<SubTexture> subTexture) : Component(entity) {
-    if (subTexture) {
-        setSubTexture(std::move(subTexture));
+RenderComponent::RenderComponent(Entity *entity) : Component(entity) {}
+RenderComponent::RenderComponent(Entity *entity, std::unique_ptr<Sprite> sprite) : Component(entity) {
+    if (sprite) {
+        setSprite(std::move(sprite));
     }
 }
 
@@ -26,8 +22,7 @@ void RenderComponent::start() {
 
 void RenderComponent::render(double step) {
     BlitOptions opts;
-    opts.texture = m_texture;
-    opts.subTexture = m_subTexture.get();
+    opts.sprite = m_sprite.get();
     opts.pos = m_entity->m_pos;
     opts.depth = Renderer::getDepth(m_entity->m_pos.y);
     opts.pivot = m_pivot;
@@ -36,16 +31,29 @@ void RenderComponent::render(double step) {
     Renderer::blit(opts);
 }
 
-Texture &RenderComponent::getTexture() const {
-    return *m_texture;
+
+void RenderComponent::setSprite(std::unique_ptr<Sprite> sprite) {
+    m_sprite = std::move(sprite);
 }
 
-void RenderComponent::setTexture(Texture &texture) {
-    m_subTexture = nullptr;
-    m_texture = &texture;
+json RenderComponent::save() {
+    auto saveData = Component::save();
+    saveData.push_back({"sprite", json({
+       {"path", m_sprite->m_texture->m_image->m_filePath},
+       {"texCoord", vecToString(m_sprite->m_texCoord)},
+       {"texBounds", vecToString(m_sprite->m_texBounds)}
+    })});
+    saveData.push_back({"pivot", vecToString(m_pivot)});
+
+    return saveData;
 }
 
-void RenderComponent::setSubTexture(std::unique_ptr<SubTexture> subTexture) {
-    m_texture = nullptr;
-    m_subTexture = std::move(subTexture);
+void RenderComponent::load(json data) {
+    Component::load(data);
+    m_sprite = std::make_unique<Sprite>(
+        AssetManager::loadTexture(AssetManager::loadImage(data["sprite"]["path"].get<std::string>())),
+        stringToFVec(data["sprite"]["texCoord"].get<std::string>()),
+        stringToFVec(data["sprite"]["texBounds"].get<std::string>())
+    );
+    m_pivot = stringToFVec(data["pivot"].get<std::string>());
 }

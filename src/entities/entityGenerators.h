@@ -14,13 +14,13 @@ inline std::unique_ptr<Entity> createTileObject(const std::string& assetPath, gl
     if (data.image) {
         auto renderer = entity->addComponent(std::make_unique<RenderComponent>(
             entity.get(),
-            AssetManager::loadTexture(data.image)
+            std::make_unique<Sprite>(AssetManager::loadTexture(data.image))
         ));
         renderer->m_pivot = data.pivot;
     } else if (data.spriteSheet) {
         auto renderer = entity->addComponent(std::make_unique<RenderComponent>(
             entity.get(),
-            std::make_unique<SubTexture>(
+            std::make_unique<Sprite>(
                 AssetManager::loadTexture(data.spriteSheet->m_image),
                 glm::vec2{0.0f, 0.0f},
                 glm::vec2{

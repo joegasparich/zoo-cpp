@@ -25,7 +25,7 @@ public:
     ElevationGrid(unsigned int rows, unsigned int cols);
 
     void setup();
-    void reset();
+    void cleanup();
     void render();
     void renderDebug();
     bool setElevation(glm::ivec2 gridPos, Elevation elevation);

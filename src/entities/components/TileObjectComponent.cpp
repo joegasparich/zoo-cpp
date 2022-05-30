@@ -7,6 +7,7 @@ std::set<COMPONENT> TileObjectComponent::getRequiredComponents() {
     return { RENDER_COMPONENT };
 }
 
+TileObjectComponent::TileObjectComponent(Entity *entity) : Component(entity) {}
 TileObjectComponent::TileObjectComponent(Entity *entity, const ObjectData &data) : Component(entity), m_data(data) {}
 
 void TileObjectComponent::start() {
@@ -24,4 +25,16 @@ std::vector<glm::ivec2> TileObjectComponent::getTiles() {
         }
     }
     return tiles;
+}
+
+json TileObjectComponent::save() {
+    auto saveData = Component::save();
+    saveData.push_back({"path", m_data.assetPath});
+
+    return saveData;
+}
+
+void TileObjectComponent::load(json data) {
+    Component::load(data);
+    m_data = Registry::getObject(data["path"].get<std::string>());
 }

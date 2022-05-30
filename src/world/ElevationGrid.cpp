@@ -26,7 +26,7 @@ void ElevationGrid::setup() {
     generateWaterMesh();
 }
 
-void ElevationGrid::reset() {
+void ElevationGrid::cleanup() {
     m_cols = 0;
     m_rows = 0;
     m_grid.clear();
@@ -463,7 +463,7 @@ json ElevationGrid::save() {
 }
 
 void ElevationGrid::load(json saveData) {
-    reset();
+    cleanup();
 
     m_grid = saveData["grid"].get<std::vector<std::vector<Elevation>>>();
     m_cols = m_grid.size();

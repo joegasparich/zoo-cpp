@@ -11,7 +11,7 @@
 #include "IndexBuffer.h"
 #include "Texture.h"
 #include "Shader.h"
-#include "SubTexture.h"
+#include "Sprite.h"
 #include "ArrayTexture.h"
 #include "FrameBuffer.h"
 
@@ -41,7 +41,7 @@ struct Camera {
 
 struct BlitOptions {
     Texture* texture;
-    SubTexture* subTexture;
+    Sprite* sprite;
     glm::vec2 pos;
     float depth;
     glm::vec2 scale = {1.0f, 1.0f};

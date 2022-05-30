@@ -42,7 +42,7 @@ void WallGrid::setup() {
     m_isSetup = true;
 }
 
-void WallGrid::reset() {
+void WallGrid::cleanup() {
     m_wallGrid.clear();
 
     m_isSetup = false;
@@ -372,7 +372,7 @@ json WallGrid::save() {
 }
 
 void WallGrid::load(json saveData) {
-    reset();
+    cleanup();
 
     m_cols = saveData["cols"].get<unsigned int>();
     m_rows = saveData["rows"].get<unsigned int>();

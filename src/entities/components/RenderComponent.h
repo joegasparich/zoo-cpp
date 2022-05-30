@@ -1,7 +1,7 @@
 #pragma once
 
 #include <SDL2/SDL.h>
-#include <renderer/SubTexture.h>
+#include <renderer/Sprite.h>
 #include "pch.h"
 
 #include "Component.h"
@@ -14,18 +14,18 @@ public:
     COMPONENT getType() override;
     std::set<COMPONENT> getRequiredComponents() override;
 
-    explicit RenderComponent(Entity *entity, Texture *texture);
-    explicit RenderComponent(Entity *entity, std::unique_ptr<SubTexture> subTexture);
+    RenderComponent(Entity* entity);
+    RenderComponent(Entity* entity, std::unique_ptr<Sprite> sprite);
 
     void start() override;
     void render(double step) override;
 
-    [[nodiscard]] Texture &getTexture() const;
-    void setTexture(Texture &texture);
-    void setSubTexture(std::unique_ptr<SubTexture> subTexture);
+    void setSprite(std::unique_ptr<Sprite> sprite);
+
+    json save() override;
+    void load(json data) override;
 
     glm::vec2 m_pivot = glm::vec2{0.5f, 0.5f};
 private:
-    Texture* m_texture;
-    std::unique_ptr<SubTexture> m_subTexture;
+    std::unique_ptr<Sprite> m_sprite;
 };

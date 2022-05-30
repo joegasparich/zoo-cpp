@@ -14,16 +14,16 @@ ToolGhost::ToolGhost() {
 
     m_circleVa = std::make_unique<VertexArray>();
 
-    reset();
+    cleanup();
 }
 
-void ToolGhost::reset() {
+void ToolGhost::cleanup() {
     m_type = GhostType::None;
     m_snap = false;
     m_follow = true;
     m_elevate = false;
     m_visible = true;
-    m_texture = nullptr;
+    m_sprite = nullptr;
     m_canPlace = true;
 
     m_pos = {0.0f, 0.0f};
@@ -46,8 +46,9 @@ void ToolGhost::render() {
     switch(m_type) {
         case GhostType::Circle: renderCircle(); break;
         case GhostType::Square: renderSquare(); break;
-        case GhostType::Sprite: renderTexture(); break;
-        case GhostType::SpriteSheet: renderSubTexture(); break;
+        case GhostType::Sprite: renderSprite(); break;
+        case GhostType::SpriteSheet:
+            renderSprite(); break;
         case GhostType::None: break;
     }
 }
@@ -108,16 +109,9 @@ void ToolGhost::renderSquare() {
 
 }
 
-void ToolGhost::renderTexture() {
-    if (!m_texture) return;
+void ToolGhost::renderSprite() {
+    if (!m_sprite) return;
 
     auto colour = m_canPlace ? GHOST_COLOUR : BLOCKED_COLOUR;
-    Renderer::blit({m_texture, nullptr, m_pos + m_offset, DEPTH::UI, m_scale, m_pivot, colour});
-}
-
-void ToolGhost::renderSubTexture() {
-    if (!m_subTexture) return;
-
-    auto colour = m_canPlace ? GHOST_COLOUR : BLOCKED_COLOUR;
-    Renderer::blit({nullptr, m_subTexture.get(), m_pos + m_offset, DEPTH::UI, m_scale, m_pivot, colour});
+    Renderer::blit({nullptr, m_sprite.get(), m_pos + m_offset, DEPTH::UI, m_scale, m_pivot, colour});
 }

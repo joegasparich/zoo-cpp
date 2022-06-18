@@ -1,7 +1,7 @@
 #include <constants/depth.h>
 #include <util/colour.h>
 #include "BiomeGrid.h"
-#include "util/math.h"
+#include "util/jmath.h"
 #include "Game.h"
 #include "Zoo.h"
 
@@ -24,7 +24,7 @@ std::vector<glm::vec2> getQuadrantVertices(glm::vec2 pos, Side quadrant) {
 
 struct BiomeVertex {
     glm::vec2 pos;
-    glm::vec3 colour;
+    glm::vec4 colour;
 };
 
 BiomeChunk::BiomeChunk(unsigned int x, unsigned int y, unsigned int cols, unsigned int rows) :
@@ -67,6 +67,7 @@ void BiomeChunk::setup(VertexArray& va, VertexBufferLayout& layout, Shader& shad
     m_shader = &shader;
 
     m_vb = std::make_unique<VertexBuffer>(nullptr, CHUNK_SIZE * CHUNK_SIZE * 4 * 3 * sizeof(BiomeVertex), true);
+    m_va->addBuffer(*m_vb, *m_layout);
 
     std::vector<std::array<unsigned int, 3>> indices{};
     for (int i=0; i<m_cols; ++i) {
@@ -111,19 +112,17 @@ void BiomeChunk::generateMesh() {
                     auto elevation = Zoo::zoo->m_world->m_elevationGrid->getElevationAtPos((vertex + glm::vec2{m_x, m_y}) / 2.0f);
                     // push vertex
                     vertices.push_back({{vertex.x, vertex.y - (elevation * 2.0f)},
-                                        {color.x, color.y, color.z}});
+                                        {color.x, color.y, color.z, 1.0f}});
                 }
             }
         }
     }
 
-    m_vb->updateData(&vertices[0], vertices.size() * sizeof(float) * 5, 0);
+    m_vb->updateData(&vertices[0], vertices.size() * sizeof(BiomeVertex), 0);
 };
 
 void BiomeChunk::render() {
     if (!Renderer::isPositionOnScreen({m_x / BIOME_SCALE, m_y / BIOME_SCALE}, CHUNK_SIZE)) return;
-
-    m_va->addBuffer(*m_vb, *m_layout);
     m_va->bind();
     m_shader->bind();
     m_ib->bind();
@@ -146,7 +145,7 @@ void BiomeChunk::setBiomeInRadius(glm::vec2 pos, float radius, Biome biome) {
             for (char q = 0; q < 4; q++) {
                 auto side = (Side)q;
                 for (auto point : getQuadrantVertices(cellPos, side)) {
-                    if (pointInCircle(pos, radius, point)) {
+                    if (jmath::pointInCircle(pos, radius, point)) {
                         auto xFloor = floor(cellPos.x);
                         auto yFloor = floor(cellPos.y);
                         if (m_grid[xFloor][yFloor].quadrants[(int)side] != biome) {
@@ -192,7 +191,7 @@ void BiomeGrid::setup() {
     m_va = std::make_unique<VertexArray>();
     m_layout = std::make_unique<VertexBufferLayout>();
     m_layout->push<float>(2);
-    m_layout->push<float>(3);
+    m_layout->push<float>(4);
     m_shader = std::make_unique<Shader>("./shaders/ColourVertex.shader", "./shaders/ColourFragment.shader");
 
     auto chunkCols = m_cols / CHUNK_SIZE + (m_cols % CHUNK_SIZE != 0);
@@ -267,7 +266,7 @@ std::vector<BiomeChunk*> BiomeGrid::getChunksInRadius(glm::vec2 pos, float radiu
     for (int i = -1; i <= 1; i++) {
         for (int j = -1; j <= 1; j++) {
             if (isChunkInGrid(floorX + i, floorY + j)
-                && circleIntersectsRect({(floorX + i) * CHUNK_SIZE, (floorY + j) * CHUNK_SIZE}, {CHUNK_SIZE, CHUNK_SIZE}, pos, radius)) {
+                && jmath::circleIntersectsRect({(floorX + i) * CHUNK_SIZE, (floorY + j) * CHUNK_SIZE}, {CHUNK_SIZE, CHUNK_SIZE}, pos, radius)) {
                 chunks.push_back(&m_chunkGrid.at(floorX + i).at(floorY + j));
             }
         }

@@ -4,13 +4,13 @@ std::map<std::string, ObjectData> Registry::m_objectRegistry{};
 std::map<std::string, WallData> Registry::m_wallRegistry{};
 
 void Registry::registerObject(const std::string &assetPath, const ObjectData &data) {
-    m_objectRegistry.insert({assetPath, data});
+    m_objectRegistry.insert_or_assign(assetPath, data);
 
     std::cout << "Registered Object: " << data.name << std::endl;
 }
 
 void Registry::registerWall(const std::string& assetPath, const WallData& data) {
-    m_wallRegistry.insert({assetPath, data});
+    m_wallRegistry.insert_or_assign(assetPath, data);
 
     std::cout << "Registered Wall: " << data.name << std::endl;
 }

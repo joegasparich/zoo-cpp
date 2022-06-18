@@ -94,7 +94,7 @@ void AssetManager::loadWalls() {
 
 Image* AssetManager::loadImage(const std::string &path) {
     if (!get().m_imageMap.contains(path)) {
-        get().m_imageMap.insert({path, std::make_unique<Image>(path)});
+        get().m_imageMap.insert_or_assign(path, std::make_unique<Image>(path));
     }
 
     return get().m_imageMap[path].get();
@@ -104,13 +104,13 @@ SpriteSheet* AssetManager::loadSpriteSheet(const std::string& assetPath, Image* 
     if (!image) return nullptr;
 
     if (!get().m_spriteSheetMap.contains(assetPath)) {
-        get().m_spriteSheetMap.insert({assetPath, std::make_unique<SpriteSheet>(
+        get().m_spriteSheetMap.insert_or_assign(assetPath, std::make_unique<SpriteSheet>(
             SpriteSheet{
                 cellWidth,
                 cellHeight,
                 image
             }
-        )});
+        ));
     }
 
     return get().m_spriteSheetMap[assetPath].get();
@@ -124,6 +124,6 @@ Texture* AssetManager::loadTexture(Image* image) {
         return get().m_textureMap.at(image->m_filePath).get();
     }
 
-    get().m_textureMap.insert({image->m_filePath, std::make_unique<Texture>(image)});
+    get().m_textureMap.insert_or_assign(image->m_filePath, std::make_unique<Texture>(image));
     return get().m_textureMap.at(image->m_filePath).get();
 }

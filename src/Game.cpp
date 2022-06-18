@@ -3,7 +3,7 @@
 #include "Game.h"
 #include "AssetManager.h"
 #include "Mediator.h"
-#include "renderer/Renderer.h"
+#include "gfx/Renderer.h"
 #include "Debug.h"
 #include "ui/UIManager.h"
 #include "SceneManager.h"

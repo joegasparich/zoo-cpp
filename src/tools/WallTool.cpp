@@ -122,10 +122,15 @@ void WallTool::updateGhostSprite(ToolGhost& ghost, glm::ivec2 tilePos, Side quad
     auto [v1, v2] = world->m_wallGrid->getWallVertices(*wall);
     if (elevationGrid->getElevationAtPos(v1) < 0) ghost.m_canPlace = false;
     if (elevationGrid->getElevationAtPos(v2) < 0) ghost.m_canPlace = false;
-    auto [t1, t2] = world->m_wallGrid->getAdjacentTiles(*wall);
-    auto obj1 = world->getTileObjectAtPosition(t1);
-    auto obj2 = world->getTileObjectAtPosition(t2);
-    if (obj1 && obj2 && obj1->getId() == obj2->getId()) ghost.m_canPlace = false;
+    auto tiles = world->m_wallGrid->getAdjacentTiles(*wall);
+
+    Entity* blockingObj;
+    for (auto tile : tiles) {
+        auto obj = world->getTileObjectAtPosition(tile);
+        if (!blockingObj && obj) blockingObj = obj;
+
+        if (obj && obj == blockingObj) ghost.m_canPlace = false;
+    }
 
     auto [spriteIndex, elevation] = WallGrid::getSpriteInfo(*wall);
 

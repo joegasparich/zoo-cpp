@@ -3,7 +3,7 @@
 #include "pch.h"
 
 #include "common.h"
-#include "renderer/Renderer.h"
+#include "gfx/Renderer.h"
 
 #define CHUNK_SIZE 5
 #define NUM_BIOMES 3

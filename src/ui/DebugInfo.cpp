@@ -1,4 +1,4 @@
-#include <renderer/Renderer.h>
+#include <gfx/Renderer.h>
 #include "DebugInfo.h"
 
 DebugInfo::DebugInfo() :

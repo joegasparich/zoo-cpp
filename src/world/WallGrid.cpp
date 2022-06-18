@@ -1,6 +1,7 @@
 #include "stb_image/stb_image.h"
 
 #include <Zoo.h>
+#include <util/util.h>
 #include <constants/assets.h>
 #include "WallGrid.h"
 
@@ -115,17 +116,19 @@ Wall* WallGrid::placeWallAtTile(WallData data, glm::ivec2 tilePos, Side side) {
             false
     };
 
+    auto& wall = m_wallGrid[x][y];
+
 //    this.updatePathfindingAtWall(tilePos, side);
 
 //    Mediator.fire(WorldEvent.PLACE_SOLID, { position: Wall.wallToWorldPos(new Vector(x, y), orientation) });
-//
-//    if (this.shouldCheckForLoop(wall) && this.checkForLoop(wall)) {
-//        Game.world.formAreas(wall);
-//    }
+
+   if (shouldCheckForLoop(wall) && checkForLoop(&wall)) {
+        Zoo::zoo->m_world->formAreas(m_wallGrid[x][y]);
+   }
 
     regenerateMesh();
 
-    return &m_wallGrid[x][y];
+    return &wall;
 }
 
 void WallGrid::deleteWall(Wall wall) {
@@ -155,7 +158,7 @@ void WallGrid::deleteWallAtTile(glm::ivec2 tilePos, Side side) {
             false
     };
 
-    auto [tile1, tile2] = getAdjacentTiles(m_wallGrid[x][y]);
+//    auto [tile1, tile2] = getAdjacentTiles(m_wallGrid[x][y]);
 
 //    if (Game.world.getAreaAtPosition(tile1) !== Game.world.getAreaAtPosition(tile2)) {
 //        Game.world.joinAreas(this.wallGrid[x][y]);
@@ -216,6 +219,12 @@ bool WallGrid::isWallPosInMap(glm::ivec2 tilePos, Side side) const {
     );
 }
 
+bool WallGrid::isWallGridPosInMap(glm::ivec2 gridPos) {
+    if (!m_isSetup) return false;
+
+    return gridPos.x >= 0 && gridPos.x < m_wallGrid.size() && gridPos.y >= 0 && gridPos.y < m_wallGrid[gridPos.x].size();
+}
+
 Wall* WallGrid::getWallAtTile(glm::ivec2 tilePos, Side side) {
     if (!m_isSetup) return nullptr;
 
@@ -251,18 +260,51 @@ Wall* WallGrid::getWallAtTile(glm::ivec2 tilePos, Side side) {
     }
 }
 
-std::array<glm::ivec2, 2> WallGrid::getAdjacentTiles(const Wall& wall) {
+Wall* WallGrid::getWallByGridPos(glm::ivec2 gridPos) {
+    if (!m_isSetup) return nullptr;
+    if (!isWallGridPosInMap(gridPos)) return nullptr;
+
+    return &m_wallGrid[gridPos.x][gridPos.y];
+}
+
+std::vector<Wall*> WallGrid::getAdjacentWalls(const Wall &wall) {
     if (!m_isSetup) return {};
 
-    std::array<glm::ivec2, 2> adjacentTiles{};
+    std::vector<Wall*> adjacentWalls{};
+    auto x = wall.gridPos.x; auto y = wall.gridPos.y;
+
+    if (wall.orientation == Orientation::Horizontal) {
+        if (getWallByGridPos({x - 2, y}) && getWallByGridPos({x - 2, y})->exists) adjacentWalls.push_back(&m_wallGrid[x - 2][y]);
+        if (getWallByGridPos({x + 2, y}) && getWallByGridPos({x + 2, y})->exists) adjacentWalls.push_back(&m_wallGrid[x + 2][y]);
+        if (getWallByGridPos({x - 1, y}) && getWallByGridPos({x - 1, y})->exists) adjacentWalls.push_back(&m_wallGrid[x - 1][y]);
+        if (getWallByGridPos({x + 1, y}) && getWallByGridPos({x + 1, y})->exists) adjacentWalls.push_back(&m_wallGrid[x + 1][y]);
+        if (getWallByGridPos({x - 1, y - 1}) && getWallByGridPos({x - 1, y - 1})->exists) adjacentWalls.push_back(&m_wallGrid[x - 1][y - 1]);
+        if (getWallByGridPos({x + 1, y - 1}) && getWallByGridPos({x + 1, y - 1})->exists) adjacentWalls.push_back(&m_wallGrid[x + 1][y - 1]);
+    } else {
+        if (getWallByGridPos({x - 1, y}) && getWallByGridPos({x - 1, y})->exists) adjacentWalls.push_back(&m_wallGrid[x - 1][y]);
+        if (getWallByGridPos({x + 1, y}) && getWallByGridPos({x + 1, y})->exists) adjacentWalls.push_back(&m_wallGrid[x + 1][y]);
+        if (getWallByGridPos({x - 1, y + 1}) && getWallByGridPos({x - 1, y + 1})->exists) adjacentWalls.push_back(&m_wallGrid[x - 1][y + 1]);
+        if (getWallByGridPos({x + 1, y + 1}) && getWallByGridPos({x + 1, y + 1})->exists) adjacentWalls.push_back(&m_wallGrid[x + 1][y + 1]);
+        if (getWallByGridPos({x, y + 1}) && getWallByGridPos({x, y + 1})->exists) adjacentWalls.push_back(&m_wallGrid[x][y + 1]);
+        if (getWallByGridPos({x, y - 1}) && getWallByGridPos({x, y - 1})->exists) adjacentWalls.push_back(&m_wallGrid[x][y - 1]);
+    }
+
+    return adjacentWalls;
+}
+
+std::vector<glm::ivec2> WallGrid::getAdjacentTiles(const Wall& wall) {
+    if (!m_isSetup) return {};
+
+    std::vector<glm::ivec2> adjacentTiles{};
+    adjacentTiles.reserve(2);
     auto x = wall.worldPos.x; auto y = wall.worldPos.y;
 
     if (wall.orientation == Orientation::Horizontal) {
-        if (Zoo::zoo->m_world->isPositionInMap(glm::vec2(x - 0.5f, y - 1.0f))) adjacentTiles[0] = glm::vec2(x - 0.5f, y - 1.0f);
-        if (Zoo::zoo->m_world->isPositionInMap(glm::vec2(x - 0.5f, y))) adjacentTiles[1] = glm::vec2(x - 0.5f, y);
+        if (Zoo::zoo->m_world->isPositionInMap(glm::vec2(x - 0.5f, y - 1.0f))) adjacentTiles.emplace_back(glm::vec2(x - 0.5f, y - 1.0f));
+        if (Zoo::zoo->m_world->isPositionInMap(glm::vec2(x - 0.5f, y))) adjacentTiles.emplace_back(glm::vec2(x - 0.5f, y));
     } else {
-        if (Zoo::zoo->m_world->isPositionInMap(glm::vec2(x - 1.0f, y - 0.5f))) adjacentTiles[0] = glm::vec2(x - 1.0f, y - 0.5f);
-        if (Zoo::zoo->m_world->isPositionInMap(glm::vec2(x, y - 0.5f))) adjacentTiles[1] = glm::vec2(x, y - 0.5f);
+        if (Zoo::zoo->m_world->isPositionInMap(glm::vec2(x - 1.0f, y - 0.5f))) adjacentTiles.emplace_back(glm::vec2(x - 1.0f, y - 0.5f));
+        if (Zoo::zoo->m_world->isPositionInMap(glm::vec2(x, y - 0.5f))) adjacentTiles.emplace_back(glm::vec2(x, y - 0.5f));
     }
 
     return adjacentTiles;
@@ -347,6 +389,49 @@ SpriteInfo WallGrid::getSpriteInfo(Wall& wall) {
         if (up > down) return { wall.isDoor ? (unsigned int)WallSpriteIndex::DoorVertical : (unsigned int)WallSpriteIndex::HillNorth, elevation };
         if (up < down) return { wall.isDoor ? (unsigned int)WallSpriteIndex::DoorVertical : (unsigned int)WallSpriteIndex::HillSouth, elevation + ELEVATION_HEIGHT };
     }
+
+    return {};
+}
+
+bool WallGrid::shouldCheckForLoop(const Wall &wall) {
+    auto adjacent = getAdjacentWalls(wall);
+    if (adjacent.size() < 2) return false;
+
+    if (wall.orientation == Orientation::Horizontal) {
+        if (
+            std::find_if(adjacent.begin(), adjacent.end(), [wall](Wall* a) { return a->worldPos.x > wall.worldPos.x; }) != adjacent.end() &&
+            std::find_if(adjacent.begin(), adjacent.end(), [wall](Wall* a) { return a->worldPos.x < wall.worldPos.x; }) != adjacent.end()
+        ) {
+            return true;
+        }
+    } else {
+        if (
+            std::find_if(adjacent.begin(), adjacent.end(), [wall](Wall* a) { return a->worldPos.y > wall.worldPos.y; }) != adjacent.end() &&
+            std::find_if(adjacent.begin(), adjacent.end(), [wall](Wall* a) { return a->worldPos.y < wall.worldPos.y; }) != adjacent.end()
+        ) {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool WallGrid::checkForLoop(Wall* startWall, Wall* currentWall, std::unordered_set<std::string> checkedWalls, unsigned int depth) {
+    if (!currentWall) currentWall = startWall;
+
+    // Expand current node
+    checkedWalls.insert(vecToString(currentWall->gridPos));
+
+    auto found = false;
+    for (auto wall : getAdjacentWalls(*currentWall)) {
+        if (wall == startWall && depth > 1) return true;
+
+        if (!checkedWalls.contains(vecToString(wall->gridPos))) {
+            found = checkForLoop(startWall, wall, checkedWalls, depth + 1);
+        }
+        if (found) break;
+    }
+    
+    return found;
 }
 
 json WallGrid::save() {

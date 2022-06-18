@@ -1,5 +1,5 @@
 #include "RenderComponent.h"
-#include "renderer/Renderer.h"
+#include "gfx/Renderer.h"
 #include "Game.h"
 #include "constants/world.h"
 

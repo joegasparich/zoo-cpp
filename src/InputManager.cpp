@@ -66,7 +66,7 @@ void InputManager::registerInput(Input input) {
             std::cout << "Key: " << key << " already registered to " << input.name << std::endl;
             return;
         }
-        m_registeredInputs.insert({key, input});
+        m_registeredInputs.insert_or_assign(key, input);
     }
 }
 

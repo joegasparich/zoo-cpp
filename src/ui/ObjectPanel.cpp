@@ -21,7 +21,7 @@ void ObjectPanel::render() {
     for (auto object : m_allObjects) {
         ImGui::Text("%s", object->name.c_str());
 
-        if (object->name == currentObject->name) ImGui::PushStyleColor(ImGuiCol_Button, {1, 1, 1, 1});
+        if (currentObject && object->name == currentObject->name) ImGui::PushStyleColor(ImGuiCol_Button, {1, 1, 1, 1});
         if (object->image) {
             if (ImGui::ImageButton(
                     (void*)(intptr_t)AssetManager::loadTexture(object->image)->getRendererId(),
@@ -40,7 +40,7 @@ void ObjectPanel::render() {
                 m_tileObjectTool.setObject(object);
             }
         }
-        if (object->name == currentObject->name) ImGui::PopStyleColor();
+        if (currentObject && object->name == currentObject->name) ImGui::PopStyleColor();
     }
 }
 

@@ -3,9 +3,9 @@
 #include <SDL2/SDL.h>
 
 #include "pch.h"
-#include <renderer/Image.h>
-#include <renderer/SpriteSheet.h>
-#include <renderer/Texture.h>
+#include <gfx/Image.h>
+#include <gfx/SpriteSheet.h>
+#include <gfx/Texture.h>
 
 class AssetManager {
 public:

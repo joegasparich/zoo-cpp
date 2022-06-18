@@ -41,7 +41,7 @@ unsigned int ArrayTexture::pushTexture(const Image& image) {
     std::cout << "Pushing texture " << image.m_filePath << " onto layer " << m_layers << std::endl;
     GL_CALL(glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, m_layers, image.m_width, image.m_height, 1, GL_RGBA, GL_UNSIGNED_BYTE, image.m_buffer));
 
-    m_layerMap.insert({image.m_filePath, m_layers});
+    m_layerMap.insert_or_assign(image.m_filePath, m_layers);
 
     return m_layers++;
 }

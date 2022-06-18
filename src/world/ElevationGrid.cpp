@@ -2,7 +2,7 @@
 #include <entities/components/TileObjectComponent.h>
 #include "ElevationGrid.h"
 #include "constants/world.h"
-#include "util/math.h"
+#include "util/jmath.h"
 #include "Debug.h"
 #include "Zoo.h"
 
@@ -100,7 +100,7 @@ void ElevationGrid::setElevationInCircle(glm::vec2 pos, float radius, Elevation 
             auto gridPos = glm::floor(glm::vec2{i, j});
             if (!isPositionInGrid(gridPos)) continue;
 
-            if (pointInCircle(pos, radius, gridPos)) {
+            if (jmath::pointInCircle(pos, radius, gridPos)) {
                 if (getElevationAtGridPos(gridPos) != elevation) {
                     points.push_back(gridPos);
                     changed = true;

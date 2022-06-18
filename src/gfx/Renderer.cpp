@@ -1,5 +1,5 @@
 #include <constants/depth.h>
-#include <util/math.h>
+#include <util/jmath.h>
 #include <util/colour.h>
 #include "Renderer.h"
 #include "Debug.h"
@@ -104,8 +104,8 @@ void Renderer::blit(BlitOptions opts) {
     auto width = (float)image->m_width * (float)texBounds.x * (float)PIXEL_SCALE / (float)WORLD_SCALE;
     auto height = (float)image->m_height * (float)texBounds.y * (float)PIXEL_SCALE / (float)WORLD_SCALE;
 
-    texCoord = multVect(texCoord, glm::vec2{(float)image->m_width / (float)MAX_BLIT_WIDTH, (float)image->m_height / (float)MAX_BLIT_HEIGHT});
-    texBounds = multVect(texBounds, glm::vec2{(float)image->m_width / (float)MAX_BLIT_WIDTH, (float)image->m_height / (float)MAX_BLIT_HEIGHT});
+    texCoord = jmath::multVect(texCoord, glm::vec2{(float)image->m_width / (float)MAX_BLIT_WIDTH, (float)image->m_height / (float)MAX_BLIT_HEIGHT});
+    texBounds = jmath::multVect(texBounds, glm::vec2{(float)image->m_width / (float)MAX_BLIT_WIDTH, (float)image->m_height / (float)MAX_BLIT_HEIGHT});
 
     auto texId = opts.sprite ?
             renderer.m_arrayTexture->pushTexture(*opts.sprite->m_texture->m_image) :

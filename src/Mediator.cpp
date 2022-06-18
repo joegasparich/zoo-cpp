@@ -10,7 +10,7 @@ std::string Mediator::on(const EventType event, std::function<void(std::string)>
     if (!Mediator::get().listeners.contains(event)) {
         Mediator::get().listeners.insert({event, {}});
     }
-    Mediator::get().listeners.at(event).insert({handle, move(callback)});
+    Mediator::get().listeners.at(event).insert_or_assign(handle, move(callback));
 
     return handle;
 }

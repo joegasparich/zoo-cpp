@@ -1,6 +1,6 @@
 #pragma once
 
-#include <renderer/ArrayTexture.h>
+#include <gfx/ArrayTexture.h>
 #include "pch.h"
 #include "common.h"
 #include "Registry.h"
@@ -53,8 +53,11 @@ public:
     void deleteWall(Wall wall);
     void deleteWallAtTile(glm::ivec2 tilePos, Side side);
     bool isWallPosInMap(glm::ivec2 tilePos, Side side) const;
+    bool isWallGridPosInMap(glm::ivec2 gridPos);
     Wall* getWallAtTile(glm::ivec2 tilePos, Side side);
-    std::array<glm::ivec2, 2> getAdjacentTiles(const Wall& wall);
+    Wall* getWallByGridPos(glm::ivec2 gridPos);
+    std::vector<Wall*> getAdjacentWalls(const Wall& wall);
+    std::vector<glm::ivec2> getAdjacentTiles(const Wall& wall);
     std::array<glm::vec2, 2> getWallVertices(const Wall& wall);
     std::vector<Wall*> getSurroundingWalls(glm::ivec2 gridPos);
 
@@ -65,6 +68,9 @@ public:
     json save();
     void load(json saveData);
 private:
+    bool shouldCheckForLoop(const Wall& wall);
+    bool checkForLoop(Wall* startWall, Wall* currentWall = nullptr, std::unordered_set<std::string> checkedWalls = {}, unsigned int depth = 0);
+
     std::vector<std::vector<Wall>> m_wallGrid;
     unsigned int m_cols;
     unsigned int m_rows;

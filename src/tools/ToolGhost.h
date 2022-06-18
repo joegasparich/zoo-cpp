@@ -2,8 +2,8 @@
 
 #include "pch.h"
 
-#include "renderer/Renderer.h"
-#include "renderer/Texture.h"
+#include "gfx/Renderer.h"
+#include "gfx/Texture.h"
 
 enum class GhostType {
     None,

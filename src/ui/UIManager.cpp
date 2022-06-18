@@ -1,5 +1,5 @@
 #include "UIManager.h"
-#include "renderer/Renderer.h"
+#include "gfx/Renderer.h"
 
 int id = 0;
 
@@ -61,7 +61,7 @@ void UIManager::render() {
     for(auto& component : instance.m_componentsToPush) {
         std::cout << "Adding component with id: " << component->m_id << std::endl;
         component->onOpen();
-        instance.m_components.insert({component->m_id, std::move(component)});
+        instance.m_components.insert_or_assign(component->m_id, std::move(component));
     }
     instance.m_componentsToPush.clear();
 

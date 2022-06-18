@@ -3,8 +3,9 @@
 #include "Stage.h"
 #include "constants/assets.h"
 #include "Game.h"
-#include "renderer/Renderer.h"
-#include "util/math.h"
+#include "Debug.h"
+#include "gfx/Renderer.h"
+#include "util/jmath.h"
 #include "AssetManager.h"
 #include "entities/entityGenerators.h"
 
@@ -69,8 +70,8 @@ void Stage::update() {
     }
 
     // Camera zoom
-    if (input->isInputHeld("ZOOM_IN")) camera.scale = exp(lerp(log(camera.scale), log(MAX_ZOOM), 0.01));
-    if (input->isInputHeld("ZOOM_OUT")) camera.scale = exp(lerp(log(camera.scale), log(MIN_ZOOM), 0.01));
+    if (input->isInputHeld("ZOOM_IN")) camera.scale = exp(jmath::lerp(log(camera.scale), log(MAX_ZOOM), 0.01));
+    if (input->isInputHeld("ZOOM_OUT")) camera.scale = exp(jmath::lerp(log(camera.scale), log(MIN_ZOOM), 0.01));
 
     auto scroll = input->getMouseScroll();
     while (scroll != 0) {
@@ -85,9 +86,9 @@ void Stage::update() {
         scroll -= dir;
     }
 
-    if (input->isMouseButtonDown(SDL_BUTTON_LEFT)) {
-        std::cout << Renderer::pick(glm::floor(input->getMousePos())) << std::endl;
-    }
+    // if (input->isMouseButtonDown(SDL_BUTTON_LEFT)) {
+    //     std::cout << Renderer::pick(glm::floor(input->getMousePos())) << std::endl;
+    // }
 }
 
 void Stage::preUpdate() {
@@ -101,7 +102,7 @@ void Stage::postUpdate() {
 
     for (auto& entity : m_entitiesToAdd) {
         entity->setup();
-        m_entities.insert({entity->getId(), std::move(entity)});
+        m_entities.insert_or_assign(entity->getId(), std::move(entity));
     }
 
     m_entitiesToAdd.clear();

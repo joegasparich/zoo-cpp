@@ -61,8 +61,8 @@ BiomeChunk::BiomeChunk(std::vector<std::vector<std::vector<Biome>>> gridData, un
     }
 }
 
-void BiomeChunk::setup(VertexArray& va, VertexBufferLayout& layout, Shader& shader) {
-    m_va = &va;
+void BiomeChunk::setup(VertexBufferLayout& layout, Shader& shader) {
+    m_va = std::make_unique<VertexArray>();
     m_layout = &layout;
     m_shader = &shader;
 
@@ -188,7 +188,6 @@ BiomeGrid::BiomeGrid(unsigned int cols, unsigned int rows) :
 }
 
 void BiomeGrid::setup() {
-    m_va = std::make_unique<VertexArray>();
     m_layout = std::make_unique<VertexBufferLayout>();
     m_layout->push<float>(2);
     m_layout->push<float>(4);
@@ -207,7 +206,7 @@ void BiomeGrid::setup() {
                 j == chunkRows - 1 && m_rows % CHUNK_SIZE != 0 ? m_rows & CHUNK_SIZE : CHUNK_SIZE,
             });
 
-            m_chunkGrid.at(i).at(j).setup(*m_va, *m_layout, *m_shader);
+            m_chunkGrid.at(i).at(j).setup(*m_layout, *m_shader);
         }
     }
 }
@@ -301,10 +300,10 @@ json BiomeGrid::save() {
 void BiomeGrid::load(json saveData) {
     cleanup();
 
-    m_cols = saveData["cols"].get<unsigned int>();
-    m_rows = saveData["rows"].get<unsigned int>();
+    saveData.at("cols").get_to(m_cols);
+    saveData.at("rows").get_to(m_rows);
 
-    auto gridData = saveData["grid"].get<std::vector<std::vector<std::vector<std::vector<std::vector<Biome>>>>>>();
+    auto gridData = saveData.at("grid").get<std::vector<std::vector<std::vector<std::vector<std::vector<Biome>>>>>>();
 
     unsigned int i = 0;
     for (auto& row : gridData) {
@@ -314,7 +313,7 @@ void BiomeGrid::load(json saveData) {
             m_chunkGrid.at(i).push_back(BiomeChunk{
                 chunkData, i * CHUNK_SIZE, j * CHUNK_SIZE
             });
-            m_chunkGrid.at(i).at(j).setup(*m_va, *m_layout, *m_shader);
+            m_chunkGrid.at(i).at(j).setup(*m_layout, *m_shader);
             j++;
         }
         i++;

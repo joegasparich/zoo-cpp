@@ -56,16 +56,16 @@ json Entity::save() {
 
     return json({
         {"id",  getId()},
-        {"pos", vecToString(m_pos)},
+        {"pos", m_pos},
         {"components", componentSaveData}
     });
 }
 
 void Entity::load(json data) {
-    m_pos = stringToFVec(data["pos"].get<std::string>());
+    data.at("pos").get_to(m_pos);
 
-    for (auto componentData : data["components"].get<std::vector<json>>()) {
-        auto id = componentData["id"].get<COMPONENT>();
+    for (auto componentData : data.at("components").get<std::vector<json>>()) {
+        auto id = componentData.at("id").get<COMPONENT>();
         auto component = createComponentById(id, this);
         component->load(componentData);
     }

@@ -40,10 +40,10 @@ json RenderComponent::save() {
     auto saveData = Component::save();
     saveData.push_back({"sprite", json({
        {"path", m_sprite->m_texture->m_image->m_filePath},
-       {"texCoord", vecToString(m_sprite->m_texCoord)},
-       {"texBounds", vecToString(m_sprite->m_texBounds)}
+       {"texCoord", m_sprite->m_texCoord},
+       {"texBounds", m_sprite->m_texBounds}
     })});
-    saveData.push_back({"pivot", vecToString(m_pivot)});
+    saveData.push_back({"pivot", m_pivot});
 
     return saveData;
 }
@@ -51,9 +51,9 @@ json RenderComponent::save() {
 void RenderComponent::load(json data) {
     Component::load(data);
     m_sprite = std::make_unique<Sprite>(
-        AssetManager::loadTexture(AssetManager::loadImage(data["sprite"]["path"].get<std::string>())),
-        stringToFVec(data["sprite"]["texCoord"].get<std::string>()),
-        stringToFVec(data["sprite"]["texBounds"].get<std::string>())
+        AssetManager::loadTexture(AssetManager::loadImage(data.at("sprite").at("path").get<std::string>())),
+        data.at("sprite").at("texCoord").get<glm::vec2>(),
+        data.at("sprite").at("texBounds").get<glm::vec2>()
     );
-    m_pivot = stringToFVec(data["pivot"].get<std::string>());
+    data.at("pivot").get_to(m_pivot);
 }

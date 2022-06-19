@@ -46,10 +46,11 @@ void World::render() {
     m_elevationGrid->renderDebug();
     m_wallGrid->render();
 
+// TODO: move somewhere
     for (auto& pair : m_areas) {
         auto& area = pair.second;
         for (auto& tile : area->m_tiles) {
-            Debug::drawRect(tile, tile + glm::ivec2{1, 1}, {area->m_colour, 0.5f});
+            Debug::drawRect(tile, tile + glm::ivec2{1, 1}, {area->m_colour, 0.2f});
         }
     }
 }
@@ -133,20 +134,55 @@ void World::formAreas(Wall &placedWall) {
     m_areas.insert_or_assign(newArea->m_id, std::move(newArea));
 
     // Mediator.fire(WorldEvent.AREAS_UPDATED);
-
-    return;
 }
 
 void World::joinAreas(Wall &removedWall) {
+    auto tiles = m_wallGrid->getAdjacentTiles(removedWall);
+    if (tiles.size() != 2) return;
 
+    auto areaA = getAreaAtPosition(tiles[0]);
+    auto areaB = getAreaAtPosition(tiles[1]);
+
+    // If one of the areas is the main zoo area then ensure we keep it
+    if (areaB->m_id == ZOO_AREA) {
+        auto swap = areaA;
+        areaA = areaB;
+        areaB = swap;
+    }
+
+    // Delete area B and expand area A
+    areaA->m_tiles.insert(areaA->m_tiles.end(), areaB->m_tiles.begin(), areaB->m_tiles.end());
+    for (auto tile : areaB->m_tiles) m_tileAreaMap[vecToString(tile)] = areaA;
+    for (const auto& areaConnection : areaB->m_connectedAreas) {
+         const auto& [area, doors] = areaConnection;
+         for (auto door : doors) {
+             areaA->addAreaConnection(area, door);
+             area->addAreaConnection(areaA, door);
+         }
+     }
+    // this.getExhibitByAreaId(area2.id)?.delete();
+    m_areas.erase(areaB->m_id);
+
+    // Mediator.fire(WorldEvent.AREAS_UPDATED);
 }
 
-std::vector<Area *> World::getAreas() {
-    return std::vector<Area *>();
+std::vector<Area*> World::getAreas() {
+    // TODO: Store list so we don't have to do this every time?
+    std::vector<Area*> areas;
+    for (const auto& [_, area] : m_areas) {
+        areas.push_back(area.get());
+    }
+    return areas;
 }
 
-Area &World::getAreaById(std::string id) {
-//    return <#initializer#>;
+Area* World::getAreaById(std::string id) {
+   return m_areas[id].get();
+}
+
+Area* World::getAreaAtPosition(glm::vec2 pos) {
+    if (!isPositionInMap(pos)) return nullptr;
+    assert(m_tileAreaMap.contains(vecToString((glm::ivec2)glm::floor(pos))));
+    return m_tileAreaMap.at(vecToString((glm::ivec2)glm::floor(pos)));
 }
 
 std::vector<glm::ivec2> World::floodFill(glm::ivec2 startTile) {
@@ -197,10 +233,39 @@ void World::resetAreas() {
 }
 
 json World::save() {
+    // Fuck c++ is so verbose this is ridiculous
+    // Give me my array.map() back
+    std::vector<json> areaSaveData;
+    std::transform(m_areas.begin(), m_areas.end(), std::back_inserter(areaSaveData), [](const std::pair<const std::string, std::unique_ptr<Area>&>& pair) {
+        const auto& [id, area] = pair;
+        std::vector<json> connectedAreaSaveData;
+        std::transform(area->m_connectedAreas.begin(), area->m_connectedAreas.end(), std::back_inserter(connectedAreaSaveData), [](
+            const std::pair<Area *const, std::unordered_set<Wall *>>& connection) {
+            const auto& [connectedArea, doors] = connection;
+            std::vector<glm::vec2> doorGridPositions;
+            std::transform(doors.begin(), doors.end(), std::back_inserter(doorGridPositions), [](Wall* door) {
+                return door->gridPos;
+            });
+
+            return json({
+                {"areaId", connectedArea->m_id},
+                {"doorGridPositions", doorGridPositions}
+            });
+        });
+
+        return json({
+            {"id", id},
+            {"colour", area->m_colour},
+            {"tiles", area->m_tiles},
+            {"connectedAreas", connectedAreaSaveData}
+        });
+    });
+
     return json{
-            {"elevation", m_elevationGrid->save()},
-            {"biome", m_biomeGrid->save()},
-            {"wall", m_wallGrid->save()}
+        {"elevation", m_elevationGrid->save()},
+        {"biomes", m_biomeGrid->save()},
+        {"walls", m_wallGrid->save()},
+        {"areas", areaSaveData}
     };
 }
 
@@ -208,7 +273,31 @@ void World::load(json saveData) {
     cleanup();
 
     // TODO: Check these exist first?
-    m_elevationGrid->load(saveData["elevation"]);
-    m_biomeGrid->load(saveData["biome"]);
-    m_wallGrid->load(saveData["wall"]);
+    m_elevationGrid->load(saveData.at("elevation"));
+    m_biomeGrid->load(saveData.at("biomes"));
+    m_wallGrid->load(saveData.at("walls"));
+
+    // Create areas
+    for (auto& areaData : saveData.at("areas")) {
+        auto id = areaData.at("id").get<std::string>();
+        auto area = std::make_unique<Area>(id);
+        areaData.at("colour").get_to(area->m_colour);
+        areaData.at("tiles").get_to(area->m_tiles);
+        m_areas.insert_or_assign(id, std::move(area));
+        for (auto tile : m_areas.at(id)->m_tiles) m_tileAreaMap.insert_or_assign(vecToString(tile), m_areas.at(id).get());
+    }
+
+    // Add connections once all areas have been created
+    for (auto& areaData : saveData.at("areas")) {
+        auto area = getAreaById(areaData.at("id").get<std::string>());
+        for (auto& connectedAreaData : areaData.at("connectedAreas")) {
+            auto connectedArea = getAreaById(connectedAreaData.at("areaId").get<std::string>());
+            for (auto& doorGridPos : connectedAreaData.at("doorGridPositions")) {
+                auto door = m_wallGrid->getWallByGridPos(doorGridPos.get<glm::ivec2>());
+                area->addAreaConnection(connectedArea, door);
+            }
+        }
+    }
+
+    // Mediator.fire(WorldEvent.AREAS_UPDATED);
 }

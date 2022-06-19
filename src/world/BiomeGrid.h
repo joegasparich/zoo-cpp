@@ -2,7 +2,6 @@
 
 #include "pch.h"
 
-#include "common.h"
 #include "gfx/Renderer.h"
 
 #define CHUNK_SIZE 5
@@ -43,7 +42,7 @@ public:
     BiomeChunk(unsigned int x, unsigned int y, unsigned int cols, unsigned int rows);
     BiomeChunk(std::vector<std::vector<std::vector<Biome>>> gridData, unsigned int x, unsigned int y);
 
-    void setup(VertexArray& va, VertexBufferLayout& layout, Shader& shader);
+    void setup(VertexBufferLayout& layout, Shader& shader);
 
     void postUpdate();
     void generateMesh();
@@ -61,9 +60,9 @@ public:
 
     std::vector<std::vector<BiomeSquare>> m_grid;
 
+    std::unique_ptr<VertexArray> m_va;
     std::unique_ptr<VertexBuffer> m_vb;
     std::unique_ptr<IndexBuffer> m_ib;
-    VertexArray* m_va;
     VertexBufferLayout* m_layout;
     Shader* m_shader;
 };
@@ -91,7 +90,6 @@ private:
     unsigned int m_rows;
     unsigned int m_cols;
 
-    std::unique_ptr<VertexArray> m_va;
     std::unique_ptr<VertexBufferLayout> m_layout;
     std::unique_ptr<Shader> m_shader;
 

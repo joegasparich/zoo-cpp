@@ -148,14 +148,14 @@ void Stage::load(json data) {
     cleanup();
     setup();
 
-    m_world->load(data["world"]);
+    m_world->load(data.at("world"));
 
-    json entitiesData = data["entities"];
-    m_nextEntityId = entitiesData["nextEntityId"].get<unsigned int>();
-    for (auto& entityData : entitiesData["entityList"].get<std::vector<json>>()) {
+    json entitiesData = data.at("entities");
+    entitiesData.at("nextEntityId").get_to(m_nextEntityId);
+    for (auto& entityData : entitiesData.at("entityList").get<std::vector<json>>()) {
         auto entity = std::make_unique<Entity>();
         entity->load(entityData);
-        registerEntity(std::move(entity), entityData["id"].get<unsigned int>());
+        registerEntity(std::move(entity), entityData.at("id").get<unsigned int>());
     }
 }
 

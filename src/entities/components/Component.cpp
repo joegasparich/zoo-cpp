@@ -30,5 +30,5 @@ json Component::save() {
 }
 
 void Component::load(json data) {
-    m_disabled = data["isDisabled"].get<bool>();
+    data.at("isDisabled").get_to(m_disabled);
 }

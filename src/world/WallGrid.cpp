@@ -27,7 +27,7 @@ void WallGrid::setup() {
         m_wallGrid.emplace_back();
         for (int j = 0; j < m_rows + (int)orientation; j++) {
             auto worldPos = WallGrid::wallToWorldPosition({i, j}, orientation);
-            m_wallGrid[i].push_back({
+            m_wallGrid.at(i).push_back({
                 {},
                 orientation,
                 worldPos,
@@ -207,6 +207,36 @@ void WallGrid::deleteWallAtTile(glm::ivec2 tilePos, Side side) {
 //    }
 }
 
+void WallGrid::placeDoor(Wall* wall) {
+    wall->isDoor = true;
+
+    auto adjacentTiles = getAdjacentTiles(*wall);
+    if (adjacentTiles.size() < 2) return;
+
+    auto areaA = Zoo::zoo->m_world->getAreaAtPosition(adjacentTiles[0]);
+    auto areaB = Zoo::zoo->m_world->getAreaAtPosition(adjacentTiles[1]);
+
+    areaA->addAreaConnection(areaB, wall);
+    areaB->addAreaConnection(areaA, wall);
+
+    regenerateMesh();
+}
+
+void WallGrid::removeDoor(Wall* wall) {
+    wall->isDoor = false;
+
+    auto adjacentTiles = getAdjacentTiles(*wall);
+    if (adjacentTiles.size() < 2) return;
+
+    auto areaA = Zoo::zoo->m_world->getAreaAtPosition(adjacentTiles[0]);
+    auto areaB = Zoo::zoo->m_world->getAreaAtPosition(adjacentTiles[1]);
+    
+    areaA->removeAreaConnection(areaB, wall);
+    areaB->removeAreaConnection(areaA, wall);
+
+    regenerateMesh();
+}
+
 bool WallGrid::isWallPosInMap(glm::ivec2 tilePos, Side side) const {
     if (!m_isSetup) return false;
 
@@ -310,17 +340,17 @@ std::vector<glm::ivec2> WallGrid::getAdjacentTiles(const Wall& wall) {
     return adjacentTiles;
 }
 
-std::array<glm::vec2, 2> WallGrid::getWallVertices(const Wall &wall) {
+std::array<glm::ivec2, 2> WallGrid::getWallVertices(const Wall &wall) {
     switch (wall.orientation) {
         case Orientation::Horizontal:
             return {
-                glm::vec2{wall.worldPos.x - 0.5f, wall.worldPos.y},
-                glm::vec2{wall.worldPos.x + 0.5f, wall.worldPos.y}
+                glm::floor(glm::vec2{wall.worldPos.x - 0.5f, wall.worldPos.y}),
+                glm::floor(glm::vec2{wall.worldPos.x + 0.5f, wall.worldPos.y})
             };
         case Orientation::Vertical:
             return {
-                glm::vec2{wall.worldPos.x, wall.worldPos.y - 0.5f},
-                glm::vec2{wall.worldPos.x, wall.worldPos.y + 0.5f}
+                glm::floor(glm::vec2{wall.worldPos.x, wall.worldPos.y - 0.5f}),
+                glm::floor(glm::vec2{wall.worldPos.x, wall.worldPos.y + 0.5f})
             };
     }
 }
@@ -334,6 +364,13 @@ std::vector<Wall*> WallGrid::getSurroundingWalls(glm::ivec2 gridPos) {
     walls.push_back(getWallAtTile(gridPos - glm::ivec2{1.0f, 1.0f}, Side::East));
 
     return walls;
+}
+
+bool WallGrid::isWallSloped(const Wall &wall) {
+    auto& elevationGrid = Zoo::zoo->m_world->m_elevationGrid;
+    auto [v1, v2] = getWallVertices(wall);
+
+    return elevationGrid->getElevationAtPos(v1) != elevationGrid->getElevationAtPos(v2);
 }
 
 glm::vec2 WallGrid::wallToWorldPosition(glm::ivec2 gridPos, Orientation orientation) {
@@ -371,23 +408,23 @@ GridPos WallGrid::getGridPosition(glm::ivec2 tilePos, Side side) {
     return { x, y, orientation };
 }
 
-SpriteInfo WallGrid::getSpriteInfo(Wall& wall) {
+SpriteInfo WallGrid::getSpriteInfo(Wall& wall, bool isDoor) {
     if (wall.orientation == Orientation::Horizontal) {
         auto left = Zoo::zoo->m_world->m_elevationGrid->getElevationAtPos({wall.worldPos.x - 0.5f, wall.worldPos.y});
         auto right = Zoo::zoo->m_world->m_elevationGrid->getElevationAtPos({wall.worldPos.x + 0.5f, wall.worldPos.y});
         auto elevation = std::min(left, right);
 
-        if (left == right) return { wall.isDoor ? (unsigned int)WallSpriteIndex::DoorHorizontal : (unsigned int)WallSpriteIndex::Horizontal, elevation };
-        if (left > right) return { wall.isDoor ? (unsigned int)WallSpriteIndex::DoorHorizontal : (unsigned int)WallSpriteIndex::HillWest, elevation };
-        if (left < right) return { wall.isDoor ? (unsigned int)WallSpriteIndex::DoorHorizontal : (unsigned int)WallSpriteIndex::HillEast, elevation };
+        if (left == right) return { isDoor || wall.isDoor ? (unsigned int)WallSpriteIndex::DoorHorizontal : (unsigned int)WallSpriteIndex::Horizontal, elevation };
+        if (left > right) return { isDoor || wall.isDoor ? (unsigned int)WallSpriteIndex::DoorHorizontal : (unsigned int)WallSpriteIndex::HillWest, elevation };
+        if (left < right) return { isDoor || wall.isDoor ? (unsigned int)WallSpriteIndex::DoorHorizontal : (unsigned int)WallSpriteIndex::HillEast, elevation };
     } else {
         auto up = Zoo::zoo->m_world->m_elevationGrid->getElevationAtPos({wall.worldPos.x, wall.worldPos.y - 0.5f});
         auto down = Zoo::zoo->m_world->m_elevationGrid->getElevationAtPos({wall.worldPos.x, wall.worldPos.y + 0.5f});
         auto elevation = std::min(up, down);
 
-        if (up == down) return { wall.isDoor ? (unsigned int)WallSpriteIndex::DoorVertical : (unsigned int)WallSpriteIndex::Vertical, elevation };
-        if (up > down) return { wall.isDoor ? (unsigned int)WallSpriteIndex::DoorVertical : (unsigned int)WallSpriteIndex::HillNorth, elevation };
-        if (up < down) return { wall.isDoor ? (unsigned int)WallSpriteIndex::DoorVertical : (unsigned int)WallSpriteIndex::HillSouth, elevation + ELEVATION_HEIGHT };
+        if (up == down) return { isDoor || wall.isDoor ? (unsigned int)WallSpriteIndex::DoorVertical : (unsigned int)WallSpriteIndex::Vertical, elevation };
+        if (up > down) return { isDoor || wall.isDoor ? (unsigned int)WallSpriteIndex::DoorVertical : (unsigned int)WallSpriteIndex::HillNorth, elevation };
+        if (up < down) return { isDoor || wall.isDoor ? (unsigned int)WallSpriteIndex::DoorVertical : (unsigned int)WallSpriteIndex::HillSouth, elevation + ELEVATION_HEIGHT };
     }
 
     return {};
@@ -459,27 +496,27 @@ json WallGrid::save() {
 void WallGrid::load(json saveData) {
     cleanup();
 
-    m_cols = saveData["cols"].get<unsigned int>();
-    m_rows = saveData["rows"].get<unsigned int>();
+    saveData.at("cols").get_to(m_cols);
+    saveData.at("rows").get_to(m_rows);
 
-    auto gridData = saveData["grid"].get<std::vector<std::vector<json>>>();
+    auto gridData = saveData.at("grid").get<std::vector<std::vector<json>>>();
 
     for (int i = 0; i < m_cols * 2 + 1; i++) {
         auto orientation = (Orientation)(i % 2);
         m_wallGrid.emplace_back();
         for (int j = 0; j < m_rows + (int)orientation; j++) {
             auto worldPos = WallGrid::wallToWorldPosition({i, j}, orientation);
-            auto wallData = gridData[i][j];
-            auto exists = wallData["exists"].get<bool>();
+            auto wallData = gridData.at(i).at(j);
+            auto exists = wallData.at("exists").get<bool>();
 
-            m_wallGrid[i].push_back({
-                exists ? Registry::getWall(wallData["assetPath"].get<std::string>()) : WallData{},
+            m_wallGrid.at(i).push_back({
+                exists ? Registry::getWall(wallData.at("assetPath").get<std::string>()) : WallData{},
                 orientation,
                 worldPos,
                 {i, j},
                 exists,
-                wallData["indestructable"].get<bool>(),
-                wallData["isDoor"].get<bool>(),
+                wallData.at("indestructable").get<bool>(),
+                wallData.at("isDoor").get<bool>(),
             });
         }
     }

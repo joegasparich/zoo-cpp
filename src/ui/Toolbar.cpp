@@ -41,6 +41,9 @@ void Toolbar::render() {
     renderButton("Wall", m_toolManager->getActiveTool().getType() == ToolType::Wall, [this]() {
         m_toolManager->setTool(ToolType::Wall);
     });
+    renderButton("Door", m_toolManager->getActiveTool().getType() == ToolType::Door, [this]() {
+        m_toolManager->setTool(ToolType::Door);
+    });
     renderButton("Object", m_toolManager->getActiveTool().getType() == ToolType::TileObject, [this]() {
         m_toolManager->setTool(ToolType::TileObject);
     });

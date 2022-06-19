@@ -4,7 +4,7 @@
 
 namespace jmath {
     inline float random() {
-        return rand() & 1;
+        return (float) rand()/RAND_MAX;
     }
 
     inline float lerp(float start, float end, float percent) {

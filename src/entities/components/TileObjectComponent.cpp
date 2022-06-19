@@ -36,5 +36,5 @@ json TileObjectComponent::save() {
 
 void TileObjectComponent::load(json data) {
     Component::load(data);
-    m_data = Registry::getObject(data["path"].get<std::string>());
+    m_data = Registry::getObject(data.at("path").get<std::string>());
 }

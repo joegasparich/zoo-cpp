@@ -15,8 +15,6 @@ public:
     void postUpdate() override;
     void render() override;
 
-    void updateGhostSprite(ToolGhost& ghost, glm::ivec2 tilePos, Side quadrant);
-
     void setCurrentWall(WallData& wall);
     WallData& getCurrentWall();
 
@@ -24,6 +22,8 @@ public:
     ToolType getType() override;
 
 private:
+    void updateGhostSprite(ToolGhost& ghost, glm::ivec2 tilePos, Side quadrant);
+
     std::string m_panelId;
     WallData* m_currentWall;
 

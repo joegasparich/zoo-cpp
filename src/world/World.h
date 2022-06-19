@@ -33,7 +33,8 @@ public:
     Entity* getTileObjectAtPosition(glm::vec2 pos);
     std::vector<glm::ivec2> getAccessibleAdjacentTiles(glm::ivec2 tile);
     std::vector<Area*> getAreas();
-    Area& getAreaById(std::string id);
+    Area* getAreaById(std::string id);
+    Area* getAreaAtPosition(glm::vec2 pos);
 
     // Save & Load
     json save();

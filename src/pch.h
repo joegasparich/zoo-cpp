@@ -24,3 +24,5 @@
 #include "glm/gtx/hash.hpp"
 
 using json = nlohmann::json;
+
+#include "common.h"

@@ -1,8 +1,7 @@
 #pragma once
 
-#include <gfx/ArrayTexture.h>
+#include <gfx/Renderer.h>
 #include "pch.h"
-#include "common.h"
 #include "Registry.h"
 
 enum class Orientation {
@@ -52,18 +51,21 @@ public:
     Wall* placeWallAtTile(WallData wall, glm::ivec2 tilePos, Side side);
     void deleteWall(Wall wall);
     void deleteWallAtTile(glm::ivec2 tilePos, Side side);
+    void placeDoor(Wall* wall);
+    void removeDoor(Wall* wall);
     bool isWallPosInMap(glm::ivec2 tilePos, Side side) const;
     bool isWallGridPosInMap(glm::ivec2 gridPos);
     Wall* getWallAtTile(glm::ivec2 tilePos, Side side);
     Wall* getWallByGridPos(glm::ivec2 gridPos);
     std::vector<Wall*> getAdjacentWalls(const Wall& wall);
     std::vector<glm::ivec2> getAdjacentTiles(const Wall& wall);
-    std::array<glm::vec2, 2> getWallVertices(const Wall& wall);
+    std::array<glm::ivec2, 2> getWallVertices(const Wall& wall);
     std::vector<Wall*> getSurroundingWalls(glm::ivec2 gridPos);
+    bool isWallSloped(const Wall& wall);
 
     static glm::vec2 wallToWorldPosition(glm::ivec2 gridPos, Orientation orientation);
     static GridPos getGridPosition(glm::ivec2 tilePos, Side side);
-    static SpriteInfo getSpriteInfo(Wall& wall);
+    static SpriteInfo getSpriteInfo(Wall& wall, bool isDoor = false);
 
     json save();
     void load(json saveData);

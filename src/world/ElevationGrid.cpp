@@ -465,7 +465,7 @@ json ElevationGrid::save() {
 void ElevationGrid::load(json saveData) {
     cleanup();
 
-    m_grid = saveData["grid"].get<std::vector<std::vector<Elevation>>>();
+    saveData.at("grid").get_to(m_grid);
     m_cols = m_grid.size();
     m_rows = m_grid[0].size();
 

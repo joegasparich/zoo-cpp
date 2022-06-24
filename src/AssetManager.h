@@ -1,7 +1,5 @@
 #pragma once
 
-#include <SDL2/SDL.h>
-
 #include "pch.h"
 #include <gfx/Image.h>
 #include <gfx/SpriteSheet.h>

@@ -12,5 +12,7 @@ Component* createComponentById(COMPONENT id, Entity *entity) {
         case TILE_OBJECT_COMPONENT:
             entity->addComponent(std::make_unique<TileObjectComponent>(entity));
             return entity->getComponent<TileObjectComponent>();
+        default:
+            return nullptr;
     }
 }

@@ -10,9 +10,9 @@ WallGrid::WallGrid(unsigned int cols, unsigned int rows) : m_cols(cols), m_rows(
 void WallGrid::setup() {
     m_va = std::make_unique<VertexArray>();
     m_layout = std::make_unique<VertexBufferLayout>();
-    m_layout->push<float>(3); // pos
-    m_layout->push<float>(3); // texCoord
-    m_layout->push<float>(3); // colour
+    m_layout->pushFloat(3); // pos
+    m_layout->pushFloat(3); // texCoord
+    m_layout->pushFloat(3); // colour
     m_shader = std::make_unique<Shader>("./shaders/ArrayTextureVertex.shader", "./shaders/ArrayTextureFragment.shader");
     m_textureArray = std::make_unique<ArrayTexture>(128, 32, 2);
 

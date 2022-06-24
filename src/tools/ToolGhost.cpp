@@ -10,7 +10,7 @@
 ToolGhost::ToolGhost() {
     m_basicShader = std::make_unique<Shader>("./shaders/BasicVertex.shader", "./shaders/BasicFragment.shader");
     m_basicLayout = std::make_unique<VertexBufferLayout>();
-    m_basicLayout->push<float>(2);
+    m_basicLayout->pushFloat(2);
 
     m_circleVa = std::make_unique<VertexArray>();
 

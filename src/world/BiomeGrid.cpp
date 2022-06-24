@@ -189,8 +189,8 @@ BiomeGrid::BiomeGrid(unsigned int cols, unsigned int rows) :
 
 void BiomeGrid::setup() {
     m_layout = std::make_unique<VertexBufferLayout>();
-    m_layout->push<float>(2);
-    m_layout->push<float>(4);
+    m_layout->pushFloat(2);
+    m_layout->pushFloat(4);
     m_shader = std::make_unique<Shader>("./shaders/ColourVertex.shader", "./shaders/ColourFragment.shader");
 
     auto chunkCols = m_cols / CHUNK_SIZE + (m_cols % CHUNK_SIZE != 0);

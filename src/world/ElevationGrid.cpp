@@ -13,7 +13,7 @@ ElevationGrid::ElevationGrid(unsigned int rows, unsigned int cols) : m_rows(rows
 void ElevationGrid::setup() {
     m_va = std::make_unique<VertexArray>();
     m_layout = std::make_unique<VertexBufferLayout>();
-    m_layout->push<float>(2);
+    m_layout->pushFloat(2);
     m_shader = std::make_unique<Shader>("./shaders/WaterVertex.shader", "./shaders/WaterFragment.shader");
 
     for (unsigned int i = 0; i < m_cols; i++) {

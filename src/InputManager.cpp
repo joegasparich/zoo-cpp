@@ -13,7 +13,8 @@ InputManager::InputManager() :
         m_inputsUp{},
         m_mouseButtonsHeld{},
         m_mouseButtonsDown{},
-        m_mouseButtonsUp{}
+        m_mouseButtonsUp{},
+        m_scrollAmount{}
 {}
 
 bool InputManager::isKeyDown(int key) const {

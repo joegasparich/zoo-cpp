@@ -236,7 +236,7 @@ json World::save() {
     // Fuck c++ is so verbose this is ridiculous
     // Give me my array.map() back
     std::vector<json> areaSaveData;
-    std::transform(m_areas.begin(), m_areas.end(), std::back_inserter(areaSaveData), [](const std::pair<const std::string, std::unique_ptr<Area>&>& pair) {
+    std::transform(m_areas.begin(), m_areas.end(), std::back_inserter(areaSaveData), [](const std::pair<const std::string, std::unique_ptr<Area>>& pair) {
         const auto& [id, area] = pair;
         std::vector<json> connectedAreaSaveData;
         std::transform(area->m_connectedAreas.begin(), area->m_connectedAreas.end(), std::back_inserter(connectedAreaSaveData), [](

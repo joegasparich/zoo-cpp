@@ -67,9 +67,9 @@ void Renderer::setupBlit() {
     m_blitVb = std::make_unique<VertexBuffer>(nullptr, sizeof(ArrayTextureVertex) * 4 * 1000, true);
 
     m_blitLayout = std::make_unique<VertexBufferLayout>();
-    m_blitLayout->push<float>(3); // pos
-    m_blitLayout->push<float>(3); // texCoord
-    m_blitLayout->push<float>(3); // colour
+    m_blitLayout->pushFloat(3); // pos
+    m_blitLayout->pushFloat(3); // texCoord
+    m_blitLayout->pushFloat(3); // colour
 
     m_blitVa->addBuffer(*m_blitVb, *m_blitLayout);
 

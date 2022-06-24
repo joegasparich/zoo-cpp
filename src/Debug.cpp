@@ -11,8 +11,8 @@ void Debug::setup() {
     auto& debug = Debug::get();
 
     debug.m_layout = std::make_unique<VertexBufferLayout>();
-    debug.m_layout->push<float>(2); // Pos
-    debug.m_layout->push<float>(4); // Colour
+    debug.m_layout->pushFloat(2); // Pos
+    debug.m_layout->pushFloat(4); // Colour
     debug.m_shader = std::make_unique<Shader>("./shaders/ColourVertex.shader", "./shaders/ColourFragment.shader");
 
     debug.m_va = std::make_unique<VertexArray>();

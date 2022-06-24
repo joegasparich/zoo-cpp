@@ -78,7 +78,7 @@ void Stage::update() {
         auto dir = glm::sign(scroll);
         auto mouseWorldPos = Renderer::screenToWorldPos(input->getMousePos());
         auto oldScale = camera.scale;
-        camera.scale = glm::clamp(camera.scale + ((float)dir * log(camera.scale + 1) * 0.05f), MIN_ZOOM, MAX_ZOOM);
+        camera.scale = glm::clamp((float)(camera.scale + ((float)dir * log(camera.scale + 1) * 0.05f)), MIN_ZOOM, MAX_ZOOM);
         // TODO: figure out how to reposition in order to maintain previous mouse world pos
         if (camera.scale != oldScale) {
             camera.pos += (mouseWorldPos - camera.pos) * 0.03f * (float)dir;

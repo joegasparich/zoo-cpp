@@ -20,6 +20,7 @@ public:
     static void loadAssets();
     static void loadObjects();
     static void loadWalls();
+    static void loadPaths();
 
     static Image* loadImage(const std::string& path);
     static SpriteSheet* loadSpriteSheet(const std::string& assetPath, Image* image, int cellWidth, int cellHeight);

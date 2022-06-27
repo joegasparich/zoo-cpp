@@ -4,6 +4,7 @@
 #include "util/jmath.h"
 #include "Game.h"
 #include "Zoo.h"
+#include "Messenger.h"
 
 #define SLOPE_COLOUR_STRENGTH 0.3f
 
@@ -181,11 +182,7 @@ std::vector<std::vector<std::vector<Biome>>> BiomeChunk::save() {
 
 // -- BiomeGrid -- //
 
-BiomeGrid::BiomeGrid(unsigned int cols, unsigned int rows) :
-    m_cols{cols},
-    m_rows{rows} {
-    setup();
-}
+BiomeGrid::BiomeGrid(unsigned int cols, unsigned int rows) : m_cols{cols}, m_rows{rows} {}
 
 void BiomeGrid::setup() {
     m_layout = std::make_unique<VertexBufferLayout>();
@@ -209,12 +206,22 @@ void BiomeGrid::setup() {
             m_chunkGrid.at(i).at(j).setup(*m_layout, *m_shader);
         }
     }
+
+    m_elevationListenerHandle = Messenger::on(EventType::ElevationUpdated, [this](json& data) {
+        redrawChunksInRadius(data.at("pos").get<glm::vec2>() * 2.0f, data.at("radius").get<float>() + 6.0f);
+    });
+
+    m_isSetup = true;
 }
 
 void BiomeGrid::cleanup() {
     m_cols = 0;
     m_rows = 0;
     m_chunkGrid.clear();
+
+    Messenger::unsubscribe(EventType::ElevationUpdated, m_elevationListenerHandle);
+
+    m_isSetup = false;
 }
 
 void BiomeGrid::postUpdate() {

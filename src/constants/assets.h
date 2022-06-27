@@ -7,7 +7,9 @@
 #define OBJ_BUILDING "assets/objects/building.json"
 #define OBJ_TREE "assets/objects/tree.json"
 
-#define WALL_IRON_FENCE "assets/walls/ironBarFence.json"
+#define WALL_IRON_FENCE "assets/walls/iron_bar_fence.json"
+
+#define PATH_DIRT "assets/paths/dirt_path.json"
 
 namespace assets {
     static const char* images[] = {
@@ -21,5 +23,9 @@ namespace assets {
 
     static const char* walls[] = {
         WALL_IRON_FENCE
+    };
+
+    static const char* paths[] = {
+        PATH_DIRT
     };
 }

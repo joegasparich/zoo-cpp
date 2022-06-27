@@ -89,9 +89,12 @@ private:
 
     unsigned int m_rows;
     unsigned int m_cols;
+    bool m_isSetup = false;
 
     std::unique_ptr<VertexBufferLayout> m_layout;
     std::unique_ptr<Shader> m_shader;
 
     std::vector<std::vector<BiomeChunk>> m_chunkGrid;
+
+    std::string m_elevationListenerHandle;
 };

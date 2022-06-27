@@ -2,7 +2,7 @@
 
 #include "InputManager.h"
 #include "util/util.h"
-#include "Mediator.h"
+#include "Messenger.h"
 
 InputManager::InputManager() :
         m_keysHeld{},
@@ -80,7 +80,7 @@ void InputManager::dispatchKeyDown(SDL_KeyboardEvent& event) {
     m_keysHeld[key] = true;
     m_keysDown[key] = true;
 
-    Mediator::fire(EventType::KeyPressed, SDL_GetKeyName(event.keysym.sym));
+    Messenger::fire(EventType::KeyPressed, SDL_GetKeyName(event.keysym.sym));
 
     if (m_registeredInputs.contains(key)) {
         auto& input{m_registeredInputs.at(key) };
@@ -88,7 +88,7 @@ void InputManager::dispatchKeyDown(SDL_KeyboardEvent& event) {
         m_inputsHeld.insert(&input);
         m_inputsDown.insert(&input);
 
-//        Mediator::fire(EventType::InputPressed);
+//        Messenger::fire(EventType::InputPressed);
     }
 }
 

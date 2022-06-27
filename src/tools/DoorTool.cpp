@@ -42,7 +42,7 @@ void DoorTool::updateGhostSprite(ToolGhost &ghost, glm::ivec2 tilePos, Side quad
     ghost.m_canPlace = !wall->isDoor && !world->m_wallGrid->isWallSloped(*wall);
 
     auto [spriteIndex, elevation] = WallGrid::getSpriteInfo(*wall, true);
-    auto spriteSheet = AssetManager::getSpriteSheet(wall->data.spriteSheetPath);
+    auto spriteSheet = AssetManager::getSpriteSheet(wall->data->spriteSheetPath);
 
     ghost.m_sprite = std::make_unique<Sprite>(
         AssetManager::loadTexture(spriteSheet->m_image),

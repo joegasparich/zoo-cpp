@@ -7,10 +7,12 @@
 #include "ElevationGrid.h"
 #include "WallGrid.h"
 #include "Area.h"
+#include "PathGrid.h"
 
 class World {
 public:
     World(unsigned int width, unsigned int height);
+    virtual ~World();
 
     // Lifecycle
     void setup();
@@ -43,6 +45,7 @@ public:
     std::unique_ptr<BiomeGrid> m_biomeGrid;
     std::unique_ptr<ElevationGrid> m_elevationGrid;
     std::unique_ptr<WallGrid> m_wallGrid;
+    std::unique_ptr<PathGrid> m_pathGrid;
     std::map<std::string, std::unique_ptr<Area>> m_areas;
 private:
     std::vector<glm::ivec2> floodFill(glm::ivec2 startTile);

@@ -1,8 +1,10 @@
 #pragma once
 
-#include <gfx/Renderer.h>
 #include "pch.h"
 #include "Registry.h"
+#include <gfx/Renderer.h>
+
+#define MAX_WALLS 32
 
 enum class Orientation {
     Vertical = 0,
@@ -21,7 +23,7 @@ enum class WallSpriteIndex {
 };
 
 struct Wall {
-    WallData data;
+    WallData* data; // TODO: Switch to pointer to avoid duplicating heaps of data
     Orientation orientation;
     glm::vec2 worldPos;
     glm::vec2 gridPos;
@@ -35,7 +37,7 @@ struct GridPos {
     int y;
     Orientation orientation;
 };
-struct SpriteInfo {
+struct WallSpriteInfo {
     unsigned int index;
     float elevation;
 };
@@ -48,7 +50,8 @@ public:
     void cleanup();
     void render();
     void regenerateMesh();
-    Wall* placeWallAtTile(WallData wall, glm::ivec2 tilePos, Side side);
+
+    Wall* placeWallAtTile(WallData* wall, glm::ivec2 tilePos, Side side);
     void deleteWall(Wall wall);
     void deleteWallAtTile(glm::ivec2 tilePos, Side side);
     void placeDoor(Wall* wall);
@@ -65,7 +68,7 @@ public:
 
     static glm::vec2 wallToWorldPosition(glm::ivec2 gridPos, Orientation orientation);
     static GridPos getGridPosition(glm::ivec2 tilePos, Side side);
-    static SpriteInfo getSpriteInfo(Wall& wall, bool isDoor = false);
+    static WallSpriteInfo getSpriteInfo(Wall& wall, bool isDoor = false);
 
     json save();
     void load(json saveData);
@@ -73,11 +76,12 @@ private:
     bool shouldCheckForLoop(const Wall& wall);
     bool checkForLoop(Wall* startWall, Wall* currentWall = nullptr, std::unordered_set<std::string> checkedWalls = {}, unsigned int depth = 0);
 
-    std::vector<std::vector<Wall>> m_wallGrid;
+    std::vector<std::vector<Wall>> m_grid;
     unsigned int m_cols;
     unsigned int m_rows;
     bool m_isSetup;
 
+    // Rendering
     std::unique_ptr<ArrayTexture> m_textureArray;
     std::unique_ptr<VertexArray> m_va;
     std::unique_ptr<VertexBufferLayout> m_layout;
@@ -85,4 +89,6 @@ private:
     std::unique_ptr<VertexBuffer> m_vb;
     std::unique_ptr<IndexBuffer> m_ib;
     unsigned int m_numIndices;
+
+    std::string m_elevationListenerHandle;
 };

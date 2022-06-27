@@ -45,7 +45,7 @@ void WallTool::update() {
         while (m_ghosts.size() > 0) {
             auto& ghost = m_ghosts.back();
             if (ghost->m_canPlace) {
-                Zoo::zoo->m_world->m_wallGrid->placeWallAtTile(*m_currentWall, glm::floor(ghost->m_pos), m_dragQuadrant);
+                Zoo::zoo->m_world->m_wallGrid->placeWallAtTile(m_currentWall, glm::floor(ghost->m_pos), m_dragQuadrant);
             }
             m_ghosts.pop_back();
         }

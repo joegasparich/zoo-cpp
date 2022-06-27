@@ -7,7 +7,8 @@ enum class EventType {
     WindowClosed, WindowResized, WindowFocused, WindowBlurred, WindowMoved,
     KeyPressed, KeyReleased,
     MouseButtonPressed, MouseButtonReleased, MouseMoved, MouseScrolled,
-    InputPressed, InputReleased
+    InputPressed, InputReleased,
+    ElevationUpdated
 };
 
 constexpr const char* getEventName(EventType type) {
@@ -28,25 +29,26 @@ constexpr const char* getEventName(EventType type) {
         case EventType::MouseScrolled: return "Mouse Scrolled";
         case EventType::InputPressed: return "Input Pressed";
         case EventType::InputReleased: return "Input Released";
+        case EventType::ElevationUpdated: return "Elevation Updated";
         default: return "Unknown Event";
     }
 }
 
-class Mediator {
+class Messenger {
 public:
-    static Mediator &get() {
-        static Mediator instance;
+    static Messenger &get() {
+        static Messenger instance;
         return instance;
     }
 
-    static std::string on(const EventType event, std::function<void(std::string)>);
+    static std::string on(const EventType event, std::function<void(json& data)>);
     static void fire(const EventType event);
-    static void fire(const EventType event, const std::string& data);
+    static void fire(const EventType event, json&& data);
     static void unsubscribe(const EventType event, std::string handle);
 
 private:
-    Mediator();
-    ~Mediator() noexcept;
+    Messenger();
+    ~Messenger() noexcept;
 
-    std::map<EventType, std::map<std::string, std::function<void(std::string)>>> listeners;
+    std::map<EventType, std::map<std::string, std::function<void(json& data)>>> listeners;
 };

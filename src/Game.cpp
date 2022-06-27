@@ -2,7 +2,7 @@
 
 #include "Game.h"
 #include "AssetManager.h"
-#include "Mediator.h"
+#include "Messenger.h"
 #include "gfx/Renderer.h"
 #include "Debug.h"
 #include "ui/UIManager.h"
@@ -10,11 +10,11 @@
 #include "SaveManager.h"
 
 Game::Game() : m_state{GameState::PLAY} {
-    Mediator::fire(EventType::ApplicationStarted);
+    Messenger::fire(EventType::ApplicationStarted);
 }
 
 Game::~Game() {
-    Mediator::fire(EventType::ApplicationEnding);
+    Messenger::fire(EventType::ApplicationEnding);
 
     SDL_Quit();
 }
@@ -22,7 +22,7 @@ Game::~Game() {
 void Game::run() {
     init();
 
-    Mediator::fire(EventType::ApplicationLoaded);
+    Messenger::fire(EventType::ApplicationLoaded);
 
     doLoop();
 }
@@ -39,6 +39,7 @@ void Game::init() {
 
     AssetManager::loadAssets();
     AssetManager::loadWalls();
+    AssetManager::loadPaths();
     AssetManager::loadObjects();
 
     // TODO: Move to consts file

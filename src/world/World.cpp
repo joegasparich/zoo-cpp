@@ -9,27 +9,36 @@
 
 World::World(unsigned int width, unsigned int height) : m_width(width), m_height(height) {}
 
+World::~World() {
+    cleanup();
+}
+
 void World::setup() {
     m_elevationGrid = std::make_unique<ElevationGrid>(m_width + 1, m_height + 1);
     m_elevationGrid->setup();
 
     m_biomeGrid = std::make_unique<BiomeGrid>(m_width * (int)BIOME_SCALE, m_height * (int)BIOME_SCALE);
+    m_biomeGrid->setup();
 
     m_wallGrid = std::make_unique<WallGrid>(m_width, m_height);
     m_wallGrid->setup();
+
+    m_pathGrid = std::make_unique<PathGrid>(m_width, m_height);
+    m_pathGrid->setup();
 
     auto zooArea = std::make_unique<Area>(ZOO_AREA);
     auto zooTiles = floodFill(glm::vec2{1, 1});
     zooArea->m_tiles = zooTiles;
     m_areas.insert_or_assign(ZOO_AREA, std::move(zooArea));
     for (auto tile : zooTiles) m_tileAreaMap.insert_or_assign(vecToString(tile), m_areas.at(ZOO_AREA).get());
-    // Mediator.fire(WorldEvent.AREAS_UPDATED);
+    // Messenger.fire(WorldEvent.AREAS_UPDATED);
 }
 
 void World::cleanup() {
     m_biomeGrid->cleanup();
     m_elevationGrid->cleanup();
     m_wallGrid->cleanup();
+    m_pathGrid->cleanup();
 }
 
 void World::update() {
@@ -45,6 +54,7 @@ void World::render() {
     m_elevationGrid->render();
     m_elevationGrid->renderDebug();
     m_wallGrid->render();
+    m_pathGrid->render();
 
 // TODO: move somewhere
     for (auto& pair : m_areas) {
@@ -133,7 +143,7 @@ void World::formAreas(Wall &placedWall) {
 
     m_areas.insert_or_assign(newArea->m_id, std::move(newArea));
 
-    // Mediator.fire(WorldEvent.AREAS_UPDATED);
+    // Messenger.fire(WorldEvent.AREAS_UPDATED);
 }
 
 void World::joinAreas(Wall &removedWall) {
@@ -163,7 +173,7 @@ void World::joinAreas(Wall &removedWall) {
     // this.getExhibitByAreaId(area2.id)?.delete();
     m_areas.erase(areaB->m_id);
 
-    // Mediator.fire(WorldEvent.AREAS_UPDATED);
+    // Messenger.fire(WorldEvent.AREAS_UPDATED);
 }
 
 std::vector<Area*> World::getAreas() {
@@ -299,5 +309,5 @@ void World::load(json saveData) {
         }
     }
 
-    // Mediator.fire(WorldEvent.AREAS_UPDATED);
+    // Messenger.fire(WorldEvent.AREAS_UPDATED);
 }

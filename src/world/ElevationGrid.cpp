@@ -5,6 +5,7 @@
 #include "util/jmath.h"
 #include "Debug.h"
 #include "Zoo.h"
+#include "Messenger.h"
 
 #define WATER_LEVEL 0.1f
 
@@ -103,7 +104,7 @@ void ElevationGrid::setElevationInCircle(glm::vec2 pos, float radius, Elevation 
             if (jmath::pointInCircle(pos, radius, gridPos)) {
                 if (getElevationAtGridPos(gridPos) != elevation) {
                     points.push_back(gridPos);
-                    changed = true;
+                    changed = true; // TODO: Check canElevate to avoid heaps of mesh regeneration
                 }
             }
         }
@@ -132,10 +133,9 @@ void ElevationGrid::setElevationInCircle(glm::vec2 pos, float radius, Elevation 
         setElevation(point, elevation);
     }
 
-    // Regenerate meshes
-    Zoo::zoo->m_world->m_biomeGrid->redrawChunksInRadius(pos * 2.0f, radius + 6.0f);
-    Zoo::zoo->m_world->m_wallGrid->regenerateMesh();
     generateWaterMesh();
+
+    Messenger::fire(EventType::ElevationUpdated, json{{"pos", pos}, {"radius", radius}});
 }
 
 void ElevationGrid::generateWaterMesh() {
@@ -172,21 +172,29 @@ bool ElevationGrid::canElevate(glm::ivec2 gridPos, Elevation elevation) {
         for (auto wall : Zoo::zoo->m_world->m_wallGrid->getSurroundingWalls(gridPos)) {
             if (wall->exists) return false;
         }
-        // Check 4 surrounding tiles for tile objects
+        // Check 4 surrounding tiles
         for (auto tile : getSurroundingTiles(gridPos)) {
+            // Check for Tile Objects
             auto entity = Zoo::zoo->m_world->getTileObjectAtPosition(tile);
-            if (!entity) continue;
-            auto tileObject = entity->getComponent<TileObjectComponent>();
-            if (tileObject && !tileObject->m_data.canPlaceInWater) return false;
+            if (entity) {
+                auto tileObject = entity->getComponent<TileObjectComponent>();
+                if (tileObject && !tileObject->m_data.canPlaceInWater) return false;
+            }
+            // Check for paths
+            if (Zoo::zoo->m_world->m_pathGrid->getPathAtTile(tile)->exists) return false;
         }
     }
     if (elevation == Elevation::Hill) {
         // Check 4 surrounding tiles for tile objects
         for (auto tile : getSurroundingTiles(gridPos)) {
             auto entity = Zoo::zoo->m_world->getTileObjectAtPosition(tile);
-            if (!entity) continue;
-            auto tileObject = entity->getComponent<TileObjectComponent>();
-            if (tileObject && !tileObject->m_data.canPlaceOnSlopes) return false;
+            if (entity) {
+                auto tileObject = entity->getComponent<TileObjectComponent>();
+                if (tileObject && !tileObject->m_data.canPlaceOnSlopes) return false;
+            }
+            // Check for paths
+            // TODO: Figure out if points are being elevated in a way where this is valid
+            if (Zoo::zoo->m_world->m_pathGrid->getPathAtTile(tile)->exists) return false;
         }
     }
 
@@ -395,6 +403,7 @@ float ElevationGrid::getElevationAtPos(glm::vec2 pos) {
             return baseElevation + ELEVATION_HEIGHT * glm::max(1 - (1 - relX) - relY, 1 - relX - (1 - relY));
         default:
             // You shouldn't be here
+            assert(false);
             return 0;
     }
 }

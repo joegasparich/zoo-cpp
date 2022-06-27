@@ -92,6 +92,28 @@ void AssetManager::loadWalls() {
     }
 }
 
+void AssetManager::loadPaths() {
+    for (auto path : assets::paths) {
+        try {
+            auto json = readJSON(path);
+
+            // Map to Wall
+            auto imagePath = json["spriteSheet"].get<std::string>();
+            auto image = loadImage(imagePath);
+            loadSpriteSheet(imagePath, image, json["cellWidth"].get<int>(),json["cellHeight"].get<int>());
+
+            Registry::registerPath(path, {
+                    path,
+                    json["name"].get<std::string>(),
+                    imagePath
+            });
+        } catch(const std::exception& error) {
+            std::cout << "Error loading path: " << path << std::endl;
+            std::cout << error.what() << std::endl;
+        }
+    }
+}
+
 Image* AssetManager::loadImage(const std::string &path) {
     if (!get().m_imageMap.contains(path)) {
         get().m_imageMap.insert_or_assign(path, std::make_unique<Image>(path));

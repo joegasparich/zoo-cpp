@@ -18,7 +18,7 @@ void WallTool::set() {
     m_toolManager.m_ghost->m_offset = {0.0f, -1.0f};
 
     // Temp
-    setWall(Registry::getWall(WALL_IRON_FENCE));
+    setWall(&Registry::getWall(WALL_IRON_FENCE));
 }
 
 void WallTool::unset() {
@@ -155,9 +155,9 @@ void WallTool::updateGhostSprite(ToolGhost& ghost, glm::ivec2 tilePos, Side quad
     }
 }
 
-void WallTool::setWall(WallData& wall) {
-    m_currentWall = &wall;
-    auto spriteSheet = AssetManager::getSpriteSheet(wall.spriteSheetPath);
+void WallTool::setWall(WallData* wall) {
+    m_currentWall = wall;
+    auto spriteSheet = AssetManager::getSpriteSheet(wall->spriteSheetPath);
     m_toolManager.m_ghost->m_sprite = std::make_unique<Sprite>(
         AssetManager::loadTexture(spriteSheet->m_image),
         glm::vec2{0.0f, 0.0f},

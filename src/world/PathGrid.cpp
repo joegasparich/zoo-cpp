@@ -77,8 +77,6 @@ void PathGrid::render() {
 
 // TODO: Chunk it?
 void PathGrid::regenerateMesh() {
-    float textureIndex = 0.0f;
-
     std::vector<ArrayTextureVertex> vertices{};
     std::vector<std::array<unsigned int, 6>> indices{};
 
@@ -89,13 +87,15 @@ void PathGrid::regenerateMesh() {
                 auto [spriteIndex, elevation] = PathGrid::getSpriteInfo(path);
                 auto pos = glm::vec2{(float)i, (float)j};
                 pos -= glm::vec2{0.0f, 1.0f + elevation}; // Offset cell size
-                auto texCoord = AssetManager::getSpriteSheet(path.data->spriteSheetPath)->getTexCoords(spriteIndex);
+                auto spritesheet = AssetManager::getSpriteSheet(path.data->spriteSheetPath);
+                auto texCoord = spritesheet->getTexCoords(spriteIndex);
+                auto texIndex = m_textureArray->getLayerId(*spritesheet->m_image);
                 auto depth = Renderer::getDepth(pos.y);
 
-                vertices.push_back({glm::vec3{pos + glm::vec2{0.0f, 0.0f}, depth}, {texCoord[0], textureIndex}, glm::vec3{1.0f}});
-                vertices.push_back({glm::vec3{pos + glm::vec2{1.0f, 0.0f}, depth}, {texCoord[1], textureIndex}, glm::vec3{1.0f}});
-                vertices.push_back({glm::vec3{pos + glm::vec2{1.0f, 2.0f}, depth}, {texCoord[2], textureIndex}, glm::vec3{1.0f}});
-                vertices.push_back({glm::vec3{pos + glm::vec2{0.0f, 2.0f}, depth}, {texCoord[3], textureIndex}, glm::vec3{1.0f}});
+                vertices.push_back({glm::vec3{pos + glm::vec2{0.0f, 0.0f}, depth}, {texCoord[0], texIndex}, glm::vec3{1.0f}});
+                vertices.push_back({glm::vec3{pos + glm::vec2{1.0f, 0.0f}, depth}, {texCoord[1], texIndex}, glm::vec3{1.0f}});
+                vertices.push_back({glm::vec3{pos + glm::vec2{1.0f, 2.0f}, depth}, {texCoord[2], texIndex}, glm::vec3{1.0f}});
+                vertices.push_back({glm::vec3{pos + glm::vec2{0.0f, 2.0f}, depth}, {texCoord[3], texIndex}, glm::vec3{1.0f}});
                 unsigned int base = indices.size() * 4;
                 indices.push_back({
                     base, base + 1, base + 2,

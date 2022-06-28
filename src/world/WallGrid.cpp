@@ -74,8 +74,6 @@ void WallGrid::render() {
 
 // TODO: Chunk it?
 void WallGrid::regenerateMesh() {
-    float textureIndex = 0.0f;
-
     std::vector<ArrayTextureVertex> vertices{};
     std::vector<std::array<unsigned int, 6>> indices{};
 
@@ -87,13 +85,15 @@ void WallGrid::regenerateMesh() {
                 auto [ spriteIndex, elevation ] = WallGrid::getSpriteInfo(wall);
                 auto pos = orientation == Orientation::Horizontal ? glm::vec2{i / 2.0f, j} : glm::vec2{i / 2.0f, j + 1};
                 pos -= glm::vec2{0.5f, 2.0f + elevation}; // Offset cell size
-                auto texCoord = AssetManager::getSpriteSheet(wall.data->spriteSheetPath)->getTexCoords(spriteIndex);
+                auto spritesheet = AssetManager::getSpriteSheet(wall.data->spriteSheetPath);
+                auto texCoord = spritesheet->getTexCoords(spriteIndex);
+                auto texIndex = m_textureArray->getLayerId(*spritesheet->m_image);
                 auto depth = Renderer::getDepth(wall.worldPos.y);
 
-                vertices.push_back({glm::vec3{pos + glm::vec2{0.0f, 0.0f}, depth}, {texCoord[0], textureIndex}, glm::vec3{1.0f}});
-                vertices.push_back({glm::vec3{pos + glm::vec2{1.0f, 0.0f}, depth}, {texCoord[1], textureIndex}, glm::vec3{1.0f}});
-                vertices.push_back({glm::vec3{pos + glm::vec2{1.0f, 2.0f}, depth}, {texCoord[2], textureIndex}, glm::vec3{1.0f}});
-                vertices.push_back({glm::vec3{pos + glm::vec2{0.0f, 2.0f}, depth}, {texCoord[3], textureIndex}, glm::vec3{1.0f}});
+                vertices.push_back({glm::vec3{pos + glm::vec2{0.0f, 0.0f}, depth}, {texCoord[0], texIndex}, glm::vec3{1.0f}});
+                vertices.push_back({glm::vec3{pos + glm::vec2{1.0f, 0.0f}, depth}, {texCoord[1], texIndex}, glm::vec3{1.0f}});
+                vertices.push_back({glm::vec3{pos + glm::vec2{1.0f, 2.0f}, depth}, {texCoord[2], texIndex}, glm::vec3{1.0f}});
+                vertices.push_back({glm::vec3{pos + glm::vec2{0.0f, 2.0f}, depth}, {texCoord[3], texIndex}, glm::vec3{1.0f}});
                 unsigned int base = indices.size() * 4;
                 indices.push_back({
                       base, base + 1, base + 2,

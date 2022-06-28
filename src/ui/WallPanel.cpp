@@ -22,13 +22,15 @@ void WallPanel::render() {
         ImGui::Text(wall->name.c_str());
         auto spriteSheet = AssetManager::getSpriteSheet(wall->spriteSheetPath);
         if (wall->name == currentWall.name) ImGui::PushStyleColor(ImGuiCol_Button, {1, 1, 1, 1});
-        ImGui::ImageButton(
+        if (ImGui::ImageButton(
             (void*)(intptr_t)AssetManager::loadTexture(spriteSheet->m_image)->getRendererId(),
             {32.0f, 32.0f},
             {0.0, 0.5f},
             {0.125f, 1.0f},
             5.0f
-        );
+        )) {
+            m_wallTool.setWall(wall);
+        }
         if (wall->name == currentWall.name) ImGui::PopStyleColor();
     }
 }

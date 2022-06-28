@@ -15,7 +15,7 @@ public:
     void postUpdate() override;
     void render() override;
 
-    void setWall(WallData& wall);
+    void setWall(WallData* wall);
     WallData& getWall();
 
     std::string getName() override;

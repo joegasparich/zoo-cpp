@@ -46,6 +46,12 @@ unsigned int ArrayTexture::pushTexture(const Image& image) {
     return m_layers++;
 }
 
+unsigned int ArrayTexture::getLayerId(const Image &image) {
+    if (!m_layerMap.contains(image.m_filePath)) return 0;
+
+    return m_layerMap.at(image.m_filePath);
+}
+
 void ArrayTexture::bind(unsigned int slot) const {
     GL_CALL(glActiveTexture(GL_TEXTURE0 + slot));
     GL_CALL(glBindTexture(GL_TEXTURE_2D_ARRAY, m_rendererId));

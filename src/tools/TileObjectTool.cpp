@@ -25,6 +25,7 @@ void TileObjectTool::unset() {
 }
 
 void TileObjectTool::update() {
+    if (!m_currentObject) return;
     auto& input = Game::get().m_input;
     auto& elevationGrid = Zoo::zoo->m_world->m_elevationGrid;
     auto mousePos = glm::floor(Renderer::screenToWorldPos(input->getMousePos()));
@@ -47,7 +48,7 @@ void TileObjectTool::update() {
     if (input->isMouseButtonDown(SDL_BUTTON_LEFT)) {
         if (!m_toolManager.m_ghost->m_canPlace) return;
 
-        auto object = createTileObject(m_currentObject->assetPath, mousePos);
+        auto object = createTileObject(m_currentObject->assetPath, m_toolManager.m_ghost->m_pos);
         Zoo::zoo->m_world->registerTileObject(object.get());
         Zoo::zoo->registerEntity(std::move(object));
     }

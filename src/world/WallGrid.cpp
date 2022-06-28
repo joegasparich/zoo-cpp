@@ -116,7 +116,7 @@ Wall* WallGrid::placeWallAtTile(WallData* data, glm::ivec2 tilePos, Side side) {
 
     auto [ x, y, orientation ] = WallGrid::getGridPosition(tilePos, side);
 
-    m_grid[x][y] = Wall{
+    m_grid.at(x).at(y) = Wall{
             data,
             orientation,
             WallGrid::wallToWorldPosition({x, y}, orientation),
@@ -125,14 +125,14 @@ Wall* WallGrid::placeWallAtTile(WallData* data, glm::ivec2 tilePos, Side side) {
             false
     };
 
-    auto& wall = m_grid[x][y];
+    auto& wall = m_grid.at(x).at(y);
 
 //    this.updatePathfindingAtWall(tilePos, side);
 
 //    Messenger.fire(WorldEvent.PLACE_SOLID, { position: Wall.wallToWorldPos(new Vector(x, y), orientation) });
 
    if (shouldCheckForLoop(wall) && checkForLoop(&wall)) {
-        Zoo::zoo->m_world->formAreas(m_grid[x][y]);
+        Zoo::zoo->m_world->formAreas(m_grid.at(x).at(y));
    }
 
     regenerateMesh();
@@ -487,7 +487,7 @@ json WallGrid::save() {
         std::transform(row.begin(), row.end(), std::back_inserter(rowData), [](Wall& wall) {
             return json({
                 {"assetPath", wall.exists ? wall.data->assetPath : ""},
-                {"exists", wall.exists},
+                {"exists", wall.exists}, // TODO: might be redundant because of assetPath?
                 {"indestructable", wall.indestructable},
                 {"isDoor", wall.isDoor}
             });

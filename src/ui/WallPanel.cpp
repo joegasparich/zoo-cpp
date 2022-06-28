@@ -16,7 +16,7 @@ void WallPanel::render() {
 
     ImGui::SetWindowSize({200, 200});
 
-    auto currentWall = m_wallTool.getCurrentWall();
+    auto currentWall = m_wallTool.getWall();
 
     for (auto wall : m_allWalls) {
         ImGui::Text(wall->name.c_str());

@@ -275,6 +275,7 @@ json World::save() {
         {"elevation", m_elevationGrid->save()},
         {"biomes", m_biomeGrid->save()},
         {"walls", m_wallGrid->save()},
+        {"paths", m_pathGrid->save()},
         {"areas", areaSaveData}
     };
 }
@@ -286,6 +287,7 @@ void World::load(json saveData) {
     m_elevationGrid->load(saveData.at("elevation"));
     m_biomeGrid->load(saveData.at("biomes"));
     m_wallGrid->load(saveData.at("walls"));
+    m_pathGrid->load(saveData.at("paths"));
 
     // Create areas
     for (auto& areaData : saveData.at("areas")) {

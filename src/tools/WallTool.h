@@ -15,8 +15,8 @@ public:
     void postUpdate() override;
     void render() override;
 
-    void setCurrentWall(WallData& wall);
-    WallData& getCurrentWall();
+    void setWall(WallData& wall);
+    WallData& getWall();
 
     std::string getName() override;
     ToolType getType() override;

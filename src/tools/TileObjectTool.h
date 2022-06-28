@@ -8,6 +8,7 @@ public:
     TileObjectTool(ToolManager& toolManager);
     ~TileObjectTool();
 
+    void update() override;
     void set() override;
     void unset() override;
 
@@ -16,10 +17,8 @@ public:
 
     void setObject(ObjectData* object);
     ObjectData* getObject();
-private:
-public:
-    void update() override;
 
+private:
     std::string m_panelId;
     ObjectData* m_currentObject;
 };

@@ -111,7 +111,28 @@ void PathGrid::regenerateMesh() {
     m_numIndices = indices.size() * 6;
 }
 
+Path *PathGrid::placePathAtTile(PathData *data, glm::ivec2 tilePos) {
+    if (!m_isSetup) return nullptr;
+    if (!Zoo::zoo->m_world->isPositionInMap(tilePos)) return nullptr;
+    if (getPathAtTile(tilePos)->exists) return nullptr;
+
+    m_grid.at(tilePos.x).at(tilePos.y) = Path{
+        data,
+        tilePos,
+        true,
+        false
+    };
+
+    // TODO: update pathfinding
+
+    regenerateMesh();
+
+    return &m_grid.at(tilePos.x).at(tilePos.y);
+}
+
 Path *PathGrid::getPathAtTile(glm::ivec2 tilePos) {
+    if (!Zoo::zoo->m_world->isPositionInMap(tilePos)) return nullptr;
+
     return &m_grid.at(tilePos.x).at(tilePos.y);
 }
 
@@ -129,4 +150,53 @@ PathSpriteInfo PathGrid::getSpriteInfo(Path &path) {
     if (nw == sw && nw > ne && ne == se) return {(unsigned int)PathSpriteIndex::HillWest, elevation};
 
     return {(unsigned int)PathSpriteIndex::Flat, 0.0f};
+}
+
+json PathGrid::save() {
+    std::vector<std::vector<json>> saveData;
+    std::transform(m_grid.begin(), m_grid.end(), std::back_inserter(saveData), [](std::vector<Path>& row) {
+        std::vector<json> rowData;
+        std::transform(row.begin(), row.end(), std::back_inserter(rowData), [](Path& path) {
+            return json({
+                {"assetPath", path.exists ? path.data->assetPath : ""},
+                {"indestructable", path.indestructable}
+            });
+        });
+        return rowData;
+    });
+
+    return json({
+        {"grid", saveData},
+        {"cols", m_cols},
+        {"rows", m_rows}
+    });
+}
+
+void PathGrid::load(json saveData) {
+    cleanup();
+
+    saveData.at("cols").get_to(m_cols);
+    saveData.at("rows").get_to(m_rows);
+
+    auto gridData = saveData.at("grid").get<std::vector<std::vector<json>>>();
+
+    for (int i = 0; i < m_cols; i++) {
+        m_grid.emplace_back();
+        for (int j = 0; j < m_rows; j++) {
+            auto pathData = gridData.at(i).at(j);
+            auto assetPath = pathData.at("assetPath").get<std::string>();
+            auto exists = assetPath.length() > 0;
+
+            m_grid.at(i).push_back({
+                exists ? &Registry::getPath(pathData.at("assetPath").get<std::string>()) : nullptr,
+                {i, j},
+                exists,
+                false
+            });
+        }
+    }
+
+    regenerateMesh();
+
+    m_isSetup = true;
 }

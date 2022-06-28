@@ -8,6 +8,7 @@
 #include "WallTool.h"
 #include "TileObjectTool.h"
 #include "DoorTool.h"
+#include "PathTool.h"
 
 ToolManager::ToolManager() {}
 ToolManager::~ToolManager() {
@@ -65,6 +66,9 @@ void ToolManager::setTool(ToolType type) {
             break;
         case ToolType::Door:
             m_activeTool = std::make_unique<DoorTool>(*this);
+            break;
+        case ToolType::Path:
+            m_activeTool = std::make_unique<PathTool>(*this);
             break;
         case ToolType::TileObject:
             m_activeTool = std::make_unique<TileObjectTool>(*this);

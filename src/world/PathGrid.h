@@ -35,9 +35,13 @@ public:
     void render();
     void regenerateMesh();
 
+    Path* placePathAtTile(PathData* path, glm::ivec2 tilePos);
     Path* getPathAtTile(glm::ivec2 tilePos);
 
     static PathSpriteInfo getSpriteInfo(Path& path);
+
+    json save();
+    void load(json saveData);
 private:
     std::vector<std::vector<Path>> m_grid;
     unsigned int m_rows;

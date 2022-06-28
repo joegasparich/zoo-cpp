@@ -33,8 +33,6 @@ void ToolGhost::cleanup() {
 }
 
 void ToolGhost::render() {
-    if (!m_visible) return;
-
     if (m_follow) {
         auto& input = Game::get().m_input;
         m_pos = Renderer::screenToWorldPos(input->getMousePos());
@@ -42,6 +40,8 @@ void ToolGhost::render() {
     if (m_snap) {
         m_pos = glm::floor(m_pos);
     }
+
+    if (!m_visible) return;
 
     switch(m_type) {
         case GhostType::Circle: renderCircle(); break;

@@ -10,6 +10,7 @@ enum class ToolType {
     Elevation,
     Wall,
     Door,
+    Path,
     TileObject
 };
 

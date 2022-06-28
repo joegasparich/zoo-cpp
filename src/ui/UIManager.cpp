@@ -49,6 +49,8 @@ void UIManager::render() {
 
     // Render components
     for(auto const& [id, component] : instance.m_components) {
+        if (component->m_externallyClosed) continue;
+
         component->render();
         component->postRender();
 

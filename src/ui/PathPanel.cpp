@@ -1,7 +1,7 @@
 #include "PathPanel.h"
 
 PathPanel::PathPanel(ToolManager &toolManager, PathTool &pathTool) :
-    UIComponent("Wall"),
+    UIComponent("Path"),
     m_toolManager{toolManager},
     m_pathTool{pathTool},
     m_allPaths{Registry::getAllPaths()}
@@ -9,7 +9,9 @@ PathPanel::PathPanel(ToolManager &toolManager, PathTool &pathTool) :
     m_isResizeable = false;
     m_isScrollable = false;
 }
-PathPanel::~PathPanel() = default;
+PathPanel::~PathPanel() {
+    std::cout << "destroyed" << std::endl;
+};
 
 void PathPanel::render() {
     UIComponent::render();

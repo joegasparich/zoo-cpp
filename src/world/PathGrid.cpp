@@ -19,14 +19,6 @@ void PathGrid::setup() {
         }
     }
 
-    // Temp
-    m_grid.at(3).at(4) = Path{
-        &Registry::getPath(PATH_DIRT),
-        {3.0f, 4.0f},
-        true,
-        false
-    };
-
     // Rendering
     m_va = std::make_unique<VertexArray>();
     m_layout = std::make_unique<VertexBufferLayout>();

@@ -217,6 +217,8 @@ void WallGrid::deleteWallAtTile(glm::ivec2 tilePos, Side side) {
 }
 
 void WallGrid::placeDoor(Wall* wall) {
+    if (!wall) return;
+
     wall->isDoor = true;
 
     auto adjacentTiles = getAdjacentTiles(*wall);

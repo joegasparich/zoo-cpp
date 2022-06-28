@@ -35,6 +35,7 @@ void DoorTool::updateGhostSprite(ToolGhost &ghost, glm::ivec2 tilePos, Side quad
 
     if (!wall || !wall->exists) {
         ghost.m_visible = false;
+        ghost.m_canPlace = false;
         return;
     }
     ghost.m_visible = true;

@@ -56,4 +56,6 @@ private:
     std::unordered_map<unsigned int, Entity*> m_tileObjects;
     std::unordered_map<std::string, Entity*> m_tileObjectMap;
     std::unordered_map<std::string, Area*> m_tileAreaMap;
+
+    std::vector<glm::ivec2> m_path;
 };

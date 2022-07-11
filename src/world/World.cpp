@@ -4,6 +4,7 @@
 #include "Debug.h"
 #include "World.h"
 #include "entities/components/TileObjectComponent.h"
+#include "Pathfinder.h"
 
 #define ZOO_AREA "ZOO"
 
@@ -32,6 +33,11 @@ void World::setup() {
     m_areas.insert_or_assign(ZOO_AREA, std::move(zooArea));
     for (auto tile : zooTiles) m_tileAreaMap.insert_or_assign(vecToString(tile), m_areas.at(ZOO_AREA).get());
     // Messenger.fire(WorldEvent.AREAS_UPDATED);
+
+    Pathfinder pf{m_width, m_height};
+
+    // Test
+    m_path = pf.getPath({1, 1}, {4, 8});
 }
 
 void World::cleanup() {
@@ -62,6 +68,11 @@ void World::render() {
         for (auto& tile : area->m_tiles) {
             Debug::drawRect(tile, tile + glm::ivec2{1, 1}, {area->m_colour, 0.2f});
         }
+    }
+
+    // Temp
+    for (int i = 1; i < m_path.size(); i++) {
+        Debug::drawLine((glm::vec2)m_path[i -1] + glm::vec2{0.5f, 0.5f}, (glm::vec2)m_path[i] + glm::vec2{0.5f, 0.5f}, {0.0f, 0.0f, 1.0f, 1.0f});
     }
 }
 

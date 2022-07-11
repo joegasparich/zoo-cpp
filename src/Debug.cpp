@@ -18,7 +18,6 @@ void Debug::setup() {
     debug.m_va = std::make_unique<VertexArray>();
 
     debug.m_vb = std::make_unique<VertexBuffer>(nullptr, sizeof(SimpleVertex) * VERTEX_LIMIT, true);
-    std::cout << "SIZE IN BYTES " << sizeof(SimpleVertex) * VERTEX_LIMIT << std::endl;
     debug.m_va->addBuffer(*debug.m_vb.get(), *debug.m_layout);
 
     auto component = std::make_unique<DebugInfo>();

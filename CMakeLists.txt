@@ -16,12 +16,12 @@ file(GLOB_RECURSE sources CONFIGURE_DEPENDS
     "${CMAKE_SOURCE_DIR}/src/*.tpp"
 )
 
-#set(HEADER_FILES ${CMAKE_CURRENT_LIST_DIR}/src/pch.h)
+set(HEADER_FILES ${CMAKE_SOURCE_DIR}/src/pch.h)
 set(SOURCE_FILES ${sources})
 
 add_executable(${PROJECT_NAME} ${SOURCE_FILES})
 
-#target_precompile_headers(${PROJECT_NAME} PUBLIC ${HEADER_FILES})
+target_precompile_headers(${PROJECT_NAME} PUBLIC ${HEADER_FILES})
 
 # Include
 target_include_directories(${PROJECT_NAME} PUBLIC ${OPENGL_INCLUDE_DIR})

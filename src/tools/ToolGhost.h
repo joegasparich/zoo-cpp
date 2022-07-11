@@ -29,6 +29,7 @@ public:
     std::unique_ptr<Sprite> m_sprite;
     glm::vec2 m_pos;
     glm::vec2 m_scale;
+    float m_radius;
     glm::vec2 m_offset;
     glm::vec2 m_pivot = glm::vec2{0.5f, 0.5f};
 

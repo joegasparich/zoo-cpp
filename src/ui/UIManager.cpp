@@ -39,7 +39,6 @@ void UIManager::render() {
 
     // Remove closed components
     for (auto const& componentId : instance.m_componentsToRemove) {
-        std::cout << "Removing component with id: " << componentId << std::endl;
         if (instance.m_components.contains(componentId)) {
             instance.m_components.at(componentId)->onClose();
             instance.m_components.erase(componentId);
@@ -61,7 +60,6 @@ void UIManager::render() {
 
     // Push new components
     for(auto& component : instance.m_componentsToPush) {
-        std::cout << "Adding component with id: " << component->m_id << std::endl;
         component->onOpen();
         instance.m_components.insert_or_assign(component->m_id, std::move(component));
     }

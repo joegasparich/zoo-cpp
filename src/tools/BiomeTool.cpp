@@ -5,6 +5,8 @@
 #include "ui/UIManager.h"
 #include "Zoo.h"
 
+#define DEFAULT_RADIUS 0.65f
+
 BiomeTool::BiomeTool(ToolManager &toolManager) : Tool(toolManager) {}
 BiomeTool::~BiomeTool() = default;
 
@@ -12,6 +14,7 @@ void BiomeTool::set() {
     m_currentBiome = Biome::Sand;
     m_panelId = UIManager::createUIComponent(std::make_unique<BiomePanel>(m_toolManager, *this));
     m_toolManager.m_ghost->m_type = GhostType::Circle;
+    m_toolManager.m_ghost->m_radius = DEFAULT_RADIUS;
 }
 
 void BiomeTool::unset() {
@@ -22,7 +25,7 @@ void BiomeTool::update() {
     auto& input = Game::get().m_input;
 
     if (input->isMouseButtonHeld(SDL_BUTTON_LEFT)) {
-        Zoo::zoo->m_world->m_biomeGrid->setBiomeInRadius(Renderer::screenToWorldPos(input->getMousePos()), 0.69f, m_currentBiome);
+        Zoo::zoo->m_world->m_biomeGrid->setBiomeInRadius(Renderer::screenToWorldPos(input->getMousePos()), DEFAULT_RADIUS, m_currentBiome);
     }
 }
 

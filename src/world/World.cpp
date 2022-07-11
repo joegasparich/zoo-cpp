@@ -56,7 +56,7 @@ void World::render() {
     m_wallGrid->render();
     m_pathGrid->render();
 
-// TODO: move somewhere
+    // TODO: move somewhere
     for (auto& pair : m_areas) {
         auto& area = pair.second;
         for (auto& tile : area->m_tiles) {
@@ -120,9 +120,6 @@ void World::formAreas(Wall &placedWall) {
     areaATiles = floodFill(startTiles[0]);
     areaBTiles = floodFill(startTiles[1]);
 
-    std::cout << "area A: " << areaATiles.size() << std::endl;
-    std::cout << "area B: " << areaBTiles.size() << std::endl;
-
     auto oldArea = m_tileAreaMap.at(vecToString(startTiles[0]));
 
     // Return if areas weren't formed properly (false positive in loop check)
@@ -140,6 +137,8 @@ void World::formAreas(Wall &placedWall) {
     for (auto tile : larger) m_tileAreaMap[vecToString(tile)] = oldArea;
     newArea->m_tiles = smaller;
     for (auto tile : smaller) m_tileAreaMap[vecToString(tile)] = newArea.get();
+
+    std::cout << "Registered new area with size" << newArea->m_tiles.size() << std::endl;
 
     m_areas.insert_or_assign(newArea->m_id, std::move(newArea));
 

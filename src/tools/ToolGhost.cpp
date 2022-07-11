@@ -28,6 +28,7 @@ void ToolGhost::cleanup() {
 
     m_pos = {0.0f, 0.0f};
     m_scale = {1.0f, 1.0f};
+    m_radius = 1.0f;
     m_offset = {0.0f, 0.0f};
     m_pivot = {0.0f, 0.0f};
 }
@@ -60,8 +61,8 @@ void ToolGhost::renderCircle() {
     vertices.resize(CIRCLE_RESOLUTION);
 
     for (unsigned int n = 0; n < CIRCLE_RESOLUTION; ++n) {
-        vertices[n].x = (float)cos(2.0 * M_PI * n / CIRCLE_RESOLUTION);
-        vertices[n].y = (float)sin(2.0 * M_PI * n / CIRCLE_RESOLUTION);
+        vertices[n].x = m_radius * (float)cos(2.0 * M_PI * n / CIRCLE_RESOLUTION);
+        vertices[n].y = m_radius * (float)sin(2.0 * M_PI * n / CIRCLE_RESOLUTION);
 
         vertices[n].y -= Zoo::zoo->m_world->m_elevationGrid->getElevationAtPos(m_pos + vertices[n]);
     }

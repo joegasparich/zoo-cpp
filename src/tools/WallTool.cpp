@@ -42,6 +42,9 @@ void WallTool::update() {
     if (input->isMouseButtonUp(SDL_BUTTON_LEFT)) {
         m_isDragging = false;
 
+        // Reverse so we are going from drag start to drag end
+        std::reverse(m_ghosts.begin(), m_ghosts.end());
+
         while (m_ghosts.size() > 0) {
             auto& ghost = m_ghosts.back();
             if (ghost->m_canPlace) {

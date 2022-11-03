@@ -17,6 +17,7 @@
 #include <vector>
 #include <queue>
 #include <functional>
+#include <optional>
 
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"

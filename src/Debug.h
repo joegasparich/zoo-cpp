@@ -1,6 +1,6 @@
 #pragma once
 
-#include <ui/DebugInfo.h>
+#include "ui/DebugInfo.h"
 #include "glm/glm.hpp"
 #include "pch.h"
 

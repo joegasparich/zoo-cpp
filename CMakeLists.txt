@@ -10,6 +10,8 @@ if (${APPLE})
     find_package(SDL2 REQUIRED)
 endif()
 
+find_library(libSDL2 SDL2 lib/)
+
 file(GLOB_RECURSE sources CONFIGURE_DEPENDS
     "${CMAKE_SOURCE_DIR}/src/*.h"
     "${CMAKE_SOURCE_DIR}/src/*.cpp"
@@ -29,8 +31,6 @@ target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_SOURCE_DIR}/src)
 target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_SOURCE_DIR}/src/include)
 if (${APPLE})
     target_include_directories(${PROJECT_NAME} PUBLIC ${SDL2_INCLUDE_DIRS})
-else()
-    target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_SOURCE_DIR}/windows)
 endif()
 
 # Link
@@ -39,9 +39,8 @@ if (${APPLE})
     target_link_libraries(${PROJECT_NAME} ${SDL2_LIBRARY})
     target_link_libraries(${PROJECT_NAME} GLEW::GLEW)
 else()
-    target_link_libraries(${PROJECT_NAME} ${CMAKE_SOURCE_DIR}/lib/windows/x64/SDL2main.lib)
-    target_link_libraries(${PROJECT_NAME} ${CMAKE_SOURCE_DIR}/lib/windows/x64/SDL2.lib)
-    target_link_libraries(${PROJECT_NAME} ${CMAKE_SOURCE_DIR}/lib/windows/x64/glew32.lib)
+    target_link_libraries(${PROJECT_NAME} ${CMAKE_SOURCE_DIR}/lib/glew32.lib)
+    target_link_libraries(${PROJECT_NAME} ${libSDL2})
 endif()
 
 execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${CMAKE_SOURCE_DIR}/assets ${CMAKE_BINARY_DIR}/assets)

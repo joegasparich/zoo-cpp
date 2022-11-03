@@ -1,8 +1,8 @@
-#include <Debug.h>
-#include <util/util.h>
-#include <entities/components/createComponentById.h>
-#include "Entity.h"
 #include "Game.h"
+#include "Entity.h"
+#include "Debug.h"
+#include "util/util.h"
+#include "entities/components/createComponentById.h"
 
 Entity::Entity() : m_pos{}, m_components{}, m_hasStarted{false} {}
 Entity::Entity(glm::vec2 pos) : m_pos{pos}, m_components{}, m_hasStarted{false} {}

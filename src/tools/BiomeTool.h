@@ -6,21 +6,20 @@
 
 class BiomeTool : public Tool {
 public:
-    BiomeTool(ToolManager &toolManager);
-    ~BiomeTool();
+    explicit BiomeTool(ToolManager &toolManager);
+    ~BiomeTool() override;
 
     void set() override;
-    void unset() override;
-    void postUpdate() override;
+    void onInput(InputEvent* event) override;
+    void onGUI() override;
 
     std::string getName() override;
     ToolType getType() override;
 
     void setBiome(Biome biome);
     Biome getBiome();
-private:
-    void update() override;
 
-    std::string m_panelId;
-    Biome m_currentBiome;
+private:
+    Biome currentBiome;
+    bool dragging;
 };

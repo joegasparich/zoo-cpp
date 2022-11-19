@@ -1,12 +1,13 @@
 #pragma once
 
-#include "pch.h"
+#include "common.h"
 
 class Entity;
 
 enum COMPONENT {
     RENDER_COMPONENT,
-    TILE_OBJECT_COMPONENT
+    TILE_OBJECT_COMPONENT,
+    ELEVATION_COMPONENT
 };
 
 class Component {
@@ -15,7 +16,7 @@ public:
     virtual COMPONENT getType() = 0;
     virtual std::set<COMPONENT> getRequiredComponents() = 0;
 
-    bool m_disabled = false;
+    bool disabled = false;
 
     Component(Entity* entity);
 
@@ -30,6 +31,6 @@ public:
     virtual void load(json data);
 
 protected:
-    Entity* m_entity;
-    bool m_hasStarted;
+    Entity* entity;
+    bool hasStarted;
 };

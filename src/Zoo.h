@@ -1,7 +1,11 @@
 #pragma once
 
+#include "Root.h"
+#include "common.h"
 #include "Scene.h"
 #include "Stage.h"
+
+#define ZOO "Zoo"
 
 class Zoo : public Scene {
 public:
@@ -13,7 +17,14 @@ public:
     void update() override;
     void postUpdate() override;
     void render(double step) override;
+    void onGUI() override;
     void stop() override;
 
-    static std::unique_ptr<Stage> zoo;
+    void onInput(InputEvent* event) override;
+
+    std::unique_ptr<Stage> zoo;
+
+    // Temp
+    Texture texture;
 };
+

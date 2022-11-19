@@ -1,8 +1,8 @@
 #pragma once
 
-#include "pch.h"
+#include "common.h"
 
-#include "gfx/Renderer.h"
+#include "Renderer.h"
 
 #define CHUNK_SIZE 5
 #define NUM_BIOMES 3
@@ -16,24 +16,29 @@ enum class Biome {
 
 struct BiomeInfo {
     std::string name;
-    glm::vec3 color;
+    Color color;
 };
 
 inline BiomeInfo getBiomeInfo(Biome biome) {
     switch (biome) {
-        case Biome::Grass: return {"Grass", glm::vec3{0.714, 0.835, 0.235}};
-        case Biome::Sand: return {"Sand", glm::vec3{0.957, 0.8, 0.631}};
-        case Biome::Snow: return {"Snow", glm::vec3{0.875, 0.965, 0.965}};
+        case Biome::Grass: return {"Grass", {182, 213, 60, 255}};
+        case Biome::Sand: return {"Sand", {244, 204, 161, 255}};
+        case Biome::Snow: return {"Snow", {223, 246, 246, 255}};
         default: return {};
     }
 }
 
-struct BiomeSquare {
-    BiomeSquare(std::array<Biome, 4> q) : quadrants{q} {};
+struct BiomeTriangle {
+    Color color;
+    std::array<Vector2, 3> vertices;
+};
+
+struct BiomeCell {
+    BiomeCell(std::array<Biome, 4> q) : quadrants{q} {};
     std::array<Biome, 4> quadrants;
 
     void setQuadrant(Side side, Biome biome) {
-        quadrants[(int)side] = biome;
+        quadrants[int(side)] = biome;
     }
 };
 
@@ -42,29 +47,24 @@ public:
     BiomeChunk(unsigned int x, unsigned int y, unsigned int cols, unsigned int rows);
     BiomeChunk(std::vector<std::vector<std::vector<Biome>>> gridData, unsigned int x, unsigned int y);
 
-    void setup(VertexBufferLayout& layout, Shader& shader);
+    void setup();
 
     void postUpdate();
     void generateMesh();
     void render();
-    void setBiomeInRadius(glm::vec2 pos, float radius, Biome biome);
-    bool isPositionInChunk(glm::vec2 pos);
+    void setBiomeInRadius(Vector2 pos, float radius, Biome biome);
+    bool isPositionInChunk(Vector2 pos);
 
     std::vector<std::vector<std::vector<Biome>>> save();
 
-    unsigned int m_x;
-    unsigned int m_y;
-    unsigned int m_rows;
-    unsigned int m_cols;
-    bool m_shouldRegenerate;
+    unsigned int x;
+    unsigned int y;
+    unsigned int rows;
+    unsigned int cols;
+    bool shouldRegenerate;
 
-    std::vector<std::vector<BiomeSquare>> m_grid;
-
-    std::unique_ptr<VertexArray> m_va;
-    std::unique_ptr<VertexBuffer> m_vb;
-    std::unique_ptr<IndexBuffer> m_ib;
-    VertexBufferLayout* m_layout;
-    Shader* m_shader;
+    std::vector<std::vector<BiomeCell>> grid;
+    std::vector<BiomeTriangle> triangles;
 };
 
 class BiomeGrid {
@@ -75,26 +75,23 @@ public:
     void cleanup();
     void postUpdate();
     void render();
-    void setBiomeInRadius(glm::vec2 pos, float radius, Biome biome);
-    void redrawChunksInRadius(glm::vec2 pos, float radius);
+    void setBiomeInRadius(Vector2 pos, float radius, Biome biome);
+    void redrawChunksInRadius(Vector2 pos, float radius);
     void redrawAllChunks();
     bool isChunkInGrid(int col, int row) const;
 
     json save();
     void load(json saveData);
 
-    static float getQuadrantSlopeColour(glm::vec2 pos, Side quadrant);
+    static float getQuadrantSlopeColour(Vector2 pos, Side quadrant);
 private:
-    std::vector<BiomeChunk*> getChunksInRadius(glm::vec2 pos, float radius);
+    std::vector<BiomeChunk*> getChunksInRadius(Vector2 pos, float radius);
 
-    unsigned int m_rows;
-    unsigned int m_cols;
-    bool m_isSetup = false;
+    unsigned int rows;
+    unsigned int cols;
+    bool isSetup = false;
 
-    std::unique_ptr<VertexBufferLayout> m_layout;
-    std::unique_ptr<Shader> m_shader;
+    std::vector<std::vector<BiomeChunk>> chunkGrid;
 
-    std::vector<std::vector<BiomeChunk>> m_chunkGrid;
-
-    std::string m_elevationListenerHandle;
+    std::string elevationListenerHandle;
 };

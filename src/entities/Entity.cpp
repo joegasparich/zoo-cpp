@@ -4,65 +4,65 @@
 #include "util/util.h"
 #include "entities/components/createComponentById.h"
 
-Entity::Entity() : m_pos{}, m_components{}, m_hasStarted{false} {}
-Entity::Entity(glm::vec2 pos) : m_pos{pos}, m_components{}, m_hasStarted{false} {}
+Entity::Entity() : pos{0}, components{}, hasStarted{false} {}
+Entity::Entity(Vector2 pos) : pos{pos}, components{}, hasStarted{false} {}
 Entity::~Entity() = default;
 
 void Entity::setup() {
-    m_hasStarted = true;
+    hasStarted = true;
 
-    for (auto &component: m_components) {
+    for (auto &component: components) {
         component.second->start();
     }
 }
 
 void Entity::update() {
-    auto &input = Game::get().m_input;
+    // Temp
+//    float inputHorizontal = float(IsKeyDown(KEY_D)) - float(IsKeyDown(KEY_A));
+//    float inputVertical = float(IsKeyDown(KEY_S)) - float(IsKeyDown(KEY_W));
+//
+//    pos.x += inputHorizontal * 0.5f;
+//    pos.y += inputVertical * 0.5f;
 
-    float inputHorizontal = (float) input->isInputHeld("D") - (float) input->isInputHeld("A");
-    float inputVertical = (float) input->isInputHeld("S") - (float) input->isInputHeld("W");
-
-    m_pos.x += inputHorizontal * 0.05f;
-    m_pos.y += inputVertical * 0.05f;
-    for (auto &component: m_components) {
+    for (auto &component: components) {
         component.second->update();
     }
 }
 
 void Entity::render(const double step) const {
-    for (auto &component: m_components) {
+    for (auto &component: components) {
         component.second->render(step);
     }
 
     // Debug rendering
     // TODO: Toggleable
-    Debug::drawLine(m_pos - glm::vec2{0.25f, 0.25f}, m_pos + glm::vec2{0.25f, 0.25f}, glm::vec4{1.0f, 0.0f, 0.0f, 1.0f});
-    Debug::drawLine(m_pos - glm::vec2{-0.25f, 0.25f}, m_pos + glm::vec2{-0.25f, 0.25f}, glm::vec4{1.0f, 0.0f, 0.0f, 1.0f});
+    Debug::drawLine(pos - Vector2{0.25f, 0.25f}, pos + Vector2{0.25f, 0.25f}, Color{255, 0, 0, 255}, true);
+    Debug::drawLine(pos - Vector2{-0.25f, 0.25f}, pos + Vector2{-0.25f, 0.25f}, Color{255, 0, 0, 255}, true);
 }
 
-void Entity::setId(unsigned int id) {
-    m_id = id;
+void Entity::setId(unsigned int _id) {
+    id = _id;
 }
 
 unsigned int Entity::getId() {
-    return m_id;
+    return id;
 }
 
 json Entity::save() {
     std::vector<json> componentSaveData{};
-    for(auto& component : m_components) {
+    for(auto& component : components) {
        componentSaveData.push_back(component.second->save());
     }
 
     return json({
-        {"id",  getId()},
-        {"pos", m_pos},
+        {"id", getId()},
+        {"pos", pos},
         {"components", componentSaveData}
     });
 }
 
 void Entity::load(json data) {
-    data.at("pos").get_to(m_pos);
+    data.at("pos").get_to(pos);
 
     for (auto componentData : data.at("components").get<std::vector<json>>()) {
         auto id = componentData.at("id").get<COMPONENT>();
@@ -73,7 +73,7 @@ void Entity::load(json data) {
 
 bool Entity::hasComponent(COMPONENT type) {
     bool contains = false;
-    for (auto &component: m_components) {
+    for (auto &component: components) {
         if (component.second->getId() == type) contains = true;
     }
     return contains;

@@ -9,7 +9,7 @@
         "x": 2,
         "y": 2
     },
-    "spriteSheet": "assets/img/building.png",
+    "spriteSheet": "img/building.png",
     "cellHeight": 32,
     "cellWidth": 32,
     "rotations": 4,

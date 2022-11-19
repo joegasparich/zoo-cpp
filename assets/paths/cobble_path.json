@@ -1,7 +1,7 @@
 {
-  "assetPath": "assets/paths/cobble_path.json",
+  "assetPath": "paths/cobble_path.json",
   "name": "Cobble Path",
-  "spriteSheet": "assets/paths/cobble_path.png",
+  "spriteSheet": "paths/cobble_path.png",
   "cellHeight": 32,
   "cellWidth": 16
 }

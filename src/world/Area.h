@@ -1,6 +1,6 @@
 #pragma once
 
-#include "pch.h"
+#include "common.h"
 #include "WallGrid.h"
 
 class Area {
@@ -12,7 +12,7 @@ public:
     void removeAreaConnection(Area* area, Wall* door);
 
     std::string m_id;
-    glm::vec3 m_colour;
-    std::vector<glm::ivec2> m_tiles;
+    Color m_colour;
+    std::vector<Cell> m_tiles;
     std::unordered_map<Area*, std::unordered_set<Wall*>> m_connectedAreas;
 };

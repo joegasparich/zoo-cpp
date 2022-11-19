@@ -2,15 +2,17 @@
 #include "Zoo.h"
 #include "constants/assets.h"
 #include "Messenger.h"
+#include "constants/world.h"
+#include "constants/depth.h"
 
-PathGrid::PathGrid(unsigned int rows, unsigned int cols) : m_rows(rows), m_cols(cols) {}
+PathGrid::PathGrid(unsigned int rows, unsigned int cols) : rows(rows), cols(cols) {}
 
 void PathGrid::setup() {
     // Grid
-    for (unsigned int i = 0; i < m_cols; i++) {
-        m_grid.emplace_back();
-        for (unsigned int j = 0; j < m_rows; j++) {
-            m_grid.at(i).push_back({
+    for (unsigned int i = 0; i < cols; i++) {
+        grid.emplace_back();
+        for (unsigned int j = 0; j < rows; j++) {
+            grid.at(i).push_back({
                 nullptr,
                 {i, j},
                 false,
@@ -19,96 +21,51 @@ void PathGrid::setup() {
         }
     }
 
-    // Rendering
-    m_va = std::make_unique<VertexArray>();
-    m_layout = std::make_unique<VertexBufferLayout>();
-    m_layout->pushFloat(3); // pos
-    m_layout->pushFloat(3); // texCoord
-    m_layout->pushFloat(3); // colour
-    m_shader = std::make_unique<Shader>("./shaders/ArrayTextureVertex.shader", "./shaders/ArrayTextureFragment.shader");
-    m_textureArray = std::make_unique<ArrayTexture>(80, 32, MAX_PATHS);
-
     auto paths = Registry::getAllPaths();
 
-    for(auto path : paths) {
-        m_textureArray->pushTexture(*AssetManager::getSpriteSheet(path->spriteSheetPath)->m_image);
-    }
-
-    regenerateMesh();
-
-    m_elevationListenerHandle = Messenger::on(EventType::ElevationUpdated, [this](json& data) {
-        regenerateMesh();
-    });
-
-    m_isSetup = true;
+    isSetup = true;
 }
 
 void PathGrid::cleanup() {
-    m_grid.clear();
-    m_cols = 0;
-    m_rows = 0;
+    grid.clear();
+    cols = 0;
+    rows = 0;
 
-    Messenger::unsubscribe(EventType::ElevationUpdated, m_elevationListenerHandle);
-
-    m_isSetup = false;
+    isSetup = false;
 }
 
 void PathGrid::render() {
-    m_va->bind();
-    m_ib->bind();
-    m_shader->bind();
-    m_textureArray->bind();
+    // Maybe use GenMeshCustom?
+    // Test performance on this
 
-    auto mvp = Renderer::getMVPMatrix(glm::vec2{0.0f, 0.0f}, 0.0f, 0.0f, glm::vec3{1.0f}, true);
-
-    m_shader->setUniformMat4f("u_MVP", mvp);
-    m_shader->setUniform1i("u_Textures", 0);
-
-    Renderer::draw(GL_TRIANGLES, m_numIndices, GL_UNSIGNED_INT, nullptr);
-}
-
-// TODO: Chunk it?
-void PathGrid::regenerateMesh() {
-    std::vector<ArrayTextureVertex> vertices{};
-    std::vector<std::array<unsigned int, 6>> indices{};
-
-    for (unsigned int i = 0; i < m_cols; i++) {
-        for (unsigned int j = 0; j < m_rows; j++) {
-            auto& path = m_grid.at(i).at(j);
+    for (unsigned int i = 0; i < cols; i++) {
+        for (unsigned int j = 0; j < rows; j++) {
+            auto& path = grid.at(i).at(j);
             if (path.exists) {
                 auto [spriteIndex, elevation] = PathGrid::getSpriteInfo(path);
-                auto pos = glm::vec2{(float)i, (float)j};
-                pos -= glm::vec2{0.0f, 1.0f + elevation}; // Offset cell size
-                auto spritesheet = AssetManager::getSpriteSheet(path.data->spriteSheetPath);
-                auto texCoord = spritesheet->getTexCoords(spriteIndex);
-                auto texIndex = m_textureArray->getLayerId(*spritesheet->m_image);
-                auto depth = Renderer::getDepth(pos.y);
+                auto pos = Vector2{float(i), float(j)};
+                pos -= Vector2{0.0f, 1.0f + elevation}; // Offset cell size
+                auto spritesheet = Root::assetManager().getSpriteSheet(path.data->spriteSheetPath);
 
-                vertices.push_back({glm::vec3{pos + glm::vec2{0.0f, 0.0f}, depth}, {texCoord[0], texIndex}, glm::vec3{1.0f}});
-                vertices.push_back({glm::vec3{pos + glm::vec2{1.0f, 0.0f}, depth}, {texCoord[1], texIndex}, glm::vec3{1.0f}});
-                vertices.push_back({glm::vec3{pos + glm::vec2{1.0f, 2.0f}, depth}, {texCoord[2], texIndex}, glm::vec3{1.0f}});
-                vertices.push_back({glm::vec3{pos + glm::vec2{0.0f, 2.0f}, depth}, {texCoord[3], texIndex}, glm::vec3{1.0f}});
-                unsigned int base = indices.size() * 4;
-                indices.push_back({
-                    base, base + 1, base + 2,
-                    base + 2, base + 3, base
-                });
+                BlitOptions opts;
+                opts.texture = spritesheet->texture;
+                opts.source = spritesheet->getCellBounds(spriteIndex);
+                opts.depth = DEPTH::GROUND;
+                opts.pos = pos * WORLD_SCALE;
+                opts.scale = Vector2{1, 2} * WORLD_SCALE;
+
+                Root::renderer().blit(opts);
             }
         }
     }
-
-    m_vb = std::make_unique<VertexBuffer>(&vertices[0], vertices.size() * sizeof(ArrayTextureVertex));
-    m_va->addBuffer(*m_vb, *m_layout);
-    m_ib = std::make_unique<IndexBuffer>(&indices[0], (unsigned int)indices.size() * 6);
-    m_numIndices = indices.size() * 6;
 }
 
-Path *PathGrid::placePathAtTile(PathData *data, glm::ivec2 tilePos) {
-    if (!m_isSetup) return nullptr;
-    if (!Zoo::zoo->m_world->isPositionInMap(tilePos)) return nullptr;
+Path *PathGrid::placePathAtTile(PathData *data, Cell tilePos) {
+    if (!isSetup) return nullptr;
+    if (!Root::zoo()->world->isPositionInMap(tilePos)) return nullptr;
     if (getPathAtTile(tilePos)->exists) return nullptr;
 
-    m_grid.at(tilePos.x).at(tilePos.y) = Path{
+    grid.at(tilePos.x).at(tilePos.y) = Path{
         data,
         tilePos,
         true,
@@ -117,22 +74,21 @@ Path *PathGrid::placePathAtTile(PathData *data, glm::ivec2 tilePos) {
 
     // TODO: update pathfinding
 
-    regenerateMesh();
-
-    return &m_grid.at(tilePos.x).at(tilePos.y);
+    return &grid.at(tilePos.x).at(tilePos.y);
 }
 
-Path *PathGrid::getPathAtTile(glm::ivec2 tilePos) {
-    if (!Zoo::zoo->m_world->isPositionInMap(tilePos)) return nullptr;
+Path *PathGrid::getPathAtTile(Cell tilePos) {
+    if (!Root::zoo()->world->isPositionInMap(tilePos)) return nullptr;
 
-    return &m_grid.at(tilePos.x).at(tilePos.y);
+    return &grid.at(tilePos.x).at(tilePos.y);
 }
 
 PathSpriteInfo PathGrid::getSpriteInfo(Path &path) {
-    auto nw = Zoo::zoo->m_world->m_elevationGrid->getElevationAtPos(path.pos);
-    auto ne = Zoo::zoo->m_world->m_elevationGrid->getElevationAtPos({path.pos.x + 1.0f, path.pos.y});
-    auto sw = Zoo::zoo->m_world->m_elevationGrid->getElevationAtPos({path.pos.x, path.pos.y + 1.0f});
-    auto se = Zoo::zoo->m_world->m_elevationGrid->getElevationAtPos({path.pos.x + 1.0f, path.pos.y + 1.0f});
+    // TODO: is it less efficient to convert to vector instead of an overload
+    auto nw = Root::zoo()->world->elevationGrid->getElevationAtPos(path.pos);
+    auto ne = Root::zoo()->world->elevationGrid->getElevationAtPos(Cell{path.pos.x + 1, path.pos.y});
+    auto sw = Root::zoo()->world->elevationGrid->getElevationAtPos(Cell{path.pos.x, path.pos.y + 1});
+    auto se = Root::zoo()->world->elevationGrid->getElevationAtPos(Cell{path.pos.x + 1, path.pos.y + 1});
     auto elevation = std::min({nw, ne, sw, se});
 
     if (nw == ne && nw == sw && nw == se) return {(unsigned int)PathSpriteIndex::Flat, elevation};
@@ -146,7 +102,7 @@ PathSpriteInfo PathGrid::getSpriteInfo(Path &path) {
 
 json PathGrid::save() {
     std::vector<std::vector<json>> saveData;
-    std::transform(m_grid.begin(), m_grid.end(), std::back_inserter(saveData), [](std::vector<Path>& row) {
+    std::transform(grid.begin(), grid.end(), std::back_inserter(saveData), [](std::vector<Path>& row) {
         std::vector<json> rowData;
         std::transform(row.begin(), row.end(), std::back_inserter(rowData), [](Path& path) {
             return json({
@@ -159,27 +115,27 @@ json PathGrid::save() {
 
     return json({
         {"grid", saveData},
-        {"cols", m_cols},
-        {"rows", m_rows}
+        {"cols", cols},
+        {"rows", rows}
     });
 }
 
 void PathGrid::load(json saveData) {
     cleanup();
 
-    saveData.at("cols").get_to(m_cols);
-    saveData.at("rows").get_to(m_rows);
+    saveData.at("cols").get_to(cols);
+    saveData.at("rows").get_to(rows);
 
     auto gridData = saveData.at("grid").get<std::vector<std::vector<json>>>();
 
-    for (int i = 0; i < m_cols; i++) {
-        m_grid.emplace_back();
-        for (int j = 0; j < m_rows; j++) {
+    for (int i = 0; i < cols; i++) {
+        grid.emplace_back();
+        for (int j = 0; j < rows; j++) {
             auto pathData = gridData.at(i).at(j);
             auto assetPath = pathData.at("assetPath").get<std::string>();
             auto exists = assetPath.length() > 0;
 
-            m_grid.at(i).push_back({
+            grid.at(i).push_back({
                 exists ? &Registry::getPath(pathData.at("assetPath").get<std::string>()) : nullptr,
                 {i, j},
                 exists,
@@ -188,7 +144,5 @@ void PathGrid::load(json saveData) {
         }
     }
 
-    regenerateMesh();
-
-    m_isSetup = true;
+    isSetup = true;
 }

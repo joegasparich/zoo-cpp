@@ -1,20 +1,19 @@
 #include "SceneManager.h"
 
-void SceneManager::loadScene(std::unique_ptr<Scene> scene) {
-    auto& sceneManager = SceneManager::get();
+SceneManager::SceneManager() = default;
+SceneManager::~SceneManager() = default;
 
-    if (sceneManager.currentScene) {
-        std::cout << "Stopping scene: " << sceneManager.currentScene->m_name << std::endl;
-        sceneManager.currentScene->stop();
+void SceneManager::loadScene(std::unique_ptr<Scene> scene) {
+    if (currentScene) {
+        std::cout << "Stopping scene: " << currentScene->name << std::endl;
+        currentScene->stop();
     }
 
-    sceneManager.currentScene = std::move(scene);
+    currentScene = std::move(scene);
 
-    sceneManager.currentScene->start();
+    currentScene->start();
 }
 
 Scene* SceneManager::getCurrentScene() {
-    auto& sceneManager = SceneManager::get();
-
-    return sceneManager.currentScene.get();
+    return currentScene.get();
 }

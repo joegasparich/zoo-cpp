@@ -1,9 +1,9 @@
 #pragma once
 
-#include "pch.h"
+#include "common.h"
 
-#include "gfx/Renderer.h"
-#include "gfx/Texture.h"
+#include "Renderer.h"
+#include "SpriteSheet.h"
 
 enum class GhostType {
     None,
@@ -20,26 +20,24 @@ public:
     void render();
     void cleanup();
 
-    GhostType m_type;
-    bool m_snap;
-    bool m_follow;
-    bool m_elevate;
-    bool m_visible;
-    bool m_canPlace;
-    std::unique_ptr<Sprite> m_sprite;
-    glm::vec2 m_pos;
-    glm::vec2 m_scale;
-    float m_radius;
-    glm::vec2 m_offset;
-    glm::vec2 m_pivot = glm::vec2{0.5f, 0.5f};
+    GhostType type;
+    bool snap;
+    bool follow;
+    bool elevate;
+    bool visible;
+    bool canPlace;
+    Texture* sprite;
+    SpriteSheet* spriteSheet;
+    unsigned int spriteSheetIndex;
+    Vector2 pos;
+    Vector2 scale;
+    float radius;
+    Vector2 offset;
+    Vector2 pivot = {0.5f, 0.5f};
 
 private:
     void renderCircle();
     void renderSquare();
     void renderSprite();
-
-    std::unique_ptr<Shader> m_basicShader;
-    std::unique_ptr<VertexBufferLayout> m_basicLayout;
-    // Circle
-    std::unique_ptr<VertexArray> m_circleVa;
+    void renderSpriteSheet();
 };

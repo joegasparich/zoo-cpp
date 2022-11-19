@@ -1,18 +1,21 @@
 #pragma once
 
-#include "pch.h"
+#include "common.h"
+#include "InputManager.h"
 
 class Scene {
 public:
-    Scene(std::string name) : m_name(std::move(name)) {}
+    Scene(std::string name) : name(std::move(name)) {}
     virtual ~Scene() {}
 
-    std::string m_name;
+    std::string name;
 
     virtual void start() = 0;
     virtual void preUpdate() = 0;
     virtual void update() = 0;
     virtual void postUpdate() = 0;
     virtual void render(double step) = 0;
+    virtual void onGUI() = 0;
+    virtual void onInput(InputEvent* event) = 0;
     virtual void stop() = 0;
 };

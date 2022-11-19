@@ -2,7 +2,7 @@
 #include "Messenger.h"
 
 Messenger::Messenger() : listeners{} {};
-Messenger::~Messenger() noexcept = default;
+Messenger::~Messenger() = default;
 
 std::string Messenger::on(const EventType event, std::function<void(json& data)> callback) {
     auto handle{ uuid::generate() };

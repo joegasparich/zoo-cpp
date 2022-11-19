@@ -1,14 +1,12 @@
 #pragma once
 
-#include "pch.h"
+#include "common.h"
 
 enum class EventType {
     ApplicationStarted, ApplicationLoaded, ApplicationEnding,
     WindowClosed, WindowResized, WindowFocused, WindowBlurred, WindowMoved,
-    KeyPressed, KeyReleased,
-    MouseButtonPressed, MouseButtonReleased, MouseMoved, MouseScrolled,
-    InputPressed, InputReleased,
-    ElevationUpdated
+    InputEvent,
+    ElevationUpdated, AreasUpdated
 };
 
 constexpr const char* getEventName(EventType type) {
@@ -21,14 +19,7 @@ constexpr const char* getEventName(EventType type) {
         case EventType::WindowFocused: return "Window Focused";
         case EventType::WindowBlurred: return "Window Blurred";
         case EventType::WindowMoved: return "Window Moved";
-        case EventType::KeyPressed: return "Key Pressed";
-        case EventType::KeyReleased: return "Key Released";
-        case EventType::MouseButtonPressed: return "Mouse Button Pressed";
-        case EventType::MouseButtonReleased: return "Mouse Button Released";
-        case EventType::MouseMoved: return "Mouse Moved";
-        case EventType::MouseScrolled: return "Mouse Scrolled";
-        case EventType::InputPressed: return "Input Pressed";
-        case EventType::InputReleased: return "Input Released";
+        case EventType::InputEvent: return "Input Event";
         case EventType::ElevationUpdated: return "Elevation Updated";
         default: return "Unknown Event";
     }
@@ -48,7 +39,7 @@ public:
 
 private:
     Messenger();
-    ~Messenger() noexcept;
+    ~Messenger();
 
     std::map<EventType, std::map<std::string, std::function<void(json& data)>>> listeners;
 };

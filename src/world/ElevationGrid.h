@@ -1,8 +1,8 @@
 #pragma once
 
-#include "pch.h"
+#include "common.h"
 
-#include "gfx/Renderer.h"
+#include "Renderer.h"
 
 #define ELEVATION_HEIGHT 0.5f
 
@@ -28,36 +28,30 @@ public:
     void cleanup();
     void render();
     void renderDebug();
-    bool setElevation(glm::ivec2 gridPos, Elevation elevation);
-    void setElevationInCircle(glm::vec2 pos, float radius, Elevation elevation);
+    bool setElevation(Cell gridPos, Elevation elevation);
+    void setElevationInCircle(Vector2 pos, float radius, Elevation elevation);
     void generateWaterMesh();
-    bool canElevate(glm::ivec2 gridPos, Elevation elevation);
-    float getElevationAtPos(glm::vec2 pos);
-    Elevation getElevationAtGridPos(glm::ivec2 gridPos);
-    SlopeVariant getTileSlopeVariant(glm::ivec2 tile);
-    float getTileBaseElevation(glm::ivec2 tile);
-    std::vector<glm::ivec2> getSurroundingTiles(glm::ivec2 gridPos);
-    std::vector<glm::ivec2> getAdjacentGridPositions(glm::ivec2 gridPos);
-    std::vector<glm::ivec2> getAdjacentGridPositions(glm::ivec2 gridPos, bool diagonals);
-    bool isPositionWater(glm::vec2 pos);
-    bool isTileWater(glm::ivec2 pos);
-    bool isPositionSloped(glm::vec2 pos);
-    bool isPositionSlopeCorner(glm::vec2 pos);
-    bool isPositionInGrid(glm::vec2 pos) const;
+    bool canElevate(Cell gridPos, Elevation elevation);
+    float getElevationAtPos(Vector2 pos);
+    Elevation getElevationAtGridPos(Cell gridPos);
+    SlopeVariant getTileSlopeVariant(Cell tile);
+    float getTileBaseElevation(Cell tile);
+    std::vector<Cell> getSurroundingTiles(Cell gridPos);
+    std::vector<Cell> getAdjacentGridPositions(Cell gridPos);
+    std::vector<Cell> getAdjacentGridPositions(Cell gridPos, bool diagonals);
+    bool isPositionWater(Vector2 pos);
+    bool isTileWater(Cell pos);
+    bool isPositionSloped(Vector2 pos);
+    bool isPositionSlopeCorner(Vector2 pos);
+    bool isPositionInGrid(Vector2 pos) const;
 
     json save();
     void load(json saveData);
 private:
-    unsigned int m_rows;
-    unsigned int m_cols;
-    std::vector<std::vector<Elevation>> m_grid;
+    unsigned int rows;
+    unsigned int cols;
+    std::vector<std::vector<Elevation>> grid;
+    std::vector<std::vector<Vector2>> polygons;
 
-    unsigned int m_numIndices;
-    std::unique_ptr<VertexArray> m_va;
-    std::unique_ptr<VertexBuffer> m_vb;
-    std::unique_ptr<IndexBuffer> m_ib;
-    std::unique_ptr<VertexBufferLayout> m_layout;
-    std::unique_ptr<Shader> m_shader;
-
-    std::vector<glm::vec2> getTileWaterVertices(glm::ivec2 gridPos);
+    std::vector<Vector2> getTileWaterVertices(Cell gridPos);
 };

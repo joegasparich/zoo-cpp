@@ -1,11 +1,7 @@
 #pragma once
 
-#include <SDL2/SDL.h>
-#include <gfx/Sprite.h>
-#include "pch.h"
-
+#include "common.h"
 #include "Component.h"
-#include "gfx/Texture.h"
 #include "util/util.h"
 
 class RenderComponent : public Component {
@@ -15,17 +11,22 @@ public:
     std::set<COMPONENT> getRequiredComponents() override;
 
     RenderComponent(Entity* entity);
-    RenderComponent(Entity* entity, std::unique_ptr<Sprite> sprite);
+    RenderComponent(Entity* entity, std::string spritePath);
+    RenderComponent(Entity* entity, std::string spritePath, Rectangle source);
 
     void start() override;
     void render(double step) override;
 
-    void setSprite(std::unique_ptr<Sprite> sprite);
+    void setSprite(std::string spritePath);
+    void setSource(Rectangle source);
 
     json save() override;
     void load(json data) override;
 
-    glm::vec2 m_pivot = glm::vec2{0.5f, 0.5f};
+    Vector2 pivot = Vector2{0.5f, 0.5f};
+    Vector2 offset = Vector2{0, 0};
 private:
-    std::unique_ptr<Sprite> m_sprite;
+    Texture* sprite = nullptr;
+    std::string spritePath;
+    Rectangle source;
 };

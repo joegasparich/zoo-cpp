@@ -1,5 +1,6 @@
 #pragma once
 
+#include "common.h"
 #include "AssetManager.h"
 
 enum class ObjectType {
@@ -19,11 +20,11 @@ inline ObjectType getObjectType(const std::string& typeString) {
 struct ObjectData {
     std::string assetPath;
     std::string name;
-    Image* image;
-    SpriteSheet* spriteSheet;
+    std::string spritePath;
+    std::string spriteSheetPath;
     ObjectType type;
-    glm::vec2 pivot;
-    glm::vec2 size;
+    Vector2 pivot;
+    Vector2 size;
     bool solid;
     bool canPlaceOnSlopes;
     bool canPlaceInWater;
@@ -56,7 +57,7 @@ public:
     static std::vector<WallData*> getAllWalls();
     static std::vector<PathData*> getAllPaths();
 private:
-    static std::map<std::string, ObjectData> m_objectRegistry;
-    static std::map<std::string, WallData> m_wallRegistry;
-    static std::map<std::string, PathData> m_pathRegistry;
+    static std::map<std::string, ObjectData> objectRegistry;
+    static std::map<std::string, WallData> wallRegistry;
+    static std::map<std::string, PathData> pathRegistry;
 };

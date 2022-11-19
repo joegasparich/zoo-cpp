@@ -1,10 +1,13 @@
 #pragma once
 
-#include "pch.h"
+#include "common.h"
 
 class SaveManager {
 public:
-    static void newGame();
-    static void saveGame(std::string saveFilePath);
-    static void loadGame(std::string saveFilePath);
+    SaveManager();
+    ~SaveManager();
+
+    void newGame();
+    void saveGame(std::string saveFilePath);
+    void loadGame(std::string saveFilePath);
 };

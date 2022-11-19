@@ -1,42 +1,43 @@
 #pragma once
 
-#include <entities/components/RenderComponent.h>
-#include <entities/components/TileObjectComponent.h>
 #include "Zoo.h"
 #include "Entity.h"
+#include "components/RenderComponent.h"
+#include "components/TileObjectComponent.h"
+#include "entities/components/ElevationComponent.h"
 
-inline std::unique_ptr<Entity> createTileObject(const std::string& assetPath, glm::ivec2 position) {
-    if (!Zoo::zoo->m_world->isPositionInMap(position)) return nullptr;
+inline std::unique_ptr<Entity> createTileObject(const std::string& assetPath, Vector2 position) {
+    if (!Root::zoo()->world->isPositionInMap(position)) return nullptr;
 
     auto data = Registry::getObject(assetPath);
 
-    auto entity = std::make_unique<Entity>(glm::vec2(position) + (data.size / 2.0f));
-    if (data.image) {
+    auto entity = std::make_unique<Entity>(Vector2(position) + (data.size / 2.0f));
+    if (!data.spritePath.empty()) {
         auto renderer = entity->addComponent(std::make_unique<RenderComponent>(
             entity.get(),
-            std::make_unique<Sprite>(AssetManager::loadTexture(data.image))
+            data.spritePath
         ));
-        renderer->m_pivot = data.pivot;
-    } else if (data.spriteSheet) {
+        renderer->pivot = data.pivot;
+    } else if (!data.spriteSheetPath.empty()) {
+        auto spritesheet = Root::assetManager().getSpriteSheet(data.spriteSheetPath);
         auto renderer = entity->addComponent(std::make_unique<RenderComponent>(
             entity.get(),
-            std::make_unique<Sprite>(
-                AssetManager::loadTexture(data.spriteSheet->m_image),
-                glm::vec2{0.0f, 0.0f},
-                glm::vec2{
-                    (float)data.spriteSheet->m_cellWidth / (float)data.spriteSheet->m_image->m_width,
-                    (float)data.spriteSheet->m_cellHeight / (float)data.spriteSheet->m_image->m_height
-                }
-
-            )
+            spritesheet->texturePath
         ));
-        renderer->m_pivot = data.pivot;
+        renderer->pivot = data.pivot;
+        renderer->setSource({
+            0.0f,
+            0.0f,
+            float(spritesheet->cellWidth) / float(spritesheet->texture->width),
+            float(spritesheet->cellHeight) / float(spritesheet->texture->height)
+        });
     }
 
     // scale
     // solid
 
     entity->addComponent(std::make_unique<TileObjectComponent>(entity.get(), data));
+    entity->addComponent(std::make_unique<ElevationComponent>(entity.get()));
 
     return entity;
 }

@@ -9,10 +9,10 @@ public:
     PathTool(ToolManager& toolManager);
     ~PathTool();
 
-    void update() override;
     void set() override;
-    void unset() override;
-
+    void onInput(InputEvent* event) override;
+    void update() override;
+    void onGUI() override;
     void render() override;
 
     std::string getName() override;
@@ -24,10 +24,10 @@ public:
 private:
     void updateGhostSprite(ToolGhost& ghost);
 
-    std::string m_panelId;
-    PathData* m_path;
+    PathData* currentPath;
+    std::vector<PathData*> allPaths;
 
-    std::vector<std::unique_ptr<ToolGhost>> m_ghosts;
-    bool m_isDragging;
-    glm::vec2 m_dragTile;
+    std::vector<std::unique_ptr<ToolGhost>> ghosts;
+    bool isDragging;
+    Cell dragTile;
 };

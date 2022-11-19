@@ -1,34 +1,52 @@
+#include "Zoo.h"
 #include "entities/components/RenderComponent.h"
 #include "constants/assets.h"
-#include "Zoo.h"
+#include "entities/entityGenerators.h"
 
-std::unique_ptr<Stage> Zoo::zoo = nullptr;
-
-Zoo::Zoo() : Scene("Zoo") {}
+Zoo::Zoo() : Scene(ZOO) {}
 Zoo::~Zoo() {}
 
 void Zoo::start() {
-    Zoo::zoo = std::make_unique<Stage>();
+    zoo = std::make_unique<Stage>();
 
-    Zoo::zoo->setup();
+    zoo->setup();
+
+    // temp
+    auto test = std::make_unique<Entity>();
+    test->addComponent(std::make_unique<RenderComponent>(
+        test.get(),
+        IMG_KEEPER
+    ));
+    zoo->registerEntity(std::move(test));
+
+    auto building = createTileObject(OBJ_BUILDING, {5, 5});
+    zoo->registerEntity(std::move(building));
 }
 
 void Zoo::preUpdate() {
-    Zoo::zoo->preUpdate();
+    zoo->preUpdate();
 }
 
 void Zoo::update() {
-    Zoo::zoo->update();
+    zoo->update();
 }
 
 void Zoo::postUpdate() {
-    Zoo::zoo->postUpdate();
+    zoo->postUpdate();
 }
 
 void Zoo::render(double step) {
-    Zoo::zoo->render(step);
+    zoo->render(step);
+}
+
+void Zoo::onGUI() {
+    zoo->onGUI();
+}
+
+void Zoo::onInput(InputEvent* event) {
+    zoo->onInput(event);
 }
 
 void Zoo::stop() {
-    Zoo::zoo->cleanup();
+    zoo->cleanup();
 }

@@ -10,7 +10,6 @@ public:
 
     void update() override;
     void set() override;
-    void unset() override;
 
     std::string getName() override;
     ToolType getType() override;
@@ -18,7 +17,11 @@ public:
     void setObject(ObjectData* object);
     ObjectData* getObject();
 
+    void onGUI() override;
+
+    void onInput(InputEvent* event) override;
+
 private:
-    std::string m_panelId;
-    ObjectData* m_currentObject;
+    ObjectData* currentObject;
+    std::vector<ObjectData*> allObjects;
 };

@@ -1,64 +1,50 @@
-#include "util/json.h"
 #include "AssetManager.h"
 #include "Registry.h"
+#include "SpriteSheet.h"
 #include "constants/assets.h"
-#include "Debug.h"
+#include "util/json.h"
 
-AssetManager::AssetManager() : m_imageMap{} {};
-
-Image* AssetManager::getImage(const std::string &key) {
-    if (!get().m_imageMap.contains(key)) {
-        return nullptr;
-    }
-
-    return get().m_imageMap[key].get();
-}
-
-SpriteSheet *AssetManager::getSpriteSheet(const std::string &key) {
-    if (!get().m_spriteSheetMap.contains(key)) {
-        return nullptr;
-    }
-
-    return get().m_spriteSheetMap[key].get();
-}
+AssetManager::AssetManager() : textureMap{} {};
+AssetManager::~AssetManager() = default;
 
 void AssetManager::loadAssets() {
     for (auto path: assets::images) {
-        get().loadImage(path);
+        getTexture(path);
     }
 }
 
 void AssetManager::loadObjects() {
     for (auto path : assets::objects) {
         try {
-            auto j = readJSON(path);
+            auto j = readJSON(ASSETS_PATH"/" + path);
 
             // Map to Object
-            Image* image = nullptr;
             SpriteSheet* spriteSheet = nullptr;
-            if (j["sprite"].is_string()) {
-                image = loadImage(j["sprite"].get<std::string>());
-            }
+            std::string spritePath = "";
+            std::string spriteSheetPath = "";
             if (j["spriteSheet"].is_string()) {
-                spriteSheet = loadSpriteSheet(
-                    j["spriteSheet"].get<std::string>(),
-                    loadImage(j["spriteSheet"].get<std::string>()),
+                spriteSheetPath = j["spriteSheet"].get<std::string>();
+                loadSpriteSheet(
+                    spriteSheetPath,
                     j["cellWidth"].get<int>(),
                     j["cellHeight"].get<int>()
                 );
             }
+            if (j["sprite"].is_string()) {
+                spritePath = j["sprite"].get<std::string>();
+            }
 
             Registry::registerObject(path, {
-                    path,
-                    j["name"].get<std::string>(),
-                    image,
-                    spriteSheet,
-                    getObjectType(j["type"].get<std::string>()),
-                    fromJSON(j["pivot"]),
-                    fromJSON(j["size"]),
-                    j["solid"].get<bool>(),
-                    j["canPlaceOnSlopes"].get<bool>(),
-                    j["canPlaceInWater"].get<bool>()
+                path,
+                j["name"].get<std::string>(),
+                spritePath,
+                spriteSheetPath,
+                getObjectType(j["type"].get<std::string>()),
+                j["pivot"].get<Vector2>(),
+                j["size"].get<Vector2>(),
+                j["solid"].get<bool>(),
+                j["canPlaceOnSlopes"].get<bool>(),
+                j["canPlaceInWater"].get<bool>()
 
             });
         } catch(const std::exception& error) {
@@ -71,19 +57,18 @@ void AssetManager::loadObjects() {
 void AssetManager::loadWalls() {
     for (auto path : assets::walls) {
         try {
-            auto json = readJSON(path);
+            auto json = readJSON(ASSETS_PATH"/" + path);
 
             // Map to Wall
             auto imagePath = json["spriteSheet"].get<std::string>();
-            auto image = loadImage(imagePath);
-            loadSpriteSheet(imagePath, image, json["cellWidth"].get<int>(),json["cellHeight"].get<int>());
+            loadSpriteSheet(imagePath, json["cellWidth"].get<int>(), json["cellHeight"].get<int>());
 
             Registry::registerWall(path, {
-                    path,
-                    json["name"].get<std::string>(),
-                    json["type"].get<std::string>(),
-                    json["solid"].get<bool>(),
-                    imagePath
+                path,
+                json["name"].get<std::string>(),
+                json["type"].get<std::string>(),
+                json["solid"].get<bool>(),
+                imagePath
             });
         } catch(const std::exception& error) {
             std::cout << "Error loading wall: " << path << std::endl;
@@ -95,17 +80,16 @@ void AssetManager::loadWalls() {
 void AssetManager::loadPaths() {
     for (auto path : assets::paths) {
         try {
-            auto json = readJSON(path);
+            auto json = readJSON(ASSETS_PATH"/" + path);
 
             // Map to Wall
             auto imagePath = json["spriteSheet"].get<std::string>();
-            auto image = loadImage(imagePath);
-            loadSpriteSheet(imagePath, image, json["cellWidth"].get<int>(),json["cellHeight"].get<int>());
+            loadSpriteSheet(imagePath, json["cellWidth"].get<int>(), json["cellHeight"].get<int>());
 
             Registry::registerPath(path, {
-                    path,
-                    json["name"].get<std::string>(),
-                    imagePath
+                path,
+                json["name"].get<std::string>(),
+                imagePath
             });
         } catch(const std::exception& error) {
             std::cout << "Error loading path: " << path << std::endl;
@@ -114,38 +98,38 @@ void AssetManager::loadPaths() {
     }
 }
 
-Image* AssetManager::loadImage(const std::string &path) {
-    if (!get().m_imageMap.contains(path)) {
-        get().m_imageMap.insert_or_assign(path, std::make_unique<Image>(path));
+Texture* AssetManager::getTexture(const std::string &path) {
+    if (!textureMap.contains(path)) {
+        textureMap.insert_or_assign(
+            path,
+            std::make_unique<Texture>(LoadTexture(
+                (ASSETS_PATH"/" + path).c_str()))
+        );
     }
 
-    return get().m_imageMap[path].get();
+    return textureMap[path].get();
 }
 
-SpriteSheet* AssetManager::loadSpriteSheet(const std::string& assetPath, Image* image, int cellWidth, int cellHeight) {
-    if (!image) return nullptr;
+SpriteSheet* AssetManager::loadSpriteSheet(const std::string& texturePath, int cellWidth, int cellHeight) {
+    if (texturePath.empty()) return nullptr;
 
-    if (!get().m_spriteSheetMap.contains(assetPath)) {
-        get().m_spriteSheetMap.insert_or_assign(assetPath, std::make_unique<SpriteSheet>(
+    if (!spriteSheetMap.contains(texturePath)) {
+        spriteSheetMap.insert_or_assign(texturePath, std::make_unique<SpriteSheet>(
             SpriteSheet{
                 cellWidth,
                 cellHeight,
-                image
+                texturePath,
+                AssetManager::getTexture(texturePath)
             }
         ));
     }
 
-    return get().m_spriteSheetMap[assetPath].get();
+    return spriteSheetMap[texturePath].get();
 }
 
-Texture* AssetManager::loadTexture(Image* image) {
-    if (!image) return nullptr;
+SpriteSheet* AssetManager::getSpriteSheet(const std::string& texturePath) {
+    if (texturePath.empty()) return nullptr;
+    if (!spriteSheetMap.contains(texturePath)) return nullptr;
 
-    auto& texmap = get().m_textureMap;
-    if (get().m_textureMap.contains(image->m_filePath)) {
-        return get().m_textureMap.at(image->m_filePath).get();
-    }
-
-    get().m_textureMap.insert_or_assign(image->m_filePath, std::make_unique<Texture>(image));
-    return get().m_textureMap.at(image->m_filePath).get();
+    return spriteSheetMap[texturePath].get();
 }

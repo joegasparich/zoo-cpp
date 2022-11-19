@@ -1,8 +1,8 @@
 #pragma once
 
-#include <entities/Entity.h>
-#include "pch.h"
+#include "common.h"
 
+#include "entities/Entity.h"
 #include "BiomeGrid.h"
 #include "ElevationGrid.h"
 #include "WallGrid.h"
@@ -29,33 +29,35 @@ public:
     void resetAreas();
 
     // Getters & Setters
-    bool isPositionInMap(glm::vec2 pos) const;
-    glm::ivec2 getTileInDirection(glm::ivec2 tile, Side direction);
-    static Side getQuadrantAtPos(glm::vec2 pos);
-    Entity* getTileObjectAtPosition(glm::vec2 pos);
-    std::vector<glm::ivec2> getAccessibleAdjacentTiles(glm::ivec2 tile);
+    bool isPositionInMap(Vector2 pos) const;
+    Cell getTileInDirection(Cell tile, Side direction);
+    static Side getQuadrantAtPos(Vector2 pos);
+    Entity* getTileObjectAtPosition(Vector2 pos);
+    std::vector<Cell> getAccessibleAdjacentTiles(Cell tile);
     std::vector<Area*> getAreas();
     Area* getAreaById(std::string id);
-    Area* getAreaAtPosition(glm::vec2 pos);
+    Area* getAreaAtPosition(Vector2 pos);
 
     // Save & Load
     json save();
     void load(json saveData);
 
-    std::unique_ptr<BiomeGrid> m_biomeGrid;
-    std::unique_ptr<ElevationGrid> m_elevationGrid;
-    std::unique_ptr<WallGrid> m_wallGrid;
-    std::unique_ptr<PathGrid> m_pathGrid;
-    std::map<std::string, std::unique_ptr<Area>> m_areas;
+    std::unique_ptr<BiomeGrid> biomeGrid;
+    std::unique_ptr<ElevationGrid> elevationGrid;
+    std::unique_ptr<WallGrid> wallGrid;
+    std::unique_ptr<PathGrid> pathGrid;
+    std::map<std::string, std::unique_ptr<Area>> areas;
 private:
-    std::vector<glm::ivec2> floodFill(glm::ivec2 startTile);
+    std::vector<Cell> floodFill(Cell startTile);
+    void renderDebugCellGrid();
+    void renderDebugAreaGrid();
 
-    unsigned int m_width;
-    unsigned int m_height;
+    unsigned int width;
+    unsigned int height;
 
-    std::unordered_map<unsigned int, Entity*> m_tileObjects;
-    std::unordered_map<std::string, Entity*> m_tileObjectMap;
-    std::unordered_map<std::string, Area*> m_tileAreaMap;
+    std::unordered_map<unsigned int, Entity*> tileObjects;
+    std::unordered_map<std::string, Entity*> tileObjectsMap;
+    std::unordered_map<std::string, Area*> tileAreaMap;
 
-    std::vector<glm::ivec2> m_path;
+    std::vector<Cell> path;
 };

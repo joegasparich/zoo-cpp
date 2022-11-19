@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Registry.h>
+#include "Registry.h"
 #include "world/World.h"
 #include "Tool.h"
 
@@ -10,9 +10,7 @@ public:
     ~WallTool();
 
     void set() override;
-    void unset() override;
     void update() override;
-    void postUpdate() override;
     void render() override;
 
     void setWall(WallData* wall);
@@ -21,14 +19,18 @@ public:
     std::string getName() override;
     ToolType getType() override;
 
+    void onGUI() override;
+
+    void onInput(InputEvent* event) override;
+
 private:
-    void updateGhostSprite(ToolGhost& ghost, glm::ivec2 tilePos, Side quadrant);
+    void updateGhostSprite(ToolGhost& ghost, Cell tilePos, Side quadrant);
 
-    std::string m_panelId;
-    WallData* m_currentWall;
+    WallData* currentWall;
+    std::vector<WallData*> allWalls;
 
-    std::vector<std::unique_ptr<ToolGhost>> m_ghosts;
-    bool m_isDragging;
-    glm::vec2 m_dragTile;
-    Side m_dragQuadrant;
+    std::vector<std::unique_ptr<ToolGhost>> ghosts;
+    bool isDragging;
+    Cell dragTile;
+    Side dragQuadrant;
 };

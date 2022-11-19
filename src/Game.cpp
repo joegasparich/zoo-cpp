@@ -1,22 +1,19 @@
-#include <cassert>
-
 #include "Game.h"
-#include "AssetManager.h"
-#include "Messenger.h"
-#include "gfx/Renderer.h"
-#include "Debug.h"
-#include "ui/UIManager.h"
+#include "Renderer.h"
 #include "SceneManager.h"
 #include "SaveManager.h"
+#include "Messenger.h"
+#include "AssetManager.h"
+#include "UIManager.h"
+#include "Profiler.h"
+#include "Root.h"
 
-Game::Game() : m_state{GameState::PLAY} {
+Game::Game() : ui(), renderer() {
     Messenger::fire(EventType::ApplicationStarted);
 }
 
 Game::~Game() {
     Messenger::fire(EventType::ApplicationEnding);
-
-    SDL_Quit();
 }
 
 void Game::run() {
@@ -28,105 +25,87 @@ void Game::run() {
 }
 
 void Game::init() {
-    // Initialise SDL
-    auto error = SDL_Init(SDL_INIT_VIDEO);
-    assert(error == 0);
+    renderer.init();
+    ui.init();
 
-    Renderer::init();
-    UIManager::init();
+    assetManager.loadAssets();
+    assetManager.loadWalls();
+    assetManager.loadPaths();
+    assetManager.loadObjects();
 
-    m_input = std::make_unique<InputManager>();
-
-    AssetManager::loadAssets();
-    AssetManager::loadWalls();
-    AssetManager::loadPaths();
-    AssetManager::loadObjects();
-
-    // TODO: Move to consts file
-    m_input->registerInput({"Up", {SDL_SCANCODE_UP}});
-    m_input->registerInput({"Down", {SDL_SCANCODE_DOWN}});
-    m_input->registerInput({"Left", {SDL_SCANCODE_LEFT}});
-    m_input->registerInput({"Right", {SDL_SCANCODE_RIGHT}});
-    m_input->registerInput({"W", {SDL_SCANCODE_W}});
-    m_input->registerInput({"A", {SDL_SCANCODE_A}});
-    m_input->registerInput({"S", {SDL_SCANCODE_S}});
-    m_input->registerInput({"D", {SDL_SCANCODE_D}});
-    m_input->registerInput({"ZOOM_IN", {SDL_SCANCODE_COMMA}});
-    m_input->registerInput({"ZOOM_OUT", {SDL_SCANCODE_PERIOD}});
-
-    Debug::setup();
-
-    SaveManager::newGame();
+    saveManager.newGame();
 }
 
 void Game::doLoop() {
-    auto lastTime = SDL_GetTicks64();
-    Uint64 lag = 0;
-    while (m_state != GameState::EXIT) {
-        auto currentTime = SDL_GetTicks64();
+    auto lastTime = GetTime() * 1000;
+    double lag = 0;
+    while (!WindowShouldClose()) {
+        auto currentTime = GetTime() * 1000;
         auto elapsed = currentTime - lastTime;
         lastTime = currentTime;
         lag += elapsed;
 
-        pollEvents();
-
         while (lag >= MS_PER_UPDATE) {
-            Debug::preUpdate();
-            SceneManager::getCurrentScene()->preUpdate();
-            SceneManager::getCurrentScene()->update();
-            SceneManager::getCurrentScene()->postUpdate();
+            Profiler::begin("tick");
+
+            Profiler::startTimer("preUpdate");
+            sceneManager.getCurrentScene()->preUpdate();
+            Profiler::stopTimer("preUpdate");
+
+            Profiler::startTimer("update");
+            sceneManager.getCurrentScene()->update();
+            Profiler::stopTimer("update");
+
+            Profiler::startTimer("postUpdate");
+            sceneManager.getCurrentScene()->postUpdate();
+            Profiler::stopTimer("postUpdate");
+
+            Profiler::end("tick");
+
             lag -= MS_PER_UPDATE;
-            m_input->clearKeys();
+
+            ticksSinceGameStart++;
         }
 
+        InputManager::processInput();
 
-        render((double) lag / (double) MS_PER_UPDATE);
+        render(double(lag) / double(MS_PER_UPDATE));
+
+        ui.postUpdate();
     }
 }
 
-void Game::pollEvents() {
-    SDL_Event event;
-    while (SDL_PollEvent(&event)) {
-        bool mouseOverUI = UIManager::processInput(&event);
-
-        switch (event.type) {
-            case SDL_QUIT:
-                m_state = GameState::EXIT;
-                break;
-            case SDL_KEYDOWN:
-                m_input->dispatchKeyDown(event.key);
-                break;
-            case SDL_KEYUP:
-                m_input->dispatchKeyUp(event.key);
-                break;
-            case SDL_MOUSEBUTTONDOWN:
-                if (mouseOverUI) break;
-                m_input->dispatchMouseDown(event.button);
-                break;
-            case SDL_MOUSEBUTTONUP:
-//                if (mouseOverUI) break;
-                m_input->dispatchMouseUp(event.button);
-                break;
-            case SDL_MOUSEMOTION:
-                if (mouseOverUI) break;
-                m_input->dispatchMouseMove(event.motion);
-                break;
-            case SDL_MOUSEWHEEL:
-                m_input->dispatchMouseScroll(event.wheel);
-            default:
-                break;
+void Game::render(double step) {
+    renderer.beginDrawing();
+    {
+        Profiler::begin("render");
+        BeginMode2D(renderer.camera);
+        {
+            Profiler::startTimer("scene");
+            sceneManager.getCurrentScene()->render(step);
+            Profiler::stopTimer("scene");
+            Profiler::startTimer("blits");
+            renderer.sortAndDrawBlits();
+            Profiler::stopTimer("blits");
         }
+        EndMode2D();
+
+        Profiler::startTimer("ui");
+        ui.render();
+        Profiler::stopTimer("ui");
+
+        Profiler::end("render");
     }
+    renderer.endDrawing();
+
+    get().framesSinceGameStart++;
 }
 
-void Game::render(const double step) const {
-    Renderer::clear();
+void Game::onInput(InputEvent* event) {
+    if (!event->consumed) ui.onInput(event);
+    if (!event->consumed) sceneManager.getCurrentScene()->onInput(event);
+}
 
-    SceneManager::getCurrentScene()->render(step);
-    Renderer::renderBlits();
-    Debug::render();
-    UIManager::render();
-
-    Renderer::doRender();
-
+int Game::getTicks() {
+    return get().ticksSinceGameStart;
 }

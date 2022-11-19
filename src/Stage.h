@@ -1,12 +1,15 @@
 #pragma once
 
-#include "pch.h"
-
+#include "common.h"
 #include "entities/Entity.h"
-#include "world/BiomeGrid.h"
-#include "tools/ToolManager.h"
-#include "world/ElevationGrid.h"
 #include "world/World.h"
+#include "tools/ToolManager.h"
+
+struct DebugSettings {
+    bool cellGrid = false;
+    bool elevationGrid = false;
+    bool areaGrid = false;
+};
 
 class Stage {
 public:
@@ -19,6 +22,8 @@ public:
     void postUpdate();
     void cleanup();
     void render(double step) const;
+    void onGUI();
+    void onInput(InputEvent* event);
 
     unsigned int registerEntity(std::unique_ptr<Entity> entity);
     unsigned int registerEntity(std::unique_ptr<Entity> entity, unsigned int id);
@@ -28,16 +33,17 @@ public:
     json save();
     void load(json data);
 
-    std::unique_ptr<World> m_world;
-    std::unique_ptr<ToolManager> m_tools;
+    std::unique_ptr<World> world;
+    std::unique_ptr<ToolManager> tools;
+    DebugSettings debugSettings;
 private:
-    std::unordered_map<unsigned int, std::unique_ptr<Entity>> m_entities;
-    std::vector<std::unique_ptr<Entity>> m_entitiesToAdd;
-    std::vector<unsigned int> m_entitiesToDelete;
+    std::unordered_map<unsigned int, std::unique_ptr<Entity>> entities;
+    std::vector<std::unique_ptr<Entity>> entitiesToAdd;
+    std::vector<unsigned int> entitiesToDelete;
 
-    glm::vec2 m_dragStart;
-    glm::vec2 m_dragCameraOrigin;
+    Vector2 dragStart;
+    Vector2 dragCameraOrigin;
 
     // TODO: This needs to be saved and loaded
-    unsigned int m_nextEntityId = 0;
+    unsigned int nextEntityId = 0;
 };

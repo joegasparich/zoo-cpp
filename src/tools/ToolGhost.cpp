@@ -1,109 +1,71 @@
-#include <constants/depth.h>
 #include "ToolGhost.h"
 #include "Game.h"
 #include "Zoo.h"
+#include "constants/world.h"
+#include "constants/depth.h"
 
-#define GHOST_COLOUR glm::vec3{0.4f, 0.8f, 1.0f}
-#define BLOCKED_COLOUR glm::vec3{1.0f, 0.4f, 0.1f}
+#define GHOST_COLOUR Color{102, 204, 255, 255}
+#define BLOCKED_COLOUR Color{255, 102, 26, 255}
 #define CIRCLE_RESOLUTION 16
 
 ToolGhost::ToolGhost() {
-    m_basicShader = std::make_unique<Shader>("./shaders/BasicVertex.shader", "./shaders/BasicFragment.shader");
-    m_basicLayout = std::make_unique<VertexBufferLayout>();
-    m_basicLayout->pushFloat(2);
-
-    m_circleVa = std::make_unique<VertexArray>();
-
     cleanup();
 }
 
 void ToolGhost::cleanup() {
-    m_type = GhostType::None;
-    m_snap = false;
-    m_follow = true;
-    m_elevate = false;
-    m_visible = true;
-    m_sprite = nullptr;
-    m_canPlace = true;
+    type = GhostType::None;
+    snap = false;
+    follow = true;
+    elevate = false;
+    visible = true;
+    sprite = nullptr;
+    canPlace = true;
 
-    m_pos = {0.0f, 0.0f};
-    m_scale = {1.0f, 1.0f};
-    m_radius = 1.0f;
-    m_offset = {0.0f, 0.0f};
-    m_pivot = {0.0f, 0.0f};
+    pos = {0.0f, 0.0f};
+    scale = {1.0f, 1.0f};
+    radius = 1.0f;
+    offset = {0.0f, 0.0f};
+    pivot = {0.0f, 0.0f};
 }
 
 void ToolGhost::render() {
-    if (m_follow) {
-        auto& input = Game::get().m_input;
-        m_pos = Renderer::screenToWorldPos(input->getMousePos());
+    if (follow) {
+        pos = Root::renderer().screenToWorldPos(GetMousePosition());
     }
-    if (m_snap) {
-        m_pos = glm::floor(m_pos);
+    if (snap) {
+        pos = floor(pos);
     }
 
-    if (!m_visible) return;
+    if (!visible) return;
 
-    switch(m_type) {
+    switch(type) {
         case GhostType::Circle: renderCircle(); break;
         case GhostType::Square: renderSquare(); break;
         case GhostType::Sprite: renderSprite(); break;
-        case GhostType::SpriteSheet:
-            renderSprite(); break;
+        case GhostType::SpriteSheet: renderSpriteSheet(); break;
         case GhostType::None: break;
     }
 }
 
 void ToolGhost::renderCircle() {
-    auto& renderer = Renderer::get();
+    std::array<Vector2, CIRCLE_RESOLUTION + 2> vertices{};
 
-    std::vector<glm::vec2> vertices{};
-    vertices.resize(CIRCLE_RESOLUTION);
+    vertices[0] = pos * WORLD_SCALE;
+    for (unsigned int n = 1; n < CIRCLE_RESOLUTION + 1; ++n) {
+        vertices[n] = pos;
 
-    for (unsigned int n = 0; n < CIRCLE_RESOLUTION; ++n) {
-        vertices[n].x = m_radius * (float)cos(2.0 * M_PI * n / CIRCLE_RESOLUTION);
-        vertices[n].y = m_radius * (float)sin(2.0 * M_PI * n / CIRCLE_RESOLUTION);
+        vertices[n].x += radius * float(sin(2.0 * M_PI * n / CIRCLE_RESOLUTION));
+        vertices[n].y += radius * float(cos(2.0 * M_PI * n / CIRCLE_RESOLUTION));
 
-        vertices[n].y -= Zoo::zoo->m_world->m_elevationGrid->getElevationAtPos(m_pos + vertices[n]);
+        if (elevate)
+            vertices[n].y -= Root::zoo()->world->elevationGrid->getElevationAtPos(vertices[n]);
+
+        vertices[n] = vertices[n] * WORLD_SCALE;
     }
-    vertices.insert(vertices.begin(), glm::vec2{0.0f, 0.0f});
+    vertices[CIRCLE_RESOLUTION + 1] = vertices[1];
 
-    auto vb = VertexBuffer(&vertices[0], sizeof(float) * vertices.size() * 2);
-    m_circleVa->addBuffer(vb, *m_basicLayout);
-
-    auto mvp = Renderer::getMVPMatrix(m_pos, 0.0f, DEPTH::OVERLAY, {1.0f, 1.0f}, true);
-
-    m_circleVa->bind();
-    m_basicShader->bind();
-    m_basicShader->setUniformMat4f("u_MVP", mvp);
-
-    // Draw Outline
-    {
-        std::vector<unsigned int> indexList{};
-        indexList.resize(CIRCLE_RESOLUTION);
-        std::iota(indexList.begin(), indexList.end(), 1);
-        auto ib = IndexBuffer(&indexList[0], indexList.size());
-        ib.bind();
-
-        auto colour = glm::vec4{GHOST_COLOUR, 1.0f};
-        m_basicShader->setUniform4f("u_Color", colour);
-
-        Renderer::draw(GL_LINE_LOOP, indexList.size(), GL_UNSIGNED_INT, nullptr);
-    }
-    // Draw Fill
-    {
-        std::vector<unsigned int> indexList{};
-        indexList.resize(CIRCLE_RESOLUTION + 1);
-        std::iota(indexList.begin(), indexList.end(), 0);
-        indexList.push_back(1);
-        auto ib = IndexBuffer(&indexList[0], indexList.size());
-        ib.bind();
-
-        auto colour = glm::vec4{GHOST_COLOUR, 0.5f};
-        m_basicShader->setUniform4f("u_Color", colour);
-
-        Renderer::draw(GL_TRIANGLE_FAN, indexList.size(), GL_UNSIGNED_INT, nullptr);
-    }
+    DrawLineStrip(&vertices[1], vertices.size() - 1, GHOST_COLOUR);
+    DrawTriangleFan(&vertices[0], vertices.size(), ColorAlpha(GHOST_COLOUR, 0.5f));
 }
 
 void ToolGhost::renderSquare() {
@@ -111,8 +73,33 @@ void ToolGhost::renderSquare() {
 }
 
 void ToolGhost::renderSprite() {
-    if (!m_sprite) return;
+    if (!sprite) return;
 
-    auto colour = m_canPlace ? GHOST_COLOUR : BLOCKED_COLOUR;
-    Renderer::blit({nullptr, m_sprite.get(), m_pos + m_offset, DEPTH::UI, m_scale, m_pivot, colour});
+    BlitOptions opts;
+    opts.texture = sprite;
+    opts.pos = (pos + offset) * WORLD_SCALE;
+    opts.scale = Vector2{float(opts.texture->width), float(opts.texture->height)} * PIXEL_SCALE;
+    opts.depth = DEPTH::UI;
+    opts.pivot = pivot;
+    opts.colour = canPlace ? GHOST_COLOUR : BLOCKED_COLOUR;
+
+    if (elevate)
+        opts.pos.y += -Root::zoo()->world->elevationGrid->getElevationAtPos(pos + Vector2{0.5f, 0.5f}) * WORLD_SCALE;
+
+    Root::renderer().blit(opts);
+}
+
+void ToolGhost::renderSpriteSheet() {
+    if (!spriteSheet) return;
+
+    BlitOptions opts;
+    opts.texture = spriteSheet->texture;
+    opts.source = spriteSheet->getCellBounds(spriteSheetIndex);
+    opts.pos = (pos + offset) * WORLD_SCALE;
+    opts.scale = Vector2{float(opts.texture->width) * opts.source.width, float(opts.texture->height) * opts.source.height} * PIXEL_SCALE;
+    opts.depth = DEPTH::UI;
+    opts.pivot = pivot;
+    opts.colour = canPlace ? GHOST_COLOUR : BLOCKED_COLOUR;
+
+    Root::renderer().blit(opts);
 }

@@ -1,35 +1,54 @@
 #include "BiomeTool.h"
 #include "ToolManager.h"
-#include "Game.h"
-#include "ui/BiomePanel.h"
-#include "ui/UIManager.h"
 #include "Zoo.h"
+#include "UIManager.h"
+#include "ui/GUI.h"
+#include "Messenger.h"
 
-#define DEFAULT_RADIUS 0.65f
+const float DEFAULT_RADIUS = 0.65f;
+const float MARGIN = GAP_SMALL;
+const float BUTTON_SIZE = 30;
 
 BiomeTool::BiomeTool(ToolManager &toolManager) : Tool(toolManager) {}
 BiomeTool::~BiomeTool() = default;
 
 void BiomeTool::set() {
-    m_currentBiome = Biome::Sand;
-    m_panelId = UIManager::createUIComponent(std::make_unique<BiomePanel>(m_toolManager, *this));
-    m_toolManager.m_ghost->m_type = GhostType::Circle;
-    m_toolManager.m_ghost->m_radius = DEFAULT_RADIUS;
+    currentBiome = Biome::Sand;
+    toolManager.ghost->type = GhostType::Circle;
+    toolManager.ghost->radius = DEFAULT_RADIUS;
 }
 
-void BiomeTool::unset() {
-    UIManager::closeUIComponent(m_panelId);
-}
+void BiomeTool::onInput(InputEvent* event) {
+    // Only listen to down and up events so that we can't start dragging from UI
+    if (event->mouseButtonDown == MOUSE_BUTTON_LEFT) dragging = true;
+    if (event->mouseButtonUp == MOUSE_BUTTON_LEFT) dragging = false;
 
-void BiomeTool::update() {
-    auto& input = Game::get().m_input;
-
-    if (input->isMouseButtonHeld(SDL_BUTTON_LEFT)) {
-        Zoo::zoo->m_world->m_biomeGrid->setBiomeInRadius(Renderer::screenToWorldPos(input->getMousePos()), DEFAULT_RADIUS, m_currentBiome);
+    // TODO (optimisation): Don't fire every tick
+    if (dragging) {
+        Root::zoo()->world->biomeGrid->setBiomeInRadius(Root::renderer().screenToWorldPos(GetMousePosition()), DEFAULT_RADIUS, currentBiome);
     }
 }
 
-void BiomeTool::postUpdate() {}
+void BiomeTool::onGUI() {
+    Root::ui().doImmediateWindow("immBiomePanel", {10, 60, 200, BUTTON_SIZE + MARGIN * 2}, [&](auto rect) {
+        for(auto i = 0; i < NUM_BIOMES; i++) {
+            auto biome = (Biome)i;
+            auto [name, colour] = getBiomeInfo(biome);
+
+            // TODO: Wrap
+            Rectangle buttonRect = {i * (BUTTON_SIZE + GAP_SMALL) + MARGIN, MARGIN, BUTTON_SIZE, BUTTON_SIZE};
+
+            GUI::drawRect(buttonRect, colour);
+            GUI::highlightMouseover(buttonRect);
+
+            if (currentBiome == biome)
+                GUI::drawBorder(buttonRect, 2, BLACK);
+
+            if (GUI::clickableArea(buttonRect))
+                setBiome(biome);
+        }
+    });
+}
 
 std::string BiomeTool::getName() {
     return "Biome Tool";
@@ -40,9 +59,9 @@ ToolType BiomeTool::getType() {
 }
 
 Biome BiomeTool::getBiome() {
-    return m_currentBiome;
+    return currentBiome;
 }
 
 void BiomeTool::setBiome(Biome biome) {
-    m_currentBiome = biome;
+    currentBiome = biome;
 }

@@ -2,15 +2,18 @@
 #include "SceneManager.h"
 #include "Zoo.h"
 
+SaveManager::SaveManager() = default;
+SaveManager::~SaveManager() = default;
+
 void SaveManager::newGame() {
-    SceneManager::loadScene(std::make_unique<Zoo>());
+    Root::sceneManager().loadScene(std::make_unique<Zoo>());
 }
 
 void SaveManager::saveGame(std::string saveFilePath) {
     json saveData;
     try {
         saveData = json{
-            {"zoo", Zoo::zoo->save()}
+                {"zoo", Root::zoo()->save()}
         };
     } catch(const std::exception& error) {
         std::cout << "Error saving game " << std::endl;
@@ -39,7 +42,7 @@ void SaveManager::loadGame(std::string saveFilePath) {
         if (saveData.empty()) return;
 
         try {
-            Zoo::zoo->load(saveData["zoo"]);
+            Root::zoo()->load(saveData["zoo"]);
         } catch(const std::exception& error) {
             std::cout << "Error loading save file: " << saveFilePath << std::endl;
             std::cout << error.what() << std::endl;

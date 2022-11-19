@@ -10,11 +10,11 @@ public:
     std::set<COMPONENT> getRequiredComponents() override;
 
     TileObjectComponent(Entity *entity);
-    TileObjectComponent(Entity *entity, const ObjectData &data);
+    TileObjectComponent(Entity *entity, ObjectData data);
 
     void start() override;
 
-    std::vector<glm::ivec2> getTiles();
+    std::vector<Cell> getTiles();
 
     json save() override;
     void load(json data) override;

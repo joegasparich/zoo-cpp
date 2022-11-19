@@ -25,12 +25,12 @@ Pathfinder::Pathfinder(unsigned int width, unsigned int height) : m_cols{width},
     }
 }
 
-std::vector<glm::ivec2> Pathfinder::reconstructPath(const std::vector<std::vector<Node>> &cellDetails, const glm::ivec2 &dest) {
-    std::vector<glm::ivec2> path;
+std::vector<Cell> Pathfinder::reconstructPath(const std::vector<std::vector<Node>> &cellDetails, const Cell &dest) {
+    std::vector<Cell> path;
 
     path.push_back(dest);
     auto [x, y] = dest;
-    while(cellDetails[x][y].parent != glm::ivec2{ x, y }) {
+    while(cellDetails[x][y].parent != Cell{ x, y }) {
         auto nextNode = cellDetails[x][y].parent;
         path.push_back(nextNode);
         x = nextNode.x;
@@ -42,7 +42,7 @@ std::vector<glm::ivec2> Pathfinder::reconstructPath(const std::vector<std::vecto
 }
 
 // https://www.geeksforgeeks.org/a-search-algorithm/
-std::vector<glm::ivec2> Pathfinder::getPath(glm::ivec2 from, glm::ivec2 to) {
+std::vector<Cell> Pathfinder::getPath(Cell from, Cell to) {
     if (!isAccessible(to)) return {};
     if (from == to) return {};
 
@@ -105,11 +105,11 @@ std::vector<glm::ivec2> Pathfinder::getPath(glm::ivec2 from, glm::ivec2 to) {
         }
     }
 
-    std::cout << "Failed to find route to dest " << vecToString(to) << std::endl;
+    std::cout << "Failed to find route to dest " << to.toString() << std::endl;
     return {};
 }
 
-void Pathfinder::setAccessibility(glm::ivec2 tile, Direction direction, bool accessible) {
+void Pathfinder::setAccessibility(Cell tile, Direction direction, bool accessible) {
     if (!m_isSetup) return;
 
 //    auto x = tile.x, y = tile.y;
@@ -117,25 +117,25 @@ void Pathfinder::setAccessibility(glm::ivec2 tile, Direction direction, bool acc
 //    auto height = m_tileGrid->at(0).size();
 //    auto node = m_tileGrid->at(x).at(y);
 
-    m_tileGrid->at(tile.x).at(tile.y).connections[(int)direction] = accessible;
+    m_tileGrid->at(tile.x).at(tile.y).connections[int(direction)] = accessible;
 
 //    if (accessible) {
 //        switch (direction) {
-//            case Direction::N:  if (y > 0)                          node.connections[(int)direction] = &m_tileGrid->at(x).at(y - 1);
-//            case Direction::NE: if (x < width-1 && y > 0)           node.connections[(int)direction] = &m_tileGrid->at(x + 1).at(y - 1);
-//            case Direction::E:  if (x < width-1)                    node.connections[(int)direction] = &m_tileGrid->at(x + 1).at(y);
-//            case Direction::SE: if (x < width-1 && y < height-1)    node.connections[(int)direction] = &m_tileGrid->at(x + 1).at(y + 1);
-//            case Direction::S:  if (y < height-1)                   node.connections[(int)direction] = &m_tileGrid->at(x).at(y + 1);
-//            case Direction::SW: if (x > 0 && y < height-1)          node.connections[(int)direction] = &m_tileGrid->at(x - 1).at(y + 1);
-//            case Direction::W:  if (x > 0)                          node.connections[(int)direction] = &m_tileGrid->at(x - 1).at(y);
-//            case Direction::NW: if (x > 0 && y > 0)                 node.connections[(int)direction] = &m_tileGrid->at(x - 1).at(y - 1);
+//            case Direction::N:  if (y > 0)                          node.connections[int(direction)] = &m_tileGrid->at(x).at(y - 1);
+//            case Direction::NE: if (x < width-1 && y > 0)           node.connections[int(direction)] = &m_tileGrid->at(x + 1).at(y - 1);
+//            case Direction::E:  if (x < width-1)                    node.connections[int(direction)] = &m_tileGrid->at(x + 1).at(y);
+//            case Direction::SE: if (x < width-1 && y < height-1)    node.connections[int(direction)] = &m_tileGrid->at(x + 1).at(y + 1);
+//            case Direction::S:  if (y < height-1)                   node.connections[int(direction)] = &m_tileGrid->at(x).at(y + 1);
+//            case Direction::SW: if (x > 0 && y < height-1)          node.connections[int(direction)] = &m_tileGrid->at(x - 1).at(y + 1);
+//            case Direction::W:  if (x > 0)                          node.connections[int(direction)] = &m_tileGrid->at(x - 1).at(y);
+//            case Direction::NW: if (x > 0 && y > 0)                 node.connections[int(direction)] = &m_tileGrid->at(x - 1).at(y - 1);
 //        }
 //    } else {
-//        node.connections[(int)direction] = nullptr;
+//        node.connections[int(direction)] = nullptr;
 //    }
 }
 
-bool Pathfinder::isAccessible(glm::ivec2 tilePos) {
+bool Pathfinder::isAccessible(Cell tilePos) {
     auto [x, y] = tilePos;
     auto width = m_tileGrid->size();
     auto height = m_tileGrid->at(0).size();
@@ -144,23 +144,23 @@ bool Pathfinder::isAccessible(glm::ivec2 tilePos) {
     if (!tile.accessible) return false;
 
     // Make sure at least one direction is accessible
-    if (y > 0                       && m_tileGrid->at(x)    .at(y - 1).connections[(int)Direction::S])  return true;
-    if (x < width-1 && y > 0        && m_tileGrid->at(x + 1).at(y - 1).connections[(int)Direction::SW]) return true;
-    if (x < width-1                 && m_tileGrid->at(x + 1).at(y)    .connections[(int)Direction::W])  return true;
-    if (x < width-1 && y < height-1 && m_tileGrid->at(x + 1).at(y + 1).connections[(int)Direction::NW]) return true;
-    if (y < height-1                && m_tileGrid->at(x)    .at(y + 1).connections[(int)Direction::N])  return true;
-    if (x > 0 && y < height-1       && m_tileGrid->at(x - 1).at(y + 1).connections[(int)Direction::NE]) return true;
-    if (x > 0                       && m_tileGrid->at(x - 1).at(y)    .connections[(int)Direction::E])  return true;
-    if (x > 0 && y > 0              && m_tileGrid->at(x - 1).at(y - 1).connections[(int)Direction::SE]) return true;
+    if (y > 0                       && m_tileGrid->at(x)    .at(y - 1).connections[int(Direction::S)])  return true;
+    if (x < width-1 && y > 0        && m_tileGrid->at(x + 1).at(y - 1).connections[int(Direction::SW)]) return true;
+    if (x < width-1                 && m_tileGrid->at(x + 1).at(y)    .connections[int(Direction::W)])  return true;
+    if (x < width-1 && y < height-1 && m_tileGrid->at(x + 1).at(y + 1).connections[int(Direction::NW)]) return true;
+    if (y < height-1                && m_tileGrid->at(x)    .at(y + 1).connections[int(Direction::N)])  return true;
+    if (x > 0 && y < height-1       && m_tileGrid->at(x - 1).at(y + 1).connections[int(Direction::NE)]) return true;
+    if (x > 0                       && m_tileGrid->at(x - 1).at(y)    .connections[int(Direction::E)])  return true;
+    if (x > 0 && y > 0              && m_tileGrid->at(x - 1).at(y - 1).connections[int(Direction::SE)]) return true;
 }
 
-std::vector<glm::ivec2> Pathfinder::getNeighbours(glm::ivec2 tilePos) {
+std::vector<Cell> Pathfinder::getNeighbours(Cell tilePos) {
     auto [x, y] = tilePos;
     auto width = m_tileGrid->size();
     auto height = m_tileGrid->at(0).size();
     auto tile = m_tileGrid->at(x).at(y);
 
-    std::vector<glm::ivec2> connections;
+    std::vector<Cell> connections;
 
     if (y > 0                       && tile.connections[0]) connections.emplace_back(x, y - 1);
     if (x < width-1 && y > 0        && tile.connections[1]) connections.emplace_back(x + 1, y - 1);
@@ -174,6 +174,6 @@ std::vector<glm::ivec2> Pathfinder::getNeighbours(glm::ivec2 tilePos) {
     return connections;
 }
 
-double Pathfinder::calculateHValue(glm::ivec2 a, glm::ivec2 b) {
+double Pathfinder::calculateHValue(Cell a, Cell b) {
     return sqrt(pow((a.x - b.x), 2.0) + pow((a.y - b.y), 2.0));
 }

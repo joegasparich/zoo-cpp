@@ -1,19 +1,16 @@
 #pragma once
 
-#include "pch.h"
-
+#include "common.h"
 #include "Scene.h"
 
 class SceneManager {
 public:
-    static SceneManager &get() {
-        static SceneManager instance;
-        return instance;
-    }
+    SceneManager();
+    ~SceneManager();
 
     // TODO: Add progress callback
-    static void loadScene(std::unique_ptr<Scene> scene);
-    static Scene* getCurrentScene();
+    void loadScene(std::unique_ptr<Scene> scene);
+    Scene* getCurrentScene();
 
 private:
     std::unique_ptr<Scene> currentScene;

@@ -1,7 +1,11 @@
 #include "RenderComponent.h"
-#include "gfx/Renderer.h"
-#include "Game.h"
+
+#include <utility>
+#include "Renderer.h"
+#include "entities/Entity.h"
 #include "constants/world.h"
+#include "AssetManager.h"
+#include "Root.h"
 
 COMPONENT RenderComponent::getId() { return RENDER_COMPONENT; }
 COMPONENT RenderComponent::getType() { return RENDER_COMPONENT; }
@@ -10,10 +14,13 @@ std::set<COMPONENT> RenderComponent::getRequiredComponents() {
 }
 
 RenderComponent::RenderComponent(Entity *entity) : Component(entity) {}
-RenderComponent::RenderComponent(Entity *entity, std::unique_ptr<Sprite> sprite) : Component(entity) {
-    if (sprite) {
-        setSprite(std::move(sprite));
-    }
+RenderComponent::RenderComponent(Entity *entity, std::string _spritePath) : RenderComponent(
+    entity, std::move(_spritePath), Rectangle{0, 0, 1, 1}
+) {}
+
+RenderComponent::RenderComponent(Entity* entity, std::string _spritePath, Rectangle source) : Component(entity) {
+    setSprite(std::move(_spritePath));
+    setSource(source);
 }
 
 void RenderComponent::start() {
@@ -22,38 +29,40 @@ void RenderComponent::start() {
 
 void RenderComponent::render(double step) {
     BlitOptions opts;
-    opts.sprite = m_sprite.get();
-    opts.pos = m_entity->m_pos;
-    opts.depth = Renderer::getDepth(m_entity->m_pos.y);
-    opts.pivot = m_pivot;
-    opts.pickId = m_entity->getId();
+    opts.texture = sprite;
+    opts.source = source;
+    opts.pos = (entity->pos + offset) * WORLD_SCALE;
+    opts.scale = Vector2{float(sprite->width) * source.width, float(sprite->height) * source.height} * PIXEL_SCALE;
+    opts.depth = Root::renderer().getDepth(entity->pos.y);
+    opts.pivot = pivot;
+    opts.pickId = entity->getId();
 
-    Renderer::blit(opts);
+    Root::renderer().blit(opts);
 }
 
 
-void RenderComponent::setSprite(std::unique_ptr<Sprite> sprite) {
-    m_sprite = std::move(sprite);
+void RenderComponent::setSprite(std::string path) {
+    sprite = Root::assetManager().getTexture(path);
+    spritePath = path;
+}
+
+void RenderComponent::setSource(Rectangle _source) {
+    source = _source;
 }
 
 json RenderComponent::save() {
     auto saveData = Component::save();
-    saveData.push_back({"sprite", json({
-       {"path", m_sprite->m_texture->m_image->m_filePath},
-       {"texCoord", m_sprite->m_texCoord},
-       {"texBounds", m_sprite->m_texBounds}
-    })});
-    saveData.push_back({"pivot", m_pivot});
+    saveData.push_back({"spritePath", spritePath});
+    saveData.push_back({"source", source});
+    saveData.push_back({"pivot", pivot});
 
     return saveData;
 }
 
 void RenderComponent::load(json data) {
     Component::load(data);
-    m_sprite = std::make_unique<Sprite>(
-        AssetManager::loadTexture(AssetManager::loadImage(data.at("sprite").at("path").get<std::string>())),
-        data.at("sprite").at("texCoord").get<glm::vec2>(),
-        data.at("sprite").at("texBounds").get<glm::vec2>()
-    );
-    data.at("pivot").get_to(m_pivot);
+    data.at("spritePath").get_to(spritePath);
+    data.at("source").get_to(source);
+    data.at("pivot").get_to(pivot);
+    sprite = Root::assetManager().getTexture(spritePath);
 }

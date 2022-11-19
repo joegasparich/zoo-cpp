@@ -1,6 +1,36 @@
 #pragma once
 
-#include "pch.h"
+#include <memory>
+#include <numeric>
+#include <algorithm>
+#include <utility>
+#include <string>
+#include <iostream>
+#include <fstream>
+#include <sstream>
+#include <array>
+#include <map>
+#include <unordered_map>
+#include <set>
+#include <unordered_set>
+#include <stack>
+#include <vector>
+#include <queue>
+#include <functional>
+#include <optional>
+#include <limits>
+#include <cmath>
+
+#include "raylib.h"
+#include "raymath.h"
+#include "util/cell.h"
+#include "util/raymath_operators.h"
+#include "util/jmath.h"
+#include "util/time.h"
+
+#include <nlohmann/json.hpp>
+using json = nlohmann::json;
+#include "util/json.h"
 
 enum class Side {
     North = 0,
@@ -8,47 +38,3 @@ enum class Side {
     South = 2,
     West = 3
 };
-
-inline void logVec(glm::vec2 vec) {
-    std::cout << vec.x << ", " << vec.y << std::endl;
-}
-
-namespace glm {
-    // Serialisation
-    void to_json(json& j, const glm::vec2& P);
-    void from_json(const json& j, glm::vec2& P);
-    void to_json(json& j, const glm::vec3& P);
-    void from_json(const json& j, glm::vec3& P);
-    void to_json(json& j, const glm::vec4& P);
-    void from_json(const json& j, glm::vec4& P);
-    void to_json(json& j, const glm::ivec2& P);
-    void from_json(const json& j, glm::ivec2& P);
-    void to_json(json& j, const glm::ivec3& P);
-    void from_json(const json& j, glm::ivec3& P);
-    void to_json(json& j, const glm::ivec4& P);
-    void from_json(const json& j, glm::ivec4& P);
-
-    // Structured bindings
-    template <std::size_t I, auto N, class T, auto Q>
-    constexpr auto& get(glm::vec<N, T, Q>& v) noexcept { return v[I]; }
-
-    template <std::size_t I, auto N, class T, auto Q>
-    constexpr const auto& get(const glm::vec<N, T, Q>& v) noexcept { return v[I]; }
-
-    template <std::size_t I, auto N, class T, auto Q>
-    constexpr auto&& get(glm::vec<N, T, Q>&& v) noexcept { return std::move(v[I]); }
-
-    template <std::size_t I, auto N, class T, auto Q>
-    constexpr const auto&& get(const glm::vec<N, T, Q>&& v) noexcept { return std::move(v[I]); }
-}
-
-namespace std {
-    // Structured bindings
-    template <auto N, class T, auto Q>
-    struct tuple_size<glm::vec<N, T, Q>> : std::integral_constant<std::size_t, N> { };
-
-    template <std::size_t I, auto N, class T, auto Q>
-    struct tuple_element<I, glm::vec<N, T, Q>> {
-        using type = decltype(get<I>(declval<glm::vec<N,T,Q>>()));
-    };
-}

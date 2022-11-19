@@ -1,148 +1,158 @@
 #include "PathTool.h"
-#include <ui/UIManager.h>
 #include "ToolManager.h"
 #include "constants/assets.h"
 #include "world/PathGrid.h"
 #include "Zoo.h"
-#include "ui/PathPanel.h"
 #include "Game.h"
-#include "util/util.h"
+#include "UIManager.h"
+#include "ui/GUI.h"
 
-PathTool::PathTool(ToolManager &toolManager) : Tool(toolManager) {}
+const float MARGIN = GAP_SMALL;
+const float BUTTON_SIZE = 30;
+
+PathTool::PathTool(ToolManager &toolManager) :
+    Tool(toolManager),
+    allPaths{Registry::getAllPaths()} {}
 PathTool::~PathTool() = default;
 
 void PathTool::set() {
-    m_panelId = UIManager::createUIComponent(std::make_unique<PathPanel>(m_toolManager, *this));
-    m_toolManager.m_ghost->m_type = GhostType::SpriteSheet;
-    m_toolManager.m_ghost->m_snap = true;
-    m_toolManager.m_ghost->m_scale = {1.0f, 2.0f};
-    m_toolManager.m_ghost->m_offset = {0.0f, -1.0f};
+    toolManager.ghost->type = GhostType::SpriteSheet;
+    toolManager.ghost->snap = true;
+    toolManager.ghost->scale = {1.0f, 2.0f};
+    toolManager.ghost->offset = {0.0f, -1.0f};
 
     // Temp
     setPath(&Registry::getPath(PATH_DIRT));
 }
 
-void PathTool::unset() {
-    UIManager::closeUIComponent(m_panelId);
+void PathTool::onInput(InputEvent* event) {
+    if (event->mouseButtonDown == MOUSE_BUTTON_LEFT) {
+        isDragging = true;
+        dragTile = floor(Root::renderer().screenToWorldPos(event->mousePos));
+    }
+
+    if (event->mouseButtonUp == MOUSE_BUTTON_LEFT) {
+        isDragging = false;
+
+        while (ghosts.size() > 0) {
+            auto& ghost = ghosts.back();
+            if (ghost->canPlace) {
+                Root::zoo()->world->pathGrid->placePathAtTile(currentPath, floor(ghost->pos));
+            }
+            ghosts.pop_back();
+        }
+    }
 }
 
 void PathTool::update() {
-    if (!m_path) return;
+    if (!currentPath) return;
 
-    auto& input = Game::get().m_input;
-    auto mousePos = Renderer::screenToWorldPos(input->getMousePos());
+    auto mousePos = Root::renderer().screenToWorldPos(GetMousePosition());
 
-    updateGhostSprite(*m_toolManager.m_ghost);
+    updateGhostSprite(*toolManager.ghost);
 
-    if (input->isMouseButtonDown(SDL_BUTTON_LEFT)) {
-        m_isDragging = true;
-        m_dragTile = glm::floor(mousePos);
-    }
-    if (input->isMouseButtonUp(SDL_BUTTON_LEFT)) {
-        m_isDragging = false;
-
-        while (m_ghosts.size() > 0) {
-            auto& ghost = m_ghosts.back();
-            if (ghost->m_canPlace) {
-                Zoo::zoo->m_world->m_pathGrid->placePathAtTile(m_path, glm::floor(ghost->m_pos));
-            }
-            m_ghosts.pop_back();
-        }
-    }
-    if (input->isMouseButtonHeld(SDL_BUTTON_LEFT)) {
+    if (isDragging) {
         // Dragging
-        m_toolManager.m_ghost->m_visible = false;
+        toolManager.ghost->visible = false;
 
-        auto xDif = glm::floor(mousePos).x - m_dragTile.x;
-        auto yDif = glm::floor(mousePos).y - m_dragTile.y;
+        auto xDif = floor(mousePos).x - dragTile.x;
+        auto yDif = floor(mousePos).y - dragTile.y;
         auto horizontal = abs(xDif) > abs(yDif);
         auto length = (horizontal ? abs(xDif) : abs(yDif)) + 1;
 
         // Push new ghosts to reach length
-        while (m_ghosts.size() < length) {
+        while (ghosts.size() < length) {
             auto ghost = std::make_unique<ToolGhost>();
-            ghost->m_type = GhostType::SpriteSheet;
-            ghost->m_follow = false;
-            ghost->m_sprite = std::make_unique<Sprite>(
-                m_toolManager.m_ghost->m_sprite->m_texture,
-                m_toolManager.m_ghost->m_sprite->m_texCoord,
-                m_toolManager.m_ghost->m_sprite->m_texBounds
-            );
-            ghost->m_offset = m_toolManager.m_ghost->m_offset;
-            ghost->m_scale = m_toolManager.m_ghost->m_scale;
-            m_ghosts.push_back(std::move(ghost));
+            ghost->type = GhostType::SpriteSheet;
+            ghost->follow = false;
+            ghost->spriteSheet = toolManager.ghost->spriteSheet;
+            ghost->offset = toolManager.ghost->offset;
+            ghost->scale = toolManager.ghost->scale;
+            ghosts.push_back(std::move(ghost));
         }
 
-        auto i = glm::floor(m_dragTile.x);
-        auto j = glm::floor(m_dragTile.y);
-        for (auto& ghost : m_ghosts) {
-            ghost->m_pos = {i, j};
+        auto i = floor(dragTile.x);
+        auto j = floor(dragTile.y);
+        for (auto& ghost : ghosts) {
+            ghost->pos = {float(i), float(j)};
             updateGhostSprite(*ghost);
 
             if (horizontal) {
-                i += glm::sign(glm::floor(mousePos).x - i);
+                i += sign(floor(mousePos).x - i);
             } else {
-                j += glm::sign(glm::floor(mousePos).y - j);
+                j += sign(floor(mousePos).y - j);
             }
         }
 
         // Pop additional ghosts
-        while (m_ghosts.size() > length) {
-            m_ghosts.pop_back();
+        while (ghosts.size() > length) {
+            ghosts.pop_back();
         }
     } else {
-        m_toolManager.m_ghost->m_visible = true;
+        toolManager.ghost->visible = true;
 
-        updateGhostSprite(*m_toolManager.m_ghost);
+        updateGhostSprite(*toolManager.ghost);
     }
 }
 
-void PathTool::setPath(PathData *path) {
-    m_path = path;
-    auto spriteSheet = AssetManager::getSpriteSheet(path->spriteSheetPath);
-    m_toolManager.m_ghost->m_sprite = std::make_unique<Sprite>(
-        AssetManager::loadTexture(spriteSheet->m_image),
-        glm::vec2{0.0f, 0.0f},
-        glm::vec2{
-            (float)spriteSheet->m_cellWidth / (float)spriteSheet->m_image->m_width,
-            (float)spriteSheet->m_cellHeight / (float)spriteSheet->m_image->m_height
+void PathTool::onGUI() {
+    Root::ui().doImmediateWindow("immPathPanel", {10, 60, 200, BUTTON_SIZE + MARGIN * 2}, [&](auto rect) {
+        for(auto i = 0; i < allPaths.size(); i++) {
+            auto path = allPaths[i];
+
+            // TODO: Wrap
+            Rectangle buttonRect = {i * (BUTTON_SIZE + GAP_SMALL) + MARGIN, MARGIN, BUTTON_SIZE, BUTTON_SIZE};
+
+            auto spritesheet = Root::assetManager().getSpriteSheet(path->spriteSheetPath);
+            GUI::drawSubTexture(buttonRect, spritesheet->texture, bottomHalf(spritesheet->getCellBounds(0)));
+
+            GUI::highlightMouseover(buttonRect);
+
+            if (currentPath == path)
+                GUI::drawBorder(buttonRect, 2, BLACK);
+
+            if (GUI::clickableArea(buttonRect))
+                setPath(path);
         }
-    );
+    });
+}
+
+void PathTool::setPath(PathData *path) {
+    currentPath = path;
+
+    toolManager.ghost->spriteSheet = Root::assetManager().getSpriteSheet(currentPath->spriteSheetPath);
 }
 
 PathData *PathTool::getPath() {
-    return m_path;
+    return currentPath;
 }
 
 void PathTool::render() {
-    for (auto& ghost : m_ghosts) {
+    for (auto& ghost : ghosts) {
         ghost->render();
     }
 }
 
 void PathTool::updateGhostSprite(ToolGhost& ghost) {
-    auto& input = Game::get().m_input;
-
-    auto path = Zoo::zoo->m_world->m_pathGrid->getPathAtTile(ghost.m_pos);
+    auto path = Root::zoo()->world->pathGrid->getPathAtTile(Cell{ghost.pos});
 
     if (!path) {
-        ghost.m_visible = false;
-        ghost.m_canPlace = false;
+        ghost.visible = false;
+        ghost.canPlace = false;
         return;
     }
 
     auto [spriteIndex, elevation] = PathGrid::getSpriteInfo(*path);
 
-    auto spriteSheet = AssetManager::getSpriteSheet(m_path->spriteSheetPath);
-    ghost.m_sprite->m_texCoord = spriteSheet->getTexCoords(spriteIndex)[0];
+    ghost.spriteSheetIndex = spriteIndex;
 
-    ghost.m_visible = true;
-    ghost.m_canPlace = true;
-    if (path->exists) ghost.m_canPlace = false;
-    if (Zoo::zoo->m_world->m_elevationGrid->isPositionSlopeCorner(path->pos)) ghost.m_canPlace = false;
-    if (Zoo::zoo->m_world->m_elevationGrid->isPositionWater(path->pos)) ghost.m_canPlace = false;
+    ghost.visible = true;
+    ghost.canPlace = true;
+    if (path->exists) ghost.canPlace = false;
+    if (Root::zoo()->world->elevationGrid->isPositionSlopeCorner(path->pos)) ghost.canPlace = false;
+    if (Root::zoo()->world->elevationGrid->isPositionWater(path->pos)) ghost.canPlace = false;
 
-    ghost.m_offset = {0.0f, -1.0f - elevation};
+    ghost.offset = {0.0f, -1.0f - elevation};
 }
 
 std::string PathTool::getName() {

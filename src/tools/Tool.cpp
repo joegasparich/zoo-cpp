@@ -1,7 +1,8 @@
 #include "Tool.h"
 #include "ToolManager.h"
+#include "InputManager.h"
 
-Tool::Tool(ToolManager &toolManager) : m_toolManager{toolManager} {}
+Tool::Tool(ToolManager &toolManager) : toolManager{toolManager} {}
 
 std::string Tool::getName() {
     return "Unknown Tool";

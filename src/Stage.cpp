@@ -1,26 +1,22 @@
-#include "constants/world.h"
-#include "util/uuid.h"
 #include "Stage.h"
-#include "constants/assets.h"
-#include "Game.h"
-#include "Debug.h"
-#include "gfx/Renderer.h"
-#include "util/jmath.h"
-#include "AssetManager.h"
-#include "entities/entityGenerators.h"
+#include "Root.h"
+#include "constants/world.h"
+#include "UIManager.h"
+#include "Profiler.h"
 
 #define MIN_ZOOM 0.5f
 #define MAX_ZOOM 10.0f
-#define CAMERA_SPEED 0.1f
+#define CAMERA_SPEED 2
 
+// TODO: This should probably be renamed Zoo and Zoo to ZooScene
 Stage::Stage() :
-    m_entities{},
-    m_entitiesToAdd{},
-    m_entitiesToDelete{}
+    entities{},
+    entitiesToAdd{},
+    entitiesToDelete{}
 {
-    m_tools = std::make_unique<ToolManager>();
+    tools = std::make_unique<ToolManager>();
     // Aim for 200
-    m_world = std::make_unique<World>(10, 10);
+    world = std::make_unique<World>(100, 100);
 }
 
 Stage::~Stage() {
@@ -28,117 +24,127 @@ Stage::~Stage() {
 }
 
 void Stage::setup() {
-    m_world->setup();
+    world->setup();
 
-    for (auto& pair: m_entities) {
+    for (auto& pair: entities) {
         pair.second->setup();
     }
 
-    m_tools->setup();
+    tools->setup();
 
-    auto &input = Game::get().m_input;
-    auto &camera = Renderer::get().m_camera;
-    m_dragStart = input->getMousePos();
-    m_dragCameraOrigin = camera.pos;
+    auto &camera = Root::renderer().camera;
+    dragStart = GetMousePosition();
+    dragCameraOrigin = camera.target;
 }
 
 void Stage::update() {
-    m_tools->update();
-    m_world->update();
+    tools->update();
+    world->update();
 
-    for (auto& pair: m_entities) {
+    for (auto& pair: entities) {
         pair.second->update();
     }
 
-    // TODO: Refactor this out somewhere
+    // TODO: Refactor this out somewhere and use input manager
     // Camera movement
-    auto &input = Game::get().m_input;
-    auto &camera = Renderer::get().m_camera;
+    auto &camera = Root::renderer().camera;
 
-    float inputHorizontal = (float) input->isInputHeld("Right") - (float) input->isInputHeld("Left");
-    float inputVertical = (float) input->isInputHeld("Down") - (float) input->isInputHeld("Up");
+    // TODO: Why is there a lag spike when you first start moving the camera
+    float inputHorizontal = float(IsKeyDown(KEY_RIGHT)) - float(IsKeyDown(KEY_LEFT));
+    float inputVertical = float(IsKeyDown(KEY_DOWN)) - float(IsKeyDown(KEY_UP));
 
-    camera.pos.x += inputHorizontal * CAMERA_SPEED / camera.scale;
-    camera.pos.y += inputVertical * CAMERA_SPEED / camera.scale;
+    camera.target.x += inputHorizontal * CAMERA_SPEED / camera.zoom;
+    camera.target.y += inputVertical * CAMERA_SPEED / camera.zoom;
 
-    if (input->isMouseButtonDown(SDL_BUTTON_MIDDLE)) {
-        m_dragStart = input->getMousePos();
-        m_dragCameraOrigin = camera.pos;
+    if (IsMouseButtonPressed(MOUSE_BUTTON_MIDDLE)) {
+        dragStart = GetMousePosition();
+        dragCameraOrigin = camera.target;
     }
-    if (input->isMouseButtonHeld(SDL_BUTTON_MIDDLE)) {
-        camera.pos = m_dragCameraOrigin + (m_dragStart - input->getMousePos()) / (camera.scale * WORLD_SCALE);
+    if (IsMouseButtonDown(MOUSE_BUTTON_MIDDLE)) {
+        camera.target = dragCameraOrigin + (dragStart - GetMousePosition()) / (camera.zoom * WORLD_SCALE);
     }
 
     // Camera zoom
-    if (input->isInputHeld("ZOOM_IN")) camera.scale = exp(jmath::lerp(log(camera.scale), log(MAX_ZOOM), 0.01));
-    if (input->isInputHeld("ZOOM_OUT")) camera.scale = exp(jmath::lerp(log(camera.scale), log(MIN_ZOOM), 0.01));
+    if (IsKeyDown(KEY_COMMA)) camera.zoom = exp(lerp(log(camera.zoom), log(MAX_ZOOM), 0.01));
+    if (IsKeyDown(KEY_PERIOD)) camera.zoom = exp(lerp(log(camera.zoom), log(MIN_ZOOM), 0.01));
 
-    auto scroll = input->getMouseScroll();
+    // TODO: Make this less janky
+    int scroll = GetMouseWheelMove() * 10;
     while (scroll != 0) {
-        auto dir = glm::sign(scroll);
-        auto mouseWorldPos = Renderer::screenToWorldPos(input->getMousePos());
-        auto oldScale = camera.scale;
-        camera.scale = glm::clamp((float)(camera.scale + ((float)dir * log(camera.scale + 1) * 0.05f)), MIN_ZOOM, MAX_ZOOM);
+        auto dir = sign(scroll);
+        auto mouseWorldPos = Root::renderer().screenToWorldPos(GetMousePosition());
+        auto oldScale = camera.zoom;
+        camera.zoom = Clamp(float(camera.zoom + (float(dir) * log(camera.zoom + 1) * 0.05f)), MIN_ZOOM, MAX_ZOOM);
         // TODO: figure out how to reposition in order to maintain previous mouse world pos
-        if (camera.scale != oldScale) {
-            camera.pos += (mouseWorldPos - camera.pos) * 0.03f * (float)dir;
+        if (camera.zoom != oldScale) {
+            camera.target += (mouseWorldPos - camera.target) * 0.03f * float(dir);
         }
         scroll -= dir;
     }
-
-    // if (input->isMouseButtonDown(SDL_BUTTON_LEFT)) {
-    //     std::cout << Renderer::pick(glm::floor(input->getMousePos())) << std::endl;
-    // }
 }
 
 void Stage::preUpdate() {
 
 }
 
-
 void Stage::postUpdate() {
-    m_world->postUpdate();
-    m_tools->postUpdate();
+    world->postUpdate();
+    tools->postUpdate();
 
-    for (auto& entity : m_entitiesToAdd) {
+    for (auto& entity : entitiesToAdd) {
         entity->setup();
-        m_entities.insert_or_assign(entity->getId(), std::move(entity));
+        entities.insert_or_assign(entity->getId(), std::move(entity));
     }
 
-    m_entitiesToAdd.clear();
+    entitiesToAdd.clear();
 }
 
 void Stage::render(double step) const {
-    m_world->render();
-    m_tools->render();
+    Profiler::startTimer("world");
+    world->render();
+    Profiler::stopTimer("world");
 
-    for (auto& pair : m_entities) {
+    Profiler::startTimer("entities");
+    for (auto& pair : entities) {
         pair.second->render(step);
     }
+    Profiler::stopTimer("entities");
+
+    Profiler::startTimer("tools");
+    tools->render();
+    Profiler::stopTimer("tools");
+}
+
+void Stage::onGUI() {
+    tools->onGUI();
+}
+
+void Stage::onInput(InputEvent* event) {
+    tools->onInput(event);
 }
 
 void Stage::cleanup() {
-    m_tools->cleanup();
-    m_world->cleanup();
+    tools->cleanup();
+    world->cleanup();
 
-    m_entities.clear();
-    m_entitiesToAdd.clear();
-    m_entitiesToDelete.clear();
+    entities.clear();
+    entitiesToAdd.clear();
+    entitiesToDelete.clear();
 
-    Renderer::resetCamera();
+    Root::renderer().resetCamera();
 }
 
 json Stage::save() {
     std::vector<json> entitiesSaveData;
 
-    for (auto& pair : m_entities) {
+    for (auto& pair : entities) {
         entitiesSaveData.push_back(pair.second->save());
     }
 
     return json{
-        { "world", m_world->save() },
+        { "world", world->save() },
         { "entities", json{
-            { "nextEntityId", m_nextEntityId },
+            { "nextEntityId", nextEntityId },
             { "entityList", entitiesSaveData }
         }}
     };
@@ -148,10 +154,10 @@ void Stage::load(json data) {
     cleanup();
     setup();
 
-    m_world->load(data.at("world"));
+    world->load(data.at("world"));
 
     json entitiesData = data.at("entities");
-    entitiesData.at("nextEntityId").get_to(m_nextEntityId);
+    entitiesData.at("nextEntityId").get_to(nextEntityId);
     for (auto& entityData : entitiesData.at("entityList").get<std::vector<json>>()) {
         auto entity = std::make_unique<Entity>();
         entity->load(entityData);
@@ -160,12 +166,12 @@ void Stage::load(json data) {
 }
 
 unsigned int Stage::registerEntity(std::unique_ptr<Entity> entity) {
-    return registerEntity(std::move(entity), m_nextEntityId++);
+    return registerEntity(std::move(entity), nextEntityId++);
 }
 
 unsigned int Stage::registerEntity(std::unique_ptr<Entity> entity, unsigned int id) {
     entity->setId(id);
-    m_entitiesToAdd.push_back(std::move(entity));
+    entitiesToAdd.push_back(std::move(entity));
 
     std::cout << "Registered entity with id " << id << std::endl;
 
@@ -177,7 +183,7 @@ void Stage::unregisterEntity(unsigned int entityId) {
 }
 
 Entity *Stage::getEntityById(unsigned int entityId) {
-    auto& ptr = m_entities.at(entityId);
+    auto& ptr = entities.at(entityId);
     if (ptr) return ptr.get();
     return nullptr;
 }

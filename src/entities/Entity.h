@@ -1,6 +1,6 @@
 #pragma once
 
-#include "pch.h"
+#include "common.h"
 
 #include "components/Component.h"
 #include "util/typeMap.h"
@@ -8,10 +8,10 @@
 class Entity {
 public:
     Entity();
-    Entity(glm::vec2 pos);
+    Entity(Vector2 pos);
     ~Entity();
 
-    glm::vec2 m_pos;
+    Vector2 pos;
 
     void setup();
     void update();
@@ -32,9 +32,9 @@ public:
     void load(json data);
 
 private:
-    unsigned int m_id;
-    TypeMap<std::unique_ptr<Component>> m_components;
-    bool m_hasStarted;
+    unsigned int id;
+    TypeMap<std::unique_ptr<Component>> components;
+    bool hasStarted;
 };
 
 #include "Entity.tpp"

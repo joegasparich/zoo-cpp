@@ -1,7 +1,7 @@
 #pragma once
 
 namespace DEPTH {
-    const float BIOME = -0.9f;
+    const float GROUND = -0.9f;
     const float WATER = -0.8f;
     const float OVERLAY = -0.6f;
     const float Y_SORTING = -0.5f;

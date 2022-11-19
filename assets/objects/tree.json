@@ -9,7 +9,7 @@
     "x": 1,
     "y": 1
   },
-  "sprite": "assets/img/tree.png",
+  "sprite": "img/tree.png",
   "canPlaceOnSlopes": true,
   "canPlaceInWater": false,
   "type": "foliage"

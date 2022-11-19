@@ -1,35 +1,24 @@
 #pragma once
 
-#include "pch.h"
-#include <gfx/Image.h>
-#include <gfx/SpriteSheet.h>
-#include <gfx/Texture.h>
+#include "common.h"
+#include "SpriteSheet.h"
 
 class AssetManager {
 public:
-    AssetManager(const AssetManager &) = delete;
+    AssetManager();
+    ~AssetManager();
 
-    static AssetManager &get() {
-        static AssetManager instance;
-        return instance;
-    }
+    void loadAssets();
+    void loadObjects();
+    void loadWalls();
+    void loadPaths();
 
-    static Image* getImage(const std::string &key);
-    static SpriteSheet* getSpriteSheet(const std::string &key);
-
-    static void loadAssets();
-    static void loadObjects();
-    static void loadWalls();
-    static void loadPaths();
-
-    static Image* loadImage(const std::string& path);
-    static SpriteSheet* loadSpriteSheet(const std::string& assetPath, Image* image, int cellWidth, int cellHeight);
-    static Texture* loadTexture(Image* image);
+    SpriteSheet* loadSpriteSheet(const std::string& texturePath, int cellWidth, int cellHeight);
+    SpriteSheet* getSpriteSheet(const std::string& texturePath);
+    Texture* getTexture(const std::string& path);
 
 private:
-    AssetManager();
 
-    std::map<std::string, std::unique_ptr<Image>> m_imageMap;
-    std::map<std::string, std::unique_ptr<SpriteSheet>> m_spriteSheetMap;
-    std::map<std::string, std::unique_ptr<Texture>> m_textureMap;
+    std::map<std::string, std::unique_ptr<Texture>> textureMap;
+    std::map<std::string, std::unique_ptr<SpriteSheet>> spriteSheetMap;
 };

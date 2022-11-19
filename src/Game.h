@@ -1,37 +1,43 @@
 #pragma once
 
-#define SDL_MAIN_HANDLED
-#include <SDL2/SDL.h>
-
-#include "Stage.h"
+#include "common.h"
+#include "UIManager.h"
+#include "Renderer.h"
 #include "InputManager.h"
+#include "AssetManager.h"
+#include "SceneManager.h"
+#include "SaveManager.h"
 
 // TODO: Config options
 #define MS_PER_UPDATE 10
 
-enum class GameState {
-    PLAY, EXIT
-};
-
 class Game {
 public:
+    Game(const Game &) = delete;
+
     static Game &get() {
         static Game instance;
         return instance;
     }
 
     void run();
+    void onInput(InputEvent* event);
+    static int getTicks();
 
-    std::unique_ptr<InputManager> m_input;
-
+    UIManager ui;
+    Renderer renderer;
+    AssetManager assetManager;
+    SceneManager sceneManager;
+    SaveManager saveManager;
 private:
     Game();
     ~Game();
 
     void init();
     void doLoop();
-    void pollEvents();
-    void render(double step) const;
+    void render(double step);
 
-    GameState m_state;
+    // TODO: Save this
+    int ticksSinceGameStart = 0;
+    int framesSinceGameStart = 0;
 };

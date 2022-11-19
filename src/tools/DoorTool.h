@@ -12,13 +12,12 @@ public:
 
     void set() override;
     void update() override;
-    void postUpdate() override;
-    void render() override;
-    void unset() override;
 
     std::string getName() override;
     ToolType getType() override;
 
+    void onInput(InputEvent* event) override;
+
 private:
-    void updateGhostSprite(ToolGhost& ghost, glm::ivec2 tilePos, Side quadrant);
+    void updateGhostSprite(ToolGhost& ghost, Cell tilePos, Side quadrant);
 };

@@ -1,50 +1,53 @@
-#include <constants/world.h>
-#include <util/uuid.h>
-#include <util/util.h>
+#include "constants/world.h"
+#include "util/uuid.h"
+#include "util/util.h"
 #include "Debug.h"
 #include "World.h"
 #include "entities/components/TileObjectComponent.h"
 #include "Pathfinder.h"
+#include "Messenger.h"
+#include "Root.h"
+#include "Profiler.h"
 
 #define ZOO_AREA "ZOO"
 
-World::World(unsigned int width, unsigned int height) : m_width(width), m_height(height) {}
+World::World(unsigned int width, unsigned int height) : width(width), height(height) {}
 
 World::~World() {
     cleanup();
 }
 
 void World::setup() {
-    m_elevationGrid = std::make_unique<ElevationGrid>(m_width + 1, m_height + 1);
-    m_elevationGrid->setup();
+    elevationGrid = std::make_unique<ElevationGrid>(width + 1, height + 1);
+    elevationGrid->setup();
 
-    m_biomeGrid = std::make_unique<BiomeGrid>(m_width * (int)BIOME_SCALE, m_height * (int)BIOME_SCALE);
-    m_biomeGrid->setup();
+    biomeGrid = std::make_unique<BiomeGrid>(width * int(BIOME_SCALE), height * int(BIOME_SCALE));
+    biomeGrid->setup();
 
-    m_wallGrid = std::make_unique<WallGrid>(m_width, m_height);
-    m_wallGrid->setup();
+    wallGrid = std::make_unique<WallGrid>(width, height);
+    wallGrid->setup();
 
-    m_pathGrid = std::make_unique<PathGrid>(m_width, m_height);
-    m_pathGrid->setup();
+    pathGrid = std::make_unique<PathGrid>(width, height);
+    pathGrid->setup();
 
     auto zooArea = std::make_unique<Area>(ZOO_AREA);
-    auto zooTiles = floodFill(glm::vec2{1, 1});
+    auto zooTiles = floodFill(Cell{1, 1});
     zooArea->m_tiles = zooTiles;
-    m_areas.insert_or_assign(ZOO_AREA, std::move(zooArea));
-    for (auto tile : zooTiles) m_tileAreaMap.insert_or_assign(vecToString(tile), m_areas.at(ZOO_AREA).get());
-    // Messenger.fire(WorldEvent.AREAS_UPDATED);
+    areas.insert_or_assign(ZOO_AREA, std::move(zooArea));
+    for (auto tile : zooTiles) tileAreaMap.insert_or_assign(tile.toString(), areas.at(ZOO_AREA).get());
+    Messenger::fire(EventType::AreasUpdated);
 
-    Pathfinder pf{m_width, m_height};
+    Pathfinder pf{width, height};
 
     // Test
-    m_path = pf.getPath({1, 1}, {4, 8});
+//    currentPath = pf.getPath({1, 1}, {4, 8});
 }
 
 void World::cleanup() {
-    m_biomeGrid->cleanup();
-    m_elevationGrid->cleanup();
-    m_wallGrid->cleanup();
-    m_pathGrid->cleanup();
+    biomeGrid->cleanup();
+    elevationGrid->cleanup();
+    wallGrid->cleanup();
+    pathGrid->cleanup();
 }
 
 void World::update() {
@@ -52,36 +55,48 @@ void World::update() {
 }
 
 void World::postUpdate() {
-    m_biomeGrid->postUpdate();
+    biomeGrid->postUpdate();
 }
 
 void World::render() {
-    m_biomeGrid->render();
-    m_elevationGrid->render();
-    m_elevationGrid->renderDebug();
-    m_wallGrid->render();
-    m_pathGrid->render();
+    Profiler::startTimer("biome");
+    biomeGrid->render();
+    Profiler::stopTimer("biome");
+    Profiler::startTimer("path");
+    pathGrid->render();
+    Profiler::stopTimer("path");
+    Profiler::startTimer("elevation");
+    elevationGrid->render();
+    Profiler::stopTimer("elevation");
+    Profiler::startTimer("wall");
+    wallGrid->render();
+    Profiler::stopTimer("wall");
 
+    Profiler::startTimer("debug");
     // TODO: move somewhere
-    for (auto& pair : m_areas) {
-        auto& area = pair.second;
-        for (auto& tile : area->m_tiles) {
-            Debug::drawRect(tile, tile + glm::ivec2{1, 1}, {area->m_colour, 0.2f});
-        }
-    }
+    if (Root::zoo()->debugSettings.cellGrid) renderDebugCellGrid();
+    if (Root::zoo()->debugSettings.elevationGrid) elevationGrid->renderDebug();
+    if (Root::zoo()->debugSettings.areaGrid) renderDebugAreaGrid();
+    Profiler::stopTimer("debug");
 
-    // Temp
-    for (int i = 1; i < m_path.size(); i++) {
-        Debug::drawLine((glm::vec2)m_path[i -1] + glm::vec2{0.5f, 0.5f}, (glm::vec2)m_path[i] + glm::vec2{0.5f, 0.5f}, {0.0f, 0.0f, 1.0f, 1.0f});
-    }
+
+//    // Temp
+//    for (int i = 1; i < path.size(); i++) {
+//        Debug::drawLine(
+//            path[i -1] + Vector2{0.5f, 0.5f},
+//            path[i] + Vector2{0.5f, 0.5f},
+//            {0, 0, 255, 255},
+//            true
+//        );
+//    }
 }
 
 void World::registerTileObject(Entity *tileObject) {
     auto component = tileObject->getComponent<TileObjectComponent>();
 
-    m_tileObjects.insert_or_assign(tileObject->getId(), tileObject);
+    tileObjects.insert_or_assign(tileObject->getId(), tileObject);
     for (auto tile : component->getTiles()) {
-        m_tileObjectMap.insert_or_assign(vecToString(tile), tileObject);
+        tileObjectsMap.insert_or_assign(tile.toString(), tileObject);
     }
 }
 
@@ -89,18 +104,18 @@ void World::unregisterTileObject(Entity *tileObject) {
 
 }
 
-Entity *World::getTileObjectAtPosition(glm::vec2 pos) {
-    glm::ivec2 tilePos = glm::floor(pos);
+Entity *World::getTileObjectAtPosition(Vector2 pos) {
+    Cell tilePos = Cell{pos};
     if (!isPositionInMap(tilePos)) return nullptr;
-    if (!m_tileObjectMap.contains(vecToString(tilePos))) return nullptr;
-    return m_tileObjectMap.at(vecToString(tilePos));
+    if (!tileObjectsMap.contains(tilePos.toString())) return nullptr;
+    return tileObjectsMap.at(tilePos.toString());
 }
 
-bool World::isPositionInMap(glm::vec2 pos) const {
-    return pos.x >= 0 && pos.x < (float)m_width && pos.y >= 0 && pos.y < (float)m_height;
+bool World::isPositionInMap(Vector2 pos) const {
+    return pos.x >= 0 && pos.x < float(width) && pos.y >= 0 && pos.y < float(height);
 }
 
-glm::ivec2 World::getTileInDirection(glm::ivec2 tile, Side direction) {
+Cell World::getTileInDirection(Cell tile, Side direction) {
     switch (direction) {
         case Side::North: return {tile.x, tile.y - 1};
         case Side::South: return {tile.x, tile.y + 1};
@@ -109,7 +124,7 @@ glm::ivec2 World::getTileInDirection(glm::ivec2 tile, Side direction) {
     }
 }
 
-Side World::getQuadrantAtPos(glm::vec2 pos) {
+Side World::getQuadrantAtPos(Vector2 pos) {
     auto xrel = fmod(pos.x + LARGER_THAN_WORLD, 1) - 0.5f;
     auto yrel = fmod(pos.y + LARGER_THAN_WORLD, 1) - 0.5f;
 
@@ -120,9 +135,9 @@ Side World::getQuadrantAtPos(glm::vec2 pos) {
 }
 
 void World::formAreas(Wall &placedWall) {
-    std::vector<glm::ivec2> areaATiles;
-    std::vector<glm::ivec2> areaBTiles;
-    auto startTiles = m_wallGrid->getAdjacentTiles(placedWall);
+    std::vector<Cell> areaATiles;
+    std::vector<Cell> areaBTiles;
+    auto startTiles = wallGrid->getAdjacentTiles(placedWall);
 
     // ! Does not handle situations where final wall is placed on the edge of the map
     // Current solution is to ensure that the map is already surrounded by walls
@@ -131,7 +146,7 @@ void World::formAreas(Wall &placedWall) {
     areaATiles = floodFill(startTiles[0]);
     areaBTiles = floodFill(startTiles[1]);
 
-    auto oldArea = m_tileAreaMap.at(vecToString(startTiles[0]));
+    auto oldArea = tileAreaMap.at(startTiles[0].toString());
 
     // Return if areas weren't formed properly (false positive in loop check)
     if (areaATiles.size() + areaBTiles.size() > oldArea->m_tiles.size()) {
@@ -145,19 +160,19 @@ void World::formAreas(Wall &placedWall) {
     auto& smaller = areaATiles.size() < areaBTiles.size() ? areaATiles : areaBTiles;
 
     oldArea->m_tiles = larger;
-    for (auto tile : larger) m_tileAreaMap[vecToString(tile)] = oldArea;
+    for (auto tile : larger) tileAreaMap[tile.toString()] = oldArea;
     newArea->m_tiles = smaller;
-    for (auto tile : smaller) m_tileAreaMap[vecToString(tile)] = newArea.get();
+    for (auto tile : smaller) tileAreaMap[tile.toString()] = newArea.get();
 
     std::cout << "Registered new area with size" << newArea->m_tiles.size() << std::endl;
 
-    m_areas.insert_or_assign(newArea->m_id, std::move(newArea));
+    areas.insert_or_assign(newArea->m_id, std::move(newArea));
 
-    // Messenger.fire(WorldEvent.AREAS_UPDATED);
+    Messenger::fire(EventType::AreasUpdated);
 }
 
 void World::joinAreas(Wall &removedWall) {
-    auto tiles = m_wallGrid->getAdjacentTiles(removedWall);
+    auto tiles = wallGrid->getAdjacentTiles(removedWall);
     if (tiles.size() != 2) return;
 
     auto areaA = getAreaAtPosition(tiles[0]);
@@ -172,7 +187,7 @@ void World::joinAreas(Wall &removedWall) {
 
     // Delete area B and expand area A
     areaA->m_tiles.insert(areaA->m_tiles.end(), areaB->m_tiles.begin(), areaB->m_tiles.end());
-    for (auto tile : areaB->m_tiles) m_tileAreaMap[vecToString(tile)] = areaA;
+    for (auto tile : areaB->m_tiles) tileAreaMap[tile.toString()] = areaA;
     for (const auto& areaConnection : areaB->m_connectedAreas) {
          const auto& [area, doors] = areaConnection;
          for (auto door : doors) {
@@ -181,33 +196,35 @@ void World::joinAreas(Wall &removedWall) {
          }
      }
     // this.getExhibitByAreaId(area2.id)?.delete();
-    m_areas.erase(areaB->m_id);
+    areas.erase(areaB->m_id);
 
-    // Messenger.fire(WorldEvent.AREAS_UPDATED);
+    Messenger::fire(EventType::AreasUpdated);
 }
 
 std::vector<Area*> World::getAreas() {
     // TODO: Store list so we don't have to do this every time?
-    std::vector<Area*> areas;
-    for (const auto& [_, area] : m_areas) {
-        areas.push_back(area.get());
+    std::vector<Area*> a;
+    for (const auto& [_, area] : areas) {
+        a.push_back(area.get());
     }
-    return areas;
+    return a;
 }
 
 Area* World::getAreaById(std::string id) {
-   return m_areas[id].get();
+   return areas[id].get();
 }
 
-Area* World::getAreaAtPosition(glm::vec2 pos) {
+Area* World::getAreaAtPosition(Vector2 pos) {
     if (!isPositionInMap(pos)) return nullptr;
-    assert(m_tileAreaMap.contains(vecToString((glm::ivec2)glm::floor(pos))));
-    return m_tileAreaMap.at(vecToString((glm::ivec2)glm::floor(pos)));
+
+    auto key = Cell{pos}.toString();
+    assert(tileAreaMap.contains(key));
+    return tileAreaMap.at(key);
 }
 
-std::vector<glm::ivec2> World::floodFill(glm::ivec2 startTile) {
-    std::unordered_set<glm::ivec2> tileSet;
-    std::stack<glm::ivec2> openTiles;
+std::vector<Cell> World::floodFill(Cell startTile) {
+    std::unordered_set<Cell> tileSet;
+    std::stack<Cell> openTiles;
 
     tileSet.insert(startTile);
     openTiles.push(startTile);
@@ -225,20 +242,20 @@ std::vector<glm::ivec2> World::floodFill(glm::ivec2 startTile) {
         }
     }
 
-    std::vector<glm::ivec2> tiles;
+    std::vector<Cell> tiles;
     tiles.assign(tileSet.begin(), tileSet.end());
     return tiles;
 }
 
-std::vector<glm::ivec2> World::getAccessibleAdjacentTiles(glm::ivec2 tile) {
+std::vector<Cell> World::getAccessibleAdjacentTiles(Cell tile) {
     if (!isPositionInMap(tile)) return{};
 
     auto allSides = {Side::North, Side::West, Side::South, Side::East};
-    std::vector<glm::ivec2> adjacentTiles;
+    std::vector<Cell> adjacentTiles;
 
     for (auto side : allSides) {
         if (
-            !m_wallGrid->getWallAtTile(tile, side)->exists &&
+            !wallGrid->getWallAtTile(tile, side)->exists &&
             isPositionInMap(getTileInDirection(tile, side))
         ) {
             adjacentTiles.push_back(getTileInDirection(tile, side));
@@ -252,17 +269,47 @@ void World::resetAreas() {
 
 }
 
+void World::renderDebugCellGrid() {
+    // Horizontal
+    for (auto i = 0; i < height + 1; i++) {
+        Debug::drawLine(
+            {0, float(i)},
+            {float(height), float(i)},
+            WHITE,
+            true
+        );
+    }
+    // Vertical
+    for (auto i = 0; i < width + 1; i++) {
+        Debug::drawLine(
+            {float(i), 0},
+            {float(i), float(width)},
+            WHITE,
+            true
+        );
+    }
+}
+
+void World::renderDebugAreaGrid() {
+    for (auto& pair : areas) {
+        auto& area = pair.second;
+        for (auto& tile : area->m_tiles) {
+            Debug::drawRect(tile, Cell{1, 1}, ColorAlpha(area->m_colour, 0.5f), true);
+        }
+    }
+}
+
 json World::save() {
     // Fuck c++ is so verbose this is ridiculous
     // Give me my array.map() back
     std::vector<json> areaSaveData;
-    std::transform(m_areas.begin(), m_areas.end(), std::back_inserter(areaSaveData), [](const std::pair<const std::string, std::unique_ptr<Area>>& pair) {
+    std::transform(areas.begin(), areas.end(), std::back_inserter(areaSaveData), [](const std::pair<const std::string, std::unique_ptr<Area>>& pair) {
         const auto& [id, area] = pair;
         std::vector<json> connectedAreaSaveData;
         std::transform(area->m_connectedAreas.begin(), area->m_connectedAreas.end(), std::back_inserter(connectedAreaSaveData), [](
             const std::pair<Area *const, std::unordered_set<Wall *>>& connection) {
             const auto& [connectedArea, doors] = connection;
-            std::vector<glm::vec2> doorGridPositions;
+            std::vector<Cell> doorGridPositions;
             std::transform(doors.begin(), doors.end(), std::back_inserter(doorGridPositions), [](Wall* door) {
                 return door->gridPos;
             });
@@ -282,11 +329,11 @@ json World::save() {
     });
 
     return json{
-        {"elevation", m_elevationGrid->save()},
-        {"biomes", m_biomeGrid->save()},
-        {"walls", m_wallGrid->save()},
-        {"paths", m_pathGrid->save()},
-        {"areas", areaSaveData}
+        {"elevation", elevationGrid->save()},
+        {"biomes",    biomeGrid->save()},
+        {"walls",     wallGrid->save()},
+        {"paths",     pathGrid->save()},
+        {"areas",     areaSaveData}
     };
 }
 
@@ -294,10 +341,10 @@ void World::load(json saveData) {
     cleanup();
 
     // TODO: Check these exist first?
-    m_elevationGrid->load(saveData.at("elevation"));
-    m_biomeGrid->load(saveData.at("biomes"));
-    m_wallGrid->load(saveData.at("walls"));
-    m_pathGrid->load(saveData.at("paths"));
+    elevationGrid->load(saveData.at("elevation"));
+    biomeGrid->load(saveData.at("biomes"));
+    wallGrid->load(saveData.at("walls"));
+    pathGrid->load(saveData.at("paths"));
 
     // Create areas
     for (auto& areaData : saveData.at("areas")) {
@@ -305,8 +352,8 @@ void World::load(json saveData) {
         auto area = std::make_unique<Area>(id);
         areaData.at("colour").get_to(area->m_colour);
         areaData.at("tiles").get_to(area->m_tiles);
-        m_areas.insert_or_assign(id, std::move(area));
-        for (auto tile : m_areas.at(id)->m_tiles) m_tileAreaMap.insert_or_assign(vecToString(tile), m_areas.at(id).get());
+        areas.insert_or_assign(id, std::move(area));
+        for (auto tile : areas.at(id)->m_tiles) tileAreaMap.insert_or_assign(tile.toString(), areas.at(id).get());
     }
 
     // Add connections once all areas have been created
@@ -315,11 +362,11 @@ void World::load(json saveData) {
         for (auto& connectedAreaData : areaData.at("connectedAreas")) {
             auto connectedArea = getAreaById(connectedAreaData.at("areaId").get<std::string>());
             for (auto& doorGridPos : connectedAreaData.at("doorGridPositions")) {
-                auto door = m_wallGrid->getWallByGridPos(doorGridPos.get<glm::ivec2>());
+                auto door = wallGrid->getWallByGridPos(doorGridPos.get<Cell>());
                 area->addAreaConnection(connectedArea, door);
             }
         }
     }
 
-    // Messenger.fire(WorldEvent.AREAS_UPDATED);
+    Messenger::fire(EventType::AreasUpdated);
 }

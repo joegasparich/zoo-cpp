@@ -1,7 +1,7 @@
 {
-  "assetPath": "assets/paths/dirt_path.json",
+  "assetPath": "paths/dirt_path.json",
   "name": "Dirt Path",
-  "spriteSheet": "assets/paths/dirt_path.png",
+  "spriteSheet": "paths/dirt_path.png",
   "cellHeight": 32,
   "cellWidth": 16
 }

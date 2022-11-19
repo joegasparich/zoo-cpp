@@ -1,6 +1,7 @@
 #pragma once
 
-#include "pch.h"
+#include "common.h"
+#include "InputManager.h"
 
 class ToolManager;
 
@@ -19,14 +20,16 @@ public:
     Tool(ToolManager &toolManager);
     virtual ~Tool();
 
-    virtual void set() = 0;
-    virtual void unset() = 0;
+    virtual void set() {};
+    virtual void unset() {};
     virtual void update() {};
     virtual void postUpdate() {};
     virtual void render() {};
+    virtual void onGUI() {};
+    virtual void onInput(InputEvent* event) {};
     virtual std::string getName();
     virtual ToolType getType();
 
 protected:
-    ToolManager& m_toolManager;
+    ToolManager& toolManager;
 };

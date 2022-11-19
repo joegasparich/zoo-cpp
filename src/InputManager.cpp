@@ -1,156 +1,58 @@
-#include "pch.h"
-
 #include "InputManager.h"
-#include "util/util.h"
 #include "Messenger.h"
+#include "Game.h"
 
-InputManager::InputManager() :
-        m_keysHeld{},
-        m_keysDown{},
-        m_keysUp{},
-        m_inputsHeld{},
-        m_inputsDown{},
-        m_inputsUp{},
-        m_mouseButtonsHeld{},
-        m_mouseButtonsDown{},
-        m_mouseButtonsUp{},
-        m_scrollAmount{}
-{}
+InputManager::InputManager() = default;
+InputManager::~InputManager() = default;
 
-bool InputManager::isKeyDown(int key) const {
-    return m_keysDown[key];
-}
+void InputManager::processInput() {
+    // Key events
+    for (int key = 0; key < KEY_MAX; key++) {
+        if (!IsKeyPressed(key) && !IsKeyReleased(key) && !IsKeyDown(key))
+            continue;
 
-bool InputManager::isKeyHeld(int key) const {
-    return m_keysHeld[key];
-}
+        InputEvent event = { InputEventType::Key };
+        event.keyDown = IsKeyPressed(key) ? key : KEY_NULL;
+        event.keyUp = IsKeyReleased(key) ? key : KEY_NULL;
+        event.keyHeld = IsKeyDown(key) ? key : KEY_NULL;
+        event.mousePos = GetMousePosition();
 
-bool InputManager::isKeyUp(int key) const {
-    return m_keysUp[key];
-}
+        fireInputEvent(event);
+    }
 
-bool InputManager::isMouseButtonDown(char button) const {
-    return m_mouseButtonsDown[button];
-}
+    // Mouse events
+    for (int mouseButton = 0; mouseButton < MOUSE_BUTTON_MAX; mouseButton++) {
+        if (!IsMouseButtonPressed(mouseButton) && !IsMouseButtonReleased(mouseButton) && !IsMouseButtonDown(mouseButton))
+            continue;
 
-bool InputManager::isMouseButtonHeld(char button) const {
-    return m_mouseButtonsHeld[button];
-}
+        InputEvent event = { InputEventType::MouseButton };
+        event.mouseButtonDown = IsMouseButtonPressed(mouseButton) ? mouseButton : MOUSE_BUTTON_NULL;
+        event.mouseButtonUp = IsMouseButtonReleased(mouseButton) ? mouseButton : MOUSE_BUTTON_NULL;
+        event.mouseButtonHeld = IsMouseButtonDown(mouseButton) ? mouseButton : MOUSE_BUTTON_NULL;
+        event.mousePos = GetMousePosition();
 
-bool InputManager::isMouseButtonUp(char button) const {
-    return m_mouseButtonsUp[button];
-}
+        fireInputEvent(event);
+    }
 
-bool InputManager::isInputDown(std::string inputName) const {
-    return contains_if(m_inputsDown, [inputName](Input* input) { return input->name == inputName; });
-}
+    if (GetMouseWheelMove() != 0) {
+        InputEvent event = { InputEventType::MouseScroll };
+        event.mouseWheelDelta = GetMouseWheelMove();
+        event.mousePos = GetMousePosition();
 
-bool InputManager::isInputHeld(std::string inputName) const {
-    return contains_if(m_inputsHeld, [inputName](Input* input) { return input->name == inputName; });
-}
-
-bool InputManager::isInputUp(std::string inputName) const {
-    return contains_if(m_inputsUp, [inputName](Input* input) { return input->name == inputName; });
-}
-
-const glm::vec2& InputManager::getMousePos() {
-    return m_mousePos;
-}
-
-const int InputManager::getMouseScroll() {
-    return m_scrollAmount;
-}
-
-void InputManager::registerInput(Input input) {
-    for (auto key : input.keys) {
-        if (m_registeredInputs.contains(key)) {
-            std::cout << "Key: " << key << " already registered to " << input.name << std::endl;
-            return;
-        }
-        m_registeredInputs.insert_or_assign(key, input);
+        fireInputEvent(event);
     }
 }
 
-void InputManager::dispatchKeyDown(SDL_KeyboardEvent& event) {
-    if (event.repeat != 0) return;
-    if (event.keysym.scancode >= MAX_KEYBOARD_KEYS) return;
+void InputManager::fireInputEvent(InputEvent event) {
+    auto& instance = InputManager::get();
 
-    auto key = event.keysym.scancode;
+    instance.currentEvent = event;
 
-    m_keysHeld[key] = true;
-    m_keysDown[key] = true;
-
-    Messenger::fire(EventType::KeyPressed, SDL_GetKeyName(event.keysym.sym));
-
-    if (m_registeredInputs.contains(key)) {
-        auto& input{m_registeredInputs.at(key) };
-
-        m_inputsHeld.insert(&input);
-        m_inputsDown.insert(&input);
-
-//        Messenger::fire(EventType::InputPressed);
-    }
+    Game::get().onInput(&instance.currentEvent);
+    Messenger::fire(EventType::InputEvent);
 }
 
-void InputManager::dispatchKeyUp(SDL_KeyboardEvent& event) {
-    if (event.repeat != 0) return;
-    if (event.keysym.scancode >= MAX_KEYBOARD_KEYS) return;
-
-    auto key = event.keysym.scancode;
-
-    m_keysHeld[key] = false;
-    m_keysUp[key] = true;
-
-    if (m_registeredInputs.contains(key)) {
-        Input& input{m_registeredInputs.at(key) };
-
-        m_inputsHeld.erase(&input);
-        m_inputsUp.insert(&input);
-    }
+InputEvent *InputManager::getCurrentEvent() {
+    return &InputManager::get().currentEvent;
 }
 
-void InputManager::dispatchMouseDown(SDL_MouseButtonEvent &event) {
-    if (event.button >= MAX_MOUSE_BUTTONS) return;
-
-    auto button = event.button;
-
-    m_mouseButtonsHeld[button] = true;
-    m_mouseButtonsDown[button] = true;
-
-    // Fire mediator
-
-    // Update inputs
-}
-
-void InputManager::dispatchMouseUp(SDL_MouseButtonEvent &event) {
-    if (event.button >= MAX_MOUSE_BUTTONS) return;
-
-    auto button = event.button;
-
-    m_mouseButtonsHeld[button] = false;
-    m_mouseButtonsUp[button] = true;
-
-    // Update inputs
-}
-
-void InputManager::dispatchMouseMove(SDL_MouseMotionEvent &event) {
-    m_mousePos.x = (float)event.x;
-    m_mousePos.y = (float)event.y;
-}
-
-void InputManager::dispatchMouseScroll(SDL_MouseWheelEvent &event) {
-    m_scrollAmount = event.y;
-}
-
-void InputManager::clearKeys() {
-    std::fill(std::begin(m_keysDown ), std::end(m_keysDown ), false );
-    std::fill(std::begin(m_keysUp ), std::end(m_keysUp ), false );
-
-    std::fill(std::begin(m_mouseButtonsDown ), std::end(m_mouseButtonsDown ), false );
-    std::fill(std::begin(m_mouseButtonsUp ), std::end(m_mouseButtonsUp ), false );
-
-    m_inputsDown.clear();
-    m_inputsUp.clear();
-
-    m_scrollAmount = 0;
-}

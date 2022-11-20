@@ -4,24 +4,18 @@
 #include "Renderer.h"
 #include "entities/Entity.h"
 #include "constants/world.h"
-#include "AssetManager.h"
 #include "Root.h"
 
-COMPONENT RenderComponent::getId() { return RENDER_COMPONENT; }
-COMPONENT RenderComponent::getType() { return RENDER_COMPONENT; }
-std::set<COMPONENT> RenderComponent::getRequiredComponents() {
-    return {};
-}
-
 RenderComponent::RenderComponent(Entity *entity) : Component(entity) {}
-RenderComponent::RenderComponent(Entity *entity, std::string _spritePath) : RenderComponent(
-    entity, std::move(_spritePath), Rectangle{0, 0, 1, 1}
-) {}
-
-RenderComponent::RenderComponent(Entity* entity, std::string _spritePath, Rectangle source) : Component(entity) {
+RenderComponent::RenderComponent(Entity *entity, std::string _spritePath)
+    : RenderComponent(entity, std::move(_spritePath), Rectangle{0, 0, 1, 1}) {}
+RenderComponent::RenderComponent(Entity* entity, std::string _spritePath, Rectangle source)
+    : Component(entity) {
     setSprite(std::move(_spritePath));
     setSource(source);
 }
+
+COMPONENT RenderComponent::getId() { return RENDER_COMPONENT; }
 
 void RenderComponent::start() {
     Component::start();

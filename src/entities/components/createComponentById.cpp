@@ -4,6 +4,9 @@
 #include "RenderComponent.h"
 #include "TileObjectComponent.h"
 #include "ElevationComponent.h"
+#include "PhysicsComponent.h"
+#include "MoveComponent.h"
+#include "PathFollowComponent.h"
 
 Component* createComponentById(COMPONENT id, Entity *entity) {
     switch(id) {
@@ -16,6 +19,15 @@ Component* createComponentById(COMPONENT id, Entity *entity) {
         case ELEVATION_COMPONENT:
             entity->addComponent(std::make_unique<ElevationComponent>(entity));
             return entity->getComponent<ElevationComponent>();
+        case PHYSICS_COMPONENT:
+            entity->addComponent(std::make_unique<PhysicsComponent>(entity));
+            return entity->getComponent<PhysicsComponent>();
+        case MOVE_COMPONENT:
+            entity->addComponent(std::make_unique<MoveComponent>(entity));
+            return entity->getComponent<MoveComponent>();
+        case PATH_FOLLOW_COMPONENT:
+            entity->addComponent(std::make_unique<PathFollowComponent>(entity));
+            return entity->getComponent<PathFollowComponent>();
         default:
             return nullptr;
     }

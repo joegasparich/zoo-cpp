@@ -31,6 +31,14 @@ inline float lerp(float from, float to, float pct) {
     return from + (to - from) * pct;
 }
 
+inline int flr(float a) {
+    return int(floor(a));
+}
+
+inline int clg(float a) {
+    return int(ceil(a));
+}
+
 // Extended min max (stolen from glm)
 template<typename T>
 inline T min(T const& x, T const& y, T const& z) {
@@ -147,14 +155,6 @@ inline Cell round(Vector2 a) {
         long(std::round(a.x)),
         long(std::round(a.y))
     };
-}
-
-inline int flr(float a) {
-    return int(floor(a));
-}
-
-inline int clg(float a) {
-    return int(ceil(a));
 }
 
 inline Cell flr(Vector2 a) {

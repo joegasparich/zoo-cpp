@@ -16,16 +16,21 @@ void Entity::setup() {
     }
 }
 
-void Entity::update() {
-    // Temp
-//    float inputHorizontal = float(IsKeyDown(KEY_D)) - float(IsKeyDown(KEY_A));
-//    float inputVertical = float(IsKeyDown(KEY_S)) - float(IsKeyDown(KEY_W));
-//
-//    pos.x += inputHorizontal * 0.5f;
-//    pos.y += inputVertical * 0.5f;
+void Entity::preUpdate() {
+    for (auto &component: components) {
+        component.second->preUpdate();
+    }
+}
 
+void Entity::update() {
     for (auto &component: components) {
         component.second->update();
+    }
+}
+
+void Entity::postUpdate() {
+    for (auto &component: components) {
+        component.second->postUpdate();
     }
 }
 

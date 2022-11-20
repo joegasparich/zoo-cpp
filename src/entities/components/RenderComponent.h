@@ -6,13 +6,13 @@
 
 class RenderComponent : public Component {
 public:
-    COMPONENT getId() override;
-    COMPONENT getType() override;
-    std::set<COMPONENT> getRequiredComponents() override;
+    typedef RenderComponent base;
 
     RenderComponent(Entity* entity);
     RenderComponent(Entity* entity, std::string spritePath);
     RenderComponent(Entity* entity, std::string spritePath, Rectangle source);
+
+    COMPONENT getId() override;
 
     void start() override;
     void render(double step) override;

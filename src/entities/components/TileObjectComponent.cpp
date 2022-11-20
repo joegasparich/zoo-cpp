@@ -4,14 +4,11 @@
 #include "TileObjectComponent.h"
 #include "Root.h"
 
-COMPONENT TileObjectComponent::getId() { return TILE_OBJECT_COMPONENT; }
-COMPONENT TileObjectComponent::getType() { return TILE_OBJECT_COMPONENT; }
-std::set<COMPONENT> TileObjectComponent::getRequiredComponents() {
-    return { RENDER_COMPONENT };
-}
-
 TileObjectComponent::TileObjectComponent(Entity *entity) : Component(entity) {}
-TileObjectComponent::TileObjectComponent(Entity *entity, ObjectData data) : Component(entity), data(std::move(data)) {}
+TileObjectComponent::TileObjectComponent(Entity *entity, ObjectData data)
+    : Component(entity), data(std::move(data)) {}
+
+COMPONENT TileObjectComponent::getId() { return TILE_OBJECT_COMPONENT; }
 
 void TileObjectComponent::start() {
     Component::start();

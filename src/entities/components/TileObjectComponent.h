@@ -5,12 +5,12 @@
 
 class TileObjectComponent : public Component {
 public:
-    COMPONENT getId() override;
-    COMPONENT getType() override;
-    std::set<COMPONENT> getRequiredComponents() override;
+    typedef TileObjectComponent base;
 
     TileObjectComponent(Entity *entity);
     TileObjectComponent(Entity *entity, ObjectData data);
+
+    COMPONENT getId() override;
 
     void start() override;
 

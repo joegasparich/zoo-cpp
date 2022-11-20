@@ -14,7 +14,9 @@ public:
     Vector2 pos;
 
     void setup();
+    void preUpdate();
     void update();
+    void postUpdate();
     void render(double step) const;
 
     template<typename T>
@@ -34,6 +36,7 @@ public:
 private:
     unsigned int id;
     TypeMap<std::unique_ptr<Component>> components;
+    TypeMap<Component*> baseComponents;
     bool hasStarted;
 };
 

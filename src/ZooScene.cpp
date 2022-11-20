@@ -1,7 +1,10 @@
 #include "ZooScene.h"
 #include "entities/components/RenderComponent.h"
 #include "constants/assets.h"
-#include "entities/entityGenerators.h"
+#include "entities/components/PhysicsComponent.h"
+#include "entities/components/MoveComponent.h"
+#include "entities/components/PathFollowComponent.h"
+#include "Debug.h"
 
 ZooScene::ZooScene() : Scene(ZOO) {}
 ZooScene::~ZooScene() {}
@@ -11,16 +14,16 @@ void ZooScene::start() {
 
     zoo->setup();
 
-//    // temp
-//    auto test = std::make_unique<Entity>();
-//    test->addComponent(std::make_unique<RenderComponent>(
-//        test.get(),
-//        IMG_KEEPER
-//    ));
-//    zoo->registerEntity(std::move(test));
-//
-//    auto building = createTileObject(OBJ_BUILDING, {5, 5});
-//    zoo->registerEntity(std::move(building));
+    // temp
+    auto test = std::make_unique<Entity>();
+    test->addComponent(std::make_unique<RenderComponent>(
+        test.get(),
+        IMG_KEEPER
+    ));
+    test->addComponent(std::make_unique<PathFollowComponent>(test.get()));
+    test->addComponent(std::make_unique<PhysicsComponent>(test.get()));
+    test->addComponent(std::make_unique<MoveComponent>(test.get()));
+    manId = zoo->registerEntity(std::move(test));
 }
 
 void ZooScene::preUpdate() {
@@ -41,6 +44,21 @@ void ZooScene::render(double step) {
 
 void ZooScene::renderLate(double step) {
     zoo->renderLate(step);
+
+    // Temp
+    auto man = zoo->getEntityById(manId);
+    if (!man) return;
+    auto path = man->getComponent<PathFollowComponent>()->getPath();
+    if (!path.empty()) {
+        for (int i = 1; i < path.size(); i++) {
+            Debug::drawLine(
+                path[i -1] + Vector2{0.5f, 0.5f},
+                path[i] + Vector2{0.5f, 0.5f},
+                RED,
+                true
+            );
+        }
+    }
 }
 
 void ZooScene::onGUI() {
@@ -49,6 +67,12 @@ void ZooScene::onGUI() {
 
 void ZooScene::onInput(InputEvent* event) {
     zoo->onInput(event);
+
+    if (event->consumed) return;
+
+    if (event->mouseButtonDown == MOUSE_BUTTON_LEFT) {
+        zoo->getEntityById(manId)->getComponent<PathFollowComponent>()->pathTo(event->mouseWorldPos);
+    }
 }
 
 void ZooScene::stop() {

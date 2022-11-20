@@ -1,13 +1,9 @@
 #include "Root.h"
 #include "ElevationComponent.h"
 
-COMPONENT ElevationComponent::getId() { return ELEVATION_COMPONENT; }
-COMPONENT ElevationComponent::getType() { return ELEVATION_COMPONENT; }
-std::set<COMPONENT> ElevationComponent::getRequiredComponents() {
-    return { RENDER_COMPONENT };
-}
-
 ElevationComponent::ElevationComponent(Entity *entity) : Component(entity) {}
+
+COMPONENT ElevationComponent::getId() { return ELEVATION_COMPONENT; }
 
 void ElevationComponent::start() {
     Component::start();

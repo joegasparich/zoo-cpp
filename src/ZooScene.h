@@ -28,5 +28,6 @@ public:
 
     // Temp
     Texture texture;
+    unsigned int manId;
 };
 

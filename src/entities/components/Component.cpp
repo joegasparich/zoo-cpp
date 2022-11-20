@@ -7,13 +7,6 @@ Component::Component(Entity* entity) {
 
 void Component::start() {
     hasStarted = true;
-
-    for (auto component: getRequiredComponents()) {
-        // TODO: Check component exists
-        if (!entity->hasComponent(component)) {
-            std::cout << "Component " << component << " is required by " << getType() << std::endl;
-        }
-    }
 }
 
 void Component::preUpdate() {}

@@ -2,6 +2,7 @@
 
 #include <unordered_map>
 
+// https://gpfault.net/posts/mapping-types-to-values.txt.html
 template <class ValueType>
 class TypeMap {
     // Internally, we'll use a hash table to store mapping from type

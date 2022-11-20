@@ -39,6 +39,12 @@ void Zoo::setup() {
     camera.offset = {SCREEN_WIDTH/2, SCREEN_HEIGHT/2};
 }
 
+void Zoo::preUpdate() {
+    for (auto& pair: entities) {
+        pair.second->preUpdate();
+    }
+}
+
 void Zoo::update() {
     tools->update();
     world->update();
@@ -79,14 +85,13 @@ void Zoo::update() {
     camera.zoom = exp(lerp(log(MIN_ZOOM), log(MAX_ZOOM), normalisedZoomLog + zoomDelta));
     camera.zoom = Clamp(camera.zoom, MIN_ZOOM, MAX_ZOOM);
 }
-
-void Zoo::preUpdate() {
-
-}
-
 void Zoo::postUpdate() {
     world->postUpdate();
     tools->postUpdate();
+
+    for (auto& pair: entities) {
+        pair.second->postUpdate();
+    }
 
     for (auto& entity : entitiesToAdd) {
         entity->setup();
@@ -116,16 +121,6 @@ void Zoo::renderLate(double step) const {
     Profiler::startTimer("debug");
     world->renderDebug();
     Profiler::stopTimer("debug");
-
-    // Temp
-    for (int i = 1; i < path.size(); i++) {
-        Debug::drawLine(
-            path[i -1] + Vector2{0.5f, 0.5f},
-            path[i] + Vector2{0.5f, 0.5f},
-            RED,
-            true
-        );
-    }
 }
 
 void Zoo::onGUI() {
@@ -136,17 +131,6 @@ void Zoo::onInput(InputEvent* event) {
     tools->onInput(event);
 
     if (event->consumed) return;
-
-    if (event->mouseButtonDown == MOUSE_BUTTON_LEFT && world->isPositionInMap(event->mouseWorldPos)) {
-        if (endNext) {
-            pathEnd = flr(event->mouseWorldPos);
-        } else {
-            pathStart = flr(event->mouseWorldPos);
-        }
-
-        endNext = !endNext;
-        path = world->pathfinder->getPath(pathStart, pathEnd);
-    }
 }
 
 void Zoo::cleanup() {
@@ -209,6 +193,9 @@ void Zoo::unregisterEntity(unsigned int entityId) {
 }
 
 Entity *Zoo::getEntityById(unsigned int entityId) {
+    if (entities.empty() || entities.size() < entityId)
+        return nullptr;
+
     auto& ptr = entities.at(entityId);
     if (ptr) return ptr.get();
     return nullptr;

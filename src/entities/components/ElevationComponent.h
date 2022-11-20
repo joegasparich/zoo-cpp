@@ -6,11 +6,11 @@
 
 class ElevationComponent : public Component {
 public:
-    COMPONENT getId() override;
-    COMPONENT getType() override;
-    std::set<COMPONENT> getRequiredComponents() override;
-
+    typedef ElevationComponent base;
+    
     ElevationComponent(Entity *entity);
+    COMPONENT getId() override;
+
 
     void start() override;
     void update() override;

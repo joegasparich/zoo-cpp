@@ -23,8 +23,12 @@ inline T clamp(T val, T minVal, T maxVal) {
     return std::min(std::max(val, minVal), maxVal);
 }
 
-inline float lerp(float start, float end, float percent) {
-    return start + (end - start) * percent;
+inline float normalise(float val, float min, float max) {
+    return (val - min) / (max - min);
+}
+
+inline float lerp(float from, float to, float pct) {
+    return from + (to - from) * pct;
 }
 
 // Extended min max (stolen from glm)

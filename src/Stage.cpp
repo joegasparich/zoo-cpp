@@ -6,6 +6,7 @@
 
 #define MIN_ZOOM 0.5f
 #define MAX_ZOOM 10.0f
+#define ZOOM_RATE 0.005f
 #define CAMERA_SPEED 2
 
 // TODO: This should probably be renamed Zoo and Zoo to ZooScene
@@ -35,6 +36,7 @@ void Stage::setup() {
     auto &camera = Root::renderer().camera;
     dragStart = GetMousePosition();
     dragCameraOrigin = camera.target;
+    camera.offset = {SCREEN_WIDTH/2, SCREEN_HEIGHT/2};
 }
 
 void Stage::update() {
@@ -65,22 +67,17 @@ void Stage::update() {
     }
 
     // Camera zoom
-    if (IsKeyDown(KEY_COMMA)) camera.zoom = exp(lerp(log(camera.zoom), log(MAX_ZOOM), 0.01));
-    if (IsKeyDown(KEY_PERIOD)) camera.zoom = exp(lerp(log(camera.zoom), log(MIN_ZOOM), 0.01));
+    float zoomDelta = GetMouseWheelMove() / 10.0f;
 
-    // TODO: Make this less janky
-    int scroll = GetMouseWheelMove() * 10;
-    while (scroll != 0) {
-        auto dir = sign(scroll);
-        auto mouseWorldPos = Root::renderer().screenToWorldPos(GetMousePosition());
-        auto oldScale = camera.zoom;
-        camera.zoom = Clamp(float(camera.zoom + (float(dir) * log(camera.zoom + 1) * 0.05f)), MIN_ZOOM, MAX_ZOOM);
-        // TODO: figure out how to reposition in order to maintain previous mouse world pos
-        if (camera.zoom != oldScale) {
-            camera.target += (mouseWorldPos - camera.target) * 0.03f * float(dir);
-        }
-        scroll -= dir;
-    }
+    if (IsKeyDown(KEY_COMMA)) zoomDelta += ZOOM_RATE;
+    if (IsKeyDown(KEY_PERIOD)) zoomDelta -= ZOOM_RATE;
+
+    // TODO: Zoom towards mouse
+
+    // Do zoom
+    auto normalisedZoomLog = normalise(log(camera.zoom), log(MIN_ZOOM), log(MAX_ZOOM));
+    camera.zoom = exp(lerp(log(MIN_ZOOM), log(MAX_ZOOM), normalisedZoomLog + zoomDelta));
+    camera.zoom = Clamp(camera.zoom, MIN_ZOOM, MAX_ZOOM);
 }
 
 void Stage::preUpdate() {

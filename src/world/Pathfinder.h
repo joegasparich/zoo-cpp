@@ -22,6 +22,7 @@ public:
     Pathfinder(unsigned int width, unsigned int height);
 
     std::vector<Cell> getPath(Cell from, Cell to);
+    void setAccessibility(Cell tile, bool accessible);
     void setAccessibility(Cell tile, Direction direction, bool accessible);
     bool isAccessible(Cell tile);
 

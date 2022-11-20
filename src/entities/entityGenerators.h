@@ -4,7 +4,8 @@
 #include "Entity.h"
 #include "components/RenderComponent.h"
 #include "components/TileObjectComponent.h"
-#include "entities/components/ElevationComponent.h"
+#include "components/ElevationComponent.h"
+#include "components/SolidComponent.h"
 
 inline std::unique_ptr<Entity> createTileObject(const std::string& assetPath, Vector2 position) {
     if (!Root::zoo()->world->isPositionInMap(position)) return nullptr;
@@ -33,10 +34,13 @@ inline std::unique_ptr<Entity> createTileObject(const std::string& assetPath, Ve
         });
     }
 
-    // scale
-    // solid
+    auto tileObject = entity->addComponent(std::make_unique<TileObjectComponent>(entity.get(), data));
 
-    entity->addComponent(std::make_unique<TileObjectComponent>(entity.get(), data));
+    // scale
+    if (data.solid) {
+        auto solid = entity->addComponent(std::make_unique<SolidComponent>(entity.get()));
+        solid->setTiles(tileObject->getTiles());
+    }
     entity->addComponent(std::make_unique<ElevationComponent>(entity.get()));
 
     return entity;

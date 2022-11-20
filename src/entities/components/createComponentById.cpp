@@ -4,6 +4,7 @@
 #include "RenderComponent.h"
 #include "TileObjectComponent.h"
 #include "ElevationComponent.h"
+#include "SolidComponent.h"
 
 Component* createComponentById(COMPONENT id, Entity *entity) {
     switch(id) {
@@ -16,6 +17,9 @@ Component* createComponentById(COMPONENT id, Entity *entity) {
         case ELEVATION_COMPONENT:
             entity->addComponent(std::make_unique<ElevationComponent>(entity));
             return entity->getComponent<ElevationComponent>();
+        case SOLID_COMPONENT:
+            entity->addComponent(std::make_unique<SolidComponent>(entity));
+            return entity->getComponent<SolidComponent>();
         default:
             return nullptr;
     }

@@ -87,7 +87,7 @@ void World::registerTileObject(Entity *tileObject) {
 }
 
 void World::unregisterTileObject(Entity *tileObject) {
-
+    // TODO
 }
 
 Entity *World::getTileObjectAtPosition(Vector2 pos) {

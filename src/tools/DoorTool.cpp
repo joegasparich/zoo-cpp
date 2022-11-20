@@ -23,7 +23,7 @@ void DoorTool::onInput(InputEvent* event) {
         auto mouseQuadrant = World::getQuadrantAtPos(mousePos);
 
         if (toolManager.ghost->canPlace) {
-            Root::zoo()->world->wallGrid->placeDoor(Root::zoo()->world->wallGrid->getWallAtTile(floor(mousePos), mouseQuadrant));
+            Root::zoo()->world->wallGrid->placeDoor(Root::zoo()->world->wallGrid->getWallAtTile(flr(mousePos), mouseQuadrant));
         }
     }
 }
@@ -34,7 +34,7 @@ void DoorTool::update() {
     auto mousePos = Root::renderer().screenToWorldPos(GetMousePosition());
     auto mouseQuadrant = World::getQuadrantAtPos(mousePos);
 
-    updateGhostSprite(*toolManager.ghost, floor(mousePos), mouseQuadrant);
+    updateGhostSprite(*toolManager.ghost, flr(mousePos), mouseQuadrant);
 }
 
 void DoorTool::updateGhostSprite(ToolGhost &ghost, Cell tilePos, Side quadrant) {

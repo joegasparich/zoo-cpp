@@ -33,7 +33,7 @@ void ToolGhost::render() {
         pos = Root::renderer().screenToWorldPos(GetMousePosition());
     }
     if (snap) {
-        pos = floor(pos);
+        pos = flr(pos);
     }
 
     if (!visible) return;

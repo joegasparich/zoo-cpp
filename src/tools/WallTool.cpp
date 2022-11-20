@@ -27,7 +27,7 @@ void WallTool::set() {
 void WallTool::onInput(InputEvent* event) {
     if (event->mouseButtonDown == MOUSE_BUTTON_LEFT) {
         isDragging = true;
-        dragTile = floor(event->mouseWorldPos);
+        dragTile = flr(event->mouseWorldPos);
         dragQuadrant = World::getQuadrantAtPos(event->mouseWorldPos);
 
         event->consume();
@@ -42,7 +42,7 @@ void WallTool::onInput(InputEvent* event) {
         while (ghosts.size() > 0) {
             auto& ghost = ghosts.back();
             if (ghost->canPlace) {
-                Root::zoo()->world->wallGrid->placeWallAtTile(currentWall, floor(ghost->pos), dragQuadrant);
+                Root::zoo()->world->wallGrid->placeWallAtTile(currentWall, flr(ghost->pos), dragQuadrant);
             }
             ghosts.pop_back();
         }
@@ -63,8 +63,8 @@ void WallTool::update() {
         // Dragging
         toolManager.ghost->visible = false;
 
-        auto xDif = floor(mousePos).x - dragTile.x;
-        auto yDif = floor(mousePos).y - dragTile.y;
+        auto xDif = flr(mousePos).x - dragTile.x;
+        auto yDif = flr(mousePos).y - dragTile.y;
         auto horizontal = dragQuadrant == Side::North || dragQuadrant == Side::South;
         auto length = (horizontal ? abs(xDif) : abs(yDif)) + 1;
 
@@ -86,9 +86,9 @@ void WallTool::update() {
             updateGhostSprite(*ghost, {long(i), long(j)}, dragQuadrant);
 
             if (horizontal) {
-                i += sign(floor(mousePos).x - i);
+                i += sign(flr(mousePos).x - i);
             } else {
-                j += sign(floor(mousePos).y - j);
+                j += sign(flr(mousePos).y - j);
             }
         }
 
@@ -99,7 +99,7 @@ void WallTool::update() {
     } else {
         toolManager.ghost->visible = true;
 
-        updateGhostSprite(*toolManager.ghost, floor(mousePos), mouseQuadrant);
+        updateGhostSprite(*toolManager.ghost, flr(mousePos), mouseQuadrant);
     }
 }
 

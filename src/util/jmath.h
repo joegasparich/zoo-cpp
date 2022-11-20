@@ -149,13 +149,21 @@ inline Cell round(Vector2 a) {
     };
 }
 
-inline Cell floor(Vector2 a) {
+inline int flr(float a) {
+    return int(floor(a));
+}
+
+inline int clg(float a) {
+    return int(ceil(a));
+}
+
+inline Cell flr(Vector2 a) {
     return {
         long(std::floor(a.x)),
         long(std::floor(a.y))
     };
 }
-inline Cell ceil(Vector2 a) {
+inline Cell clg(Vector2 a) {
     return {
         long(std::ceil(a.x)),
         long(std::ceil(a.y))

@@ -19,6 +19,6 @@ public:
     json save() override;
     void load(json data) override;
 
-    ObjectData m_data;
+    ObjectData data;
 private:
 };

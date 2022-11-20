@@ -38,7 +38,7 @@ void TileObjectTool::onInput(InputEvent* event) {
 void TileObjectTool::update() {
     if (!currentObject) return;
     auto& elevationGrid = Root::zoo()->world->elevationGrid;
-    auto mousePos = floor(Root::renderer().screenToWorldPos(GetMousePosition()));
+    auto mousePos = flr(Root::renderer().screenToWorldPos(GetMousePosition()));
 
     toolManager.ghost->visible = true;
     toolManager.ghost->canPlace = true;

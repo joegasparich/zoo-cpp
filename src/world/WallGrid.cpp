@@ -94,7 +94,7 @@ void WallGrid::deleteWall(Wall wall) {
     if (!isSetup) return;
 
     this->deleteWallAtTile(
-        floor(wall.worldPos),
+        flr(wall.worldPos),
         wall.orientation == Orientation::Horizontal ? Side::North : Side::West
     );
 }
@@ -342,13 +342,13 @@ std::array<Cell, 2> WallGrid::getWallVertices(const Wall &wall) {
     switch (wall.orientation) {
         case Orientation::Horizontal:
             return {
-                floor(Vector2{wall.worldPos.x - 0.5f, wall.worldPos.y}),
-                floor(Vector2{wall.worldPos.x + 0.5f, wall.worldPos.y})
+                flr(Vector2{wall.worldPos.x - 0.5f, wall.worldPos.y}),
+                flr(Vector2{wall.worldPos.x + 0.5f, wall.worldPos.y})
             };
         case Orientation::Vertical:
             return {
-                floor(Vector2{wall.worldPos.x, wall.worldPos.y - 0.5f}),
-                floor(Vector2{wall.worldPos.x, wall.worldPos.y + 0.5f})
+                flr(Vector2{wall.worldPos.x, wall.worldPos.y - 0.5f}),
+                flr(Vector2{wall.worldPos.x, wall.worldPos.y + 0.5f})
             };
     }
 }

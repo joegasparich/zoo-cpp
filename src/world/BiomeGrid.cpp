@@ -307,7 +307,7 @@ void BiomeGrid::load(json saveData) {
 }
 
 float BiomeGrid::getQuadrantSlopeColour(Vector2 pos, Side quadrant) {
-    auto slopeVariant = Root::zoo()->world->elevationGrid->getTileSlopeVariant(floor(pos / 2.0f));
+    auto slopeVariant = Root::zoo()->world->elevationGrid->getTileSlopeVariant(flr(pos / 2.0f));
 
     float F = 0.0f;
     float NW = 1.0f, N = 0.75f, W = 0.5f, NE = 0.25f;

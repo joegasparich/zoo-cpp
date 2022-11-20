@@ -2,19 +2,20 @@
 
 #include "common.h"
 #include "Component.h"
-#include "RenderComponent.h"
 
-class ElevationComponent : public Component {
+class SolidComponent : public Component {
 public:
+    SolidComponent(Entity* entity);
+
     COMPONENT getId() override;
     COMPONENT getType() override;
     std::set<COMPONENT> getRequiredComponents() override;
 
-    ElevationComponent(Entity *entity);
-
     void start() override;
-    void update() override;
+    void end() override;
+
+    void setTiles(std::vector<Cell> tiles);
 
 private:
-    RenderComponent* renderer;
+    std::vector<Cell> tiles;
 };

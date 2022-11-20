@@ -87,7 +87,7 @@ void ElevationGrid::setElevationInCircle(Vector2 pos, float radius, Elevation el
 
     for (float i = pos.x - radius; i <= pos.x + radius; i++) {
         for (float j = pos.y - radius; j <= pos.y + radius; j++) {
-            auto gridPos = floor({i, j});
+            auto gridPos = flr({i, j});
             if (!isPositionInGrid(gridPos)) continue;
 
             if (pointInCircle(pos, radius, gridPos)) {
@@ -164,7 +164,7 @@ bool ElevationGrid::canElevate(Cell gridPos, Elevation elevation) {
             auto entity = Root::zoo()->world->getTileObjectAtPosition(tile);
             if (entity) {
                 auto tileObject = entity->getComponent<TileObjectComponent>();
-                if (tileObject && !tileObject->m_data.canPlaceInWater) return false;
+                if (tileObject && !tileObject->data.canPlaceInWater) return false;
             }
             // Check for paths
             if (Root::zoo()->world->pathGrid->getPathAtTile(tile)->exists) return false;
@@ -178,7 +178,7 @@ bool ElevationGrid::canElevate(Cell gridPos, Elevation elevation) {
             auto entity = Root::zoo()->world->getTileObjectAtPosition(tile);
             if (entity) {
                 auto tileObject = entity->getComponent<TileObjectComponent>();
-                if (tileObject && !tileObject->m_data.canPlaceOnSlopes) return false;
+                if (tileObject && !tileObject->data.canPlaceOnSlopes) return false;
             }
             // Check for paths
             // TODO: Figure out if points are being elevated in a way where this is valid
@@ -350,8 +350,8 @@ float ElevationGrid::getElevationAtPos(Vector2 pos) {
 
     float relX = float(fmod(pos.x, 1));
     float relY = float(fmod(pos.y, 1));
-    float baseElevation = float(getTileBaseElevation(floor(pos)));
-    auto slopeVariant = getTileSlopeVariant(floor(pos));
+    float baseElevation = float(getTileBaseElevation(flr(pos)));
+    auto slopeVariant = getTileSlopeVariant(flr(pos));
 
     // Tried to come up with a formula instead of using enums but I'm too dumb
     switch (slopeVariant) {
@@ -406,21 +406,21 @@ bool ElevationGrid::isPositionInGrid(Vector2 pos) const {
 }
 
 bool ElevationGrid::isPositionSloped(Vector2 pos) {
-    return getTileSlopeVariant(floor(pos)) != SlopeVariant::Flat;
+    return getTileSlopeVariant(flr(pos)) != SlopeVariant::Flat;
 }
 
 bool ElevationGrid::isPositionSlopeCorner(Vector2 pos) {
     return (
-        getTileSlopeVariant(floor(pos)) != SlopeVariant::Flat &&
-        getTileSlopeVariant(floor(pos)) != SlopeVariant::N &&
-        getTileSlopeVariant(floor(pos)) != SlopeVariant::S &&
-        getTileSlopeVariant(floor(pos)) != SlopeVariant::E &&
-        getTileSlopeVariant(floor(pos)) != SlopeVariant::W
+        getTileSlopeVariant(flr(pos)) != SlopeVariant::Flat &&
+        getTileSlopeVariant(flr(pos)) != SlopeVariant::N &&
+        getTileSlopeVariant(flr(pos)) != SlopeVariant::S &&
+        getTileSlopeVariant(flr(pos)) != SlopeVariant::E &&
+            getTileSlopeVariant(flr(pos)) != SlopeVariant::W
     );
 }
 
 bool ElevationGrid::isPositionWater(Vector2 pos) {
-    return isTileWater(floor(pos));
+    return isTileWater(flr(pos));
 }
 
 bool ElevationGrid::isTileWater(Cell pos) {

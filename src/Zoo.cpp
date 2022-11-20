@@ -116,7 +116,7 @@ void Zoo::render(double step) const {
         Debug::drawLine(
             path[i -1] + Vector2{0.5f, 0.5f},
             path[i] + Vector2{0.5f, 0.5f},
-            {0, 0, 255, 255},
+            RED,
             true
         );
     }
@@ -133,9 +133,9 @@ void Zoo::onInput(InputEvent* event) {
 
     if (event->mouseButtonDown == MOUSE_BUTTON_LEFT && world->isPositionInMap(event->mouseWorldPos)) {
         if (endNext) {
-            pathEnd = floor(event->mouseWorldPos);
+            pathEnd = flr(event->mouseWorldPos);
         } else {
-            pathStart = floor(event->mouseWorldPos);
+            pathStart = flr(event->mouseWorldPos);
         }
 
         endNext = !endNext;

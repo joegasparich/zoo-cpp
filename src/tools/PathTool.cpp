@@ -28,7 +28,7 @@ void PathTool::set() {
 void PathTool::onInput(InputEvent* event) {
     if (event->mouseButtonDown == MOUSE_BUTTON_LEFT) {
         isDragging = true;
-        dragTile = floor(Root::renderer().screenToWorldPos(event->mousePos));
+        dragTile = flr(Root::renderer().screenToWorldPos(event->mousePos));
     }
 
     if (event->mouseButtonUp == MOUSE_BUTTON_LEFT) {
@@ -37,7 +37,7 @@ void PathTool::onInput(InputEvent* event) {
         while (ghosts.size() > 0) {
             auto& ghost = ghosts.back();
             if (ghost->canPlace) {
-                Root::zoo()->world->pathGrid->placePathAtTile(currentPath, floor(ghost->pos));
+                Root::zoo()->world->pathGrid->placePathAtTile(currentPath, flr(ghost->pos));
             }
             ghosts.pop_back();
         }
@@ -55,8 +55,8 @@ void PathTool::update() {
         // Dragging
         toolManager.ghost->visible = false;
 
-        auto xDif = floor(mousePos).x - dragTile.x;
-        auto yDif = floor(mousePos).y - dragTile.y;
+        auto xDif = flr(mousePos).x - dragTile.x;
+        auto yDif = flr(mousePos).y - dragTile.y;
         auto horizontal = abs(xDif) > abs(yDif);
         auto length = (horizontal ? abs(xDif) : abs(yDif)) + 1;
 
@@ -78,9 +78,9 @@ void PathTool::update() {
             updateGhostSprite(*ghost);
 
             if (horizontal) {
-                i += sign(floor(mousePos).x - i);
+                i += sign(flr(mousePos).x - i);
             } else {
-                j += sign(floor(mousePos).y - j);
+                j += sign(flr(mousePos).y - j);
             }
         }
 

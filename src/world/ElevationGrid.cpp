@@ -134,14 +134,17 @@ void ElevationGrid::generateWaterMesh() {
         for (int j = 0; j < rows - 1; ++j) {
             if (getTileBaseElevation({i, j}) < 0) {
                 auto tile = getTileWaterVertices({i, j});
-                // Centre
-                tile.insert(tile.begin(), {0.5f, 0.5f});
-
+                Vector2 average = {0, 0};
                 auto poly = std::vector<Vector2>{};
                 for (auto v : tile) {
                     poly.push_back({(i + v.x) * WORLD_SCALE, (j + v.y) * WORLD_SCALE});
+                    average += poly.back();
                 }
+                // Centre
+                poly.insert(poly.begin(), {average.x/poly.size(), average.y/poly.size()});
+                // Join start and end
                 poly.push_back(poly[1]);
+
 
                 polygons.push_back(poly);
             }
@@ -290,12 +293,10 @@ std::vector<Vector2> ElevationGrid::getTileWaterVertices(Cell gridPos) {
         case SlopeVariant::INW:
             vertices.push_back({0.0f, 0.0f});
             vertices.push_back({0.0f, 1.0f - WATER_LEVEL});
-            vertices.push_back({1.0f - WATER_LEVEL, 1.0f - WATER_LEVEL});
             vertices.push_back({1.0f - WATER_LEVEL, 0.0f});
             break;
         case SlopeVariant::INE:
             vertices.push_back({WATER_LEVEL, 0.0f});
-            vertices.push_back({WATER_LEVEL, 1.0f - WATER_LEVEL});
             vertices.push_back({1.0f, 1.0f - WATER_LEVEL});
             vertices.push_back({1.0f, 0.0f});
             break;
@@ -303,10 +304,8 @@ std::vector<Vector2> ElevationGrid::getTileWaterVertices(Cell gridPos) {
             vertices.push_back({0.0f, WATER_LEVEL});
             vertices.push_back({0.0f, 1.0f});
             vertices.push_back({1.0f - WATER_LEVEL, 1.0f});
-            vertices.push_back({1.0f - WATER_LEVEL, WATER_LEVEL});
             break;
         case SlopeVariant::ISE:
-            vertices.push_back({WATER_LEVEL, WATER_LEVEL});
             vertices.push_back({WATER_LEVEL, 1.0f});
             vertices.push_back({1.0f, 1.0f});
             vertices.push_back({1.0f, WATER_LEVEL});
@@ -375,13 +374,13 @@ float ElevationGrid::getElevationAtPos(Vector2 pos) {
         case SlopeVariant::NW:
             return baseElevation + ELEVATION_HEIGHT * std::max(1 - (1 - relX) - (1 - relY), 0.0f);
         case SlopeVariant::ISE:
-            return baseElevation + ELEVATION_HEIGHT * std::max(1 - relX, 1 - relY);
+            return baseElevation + ELEVATION_HEIGHT * std::min(1 - relX + 1 - relY, 1.0f);
         case SlopeVariant::ISW:
-            return baseElevation + ELEVATION_HEIGHT * std::max(relX, 1 - relY);
+            return baseElevation + ELEVATION_HEIGHT * std::min(relX + 1 - relY, 1.0f);
         case SlopeVariant::INE:
-            return baseElevation + ELEVATION_HEIGHT * std::max(1 - relX, relY);
+            return baseElevation + ELEVATION_HEIGHT * std::min(1 - relX + relY, 1.0f);
         case SlopeVariant::INW:
-            return baseElevation + ELEVATION_HEIGHT * std::max(relX, relY);
+            return baseElevation + ELEVATION_HEIGHT * std::min(relX + relY, 1.0f);
         case SlopeVariant::I1:
             return baseElevation + ELEVATION_HEIGHT * std::max(1 - relX - relY, 1 - (1 - relX) - (1 - relY));
         case SlopeVariant::I2:

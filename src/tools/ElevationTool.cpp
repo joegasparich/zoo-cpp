@@ -10,7 +10,8 @@ ElevationTool::~ElevationTool() = default;
 
 void ElevationTool::set() {
     currentElevation = Elevation::Hill;
-    toolManager.ghost->type =  GhostType::Circle;
+    toolManager.ghost->type = GhostType::Circle;
+    toolManager.ghost->elevate = true;
 }
 
 void ElevationTool::onInput(InputEvent* event) {

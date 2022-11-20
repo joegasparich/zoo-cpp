@@ -16,6 +16,7 @@ void BiomeTool::set() {
     currentBiome = Biome::Sand;
     toolManager.ghost->type = GhostType::Circle;
     toolManager.ghost->radius = DEFAULT_RADIUS;
+    toolManager.ghost->elevate = true;
 }
 
 void BiomeTool::onInput(InputEvent* event) {

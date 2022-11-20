@@ -342,21 +342,17 @@ float BiomeGrid::getQuadrantSlopeColour(Vector2 pos, Side quadrant) {
                ? SE
                : F;
         case SlopeVariant::INW:
-            return xRel - yRel < 0 || (xRel - yRel == 0 && (quadrant == Side::South || quadrant == Side::West))
-               ? N
-               : W;
+            if (xRel + yRel > 0.5f) return F;
+            return (xRel + yRel == 0.5f && (quadrant == Side::South || quadrant == Side::East)) ? F : NW;
         case SlopeVariant::INE:
-            return xRel + yRel > 0.5 || (xRel + yRel == 0.5 && (quadrant == Side::South || quadrant == Side::East))
-               ? N
-               : E;
+            if (yRel - xRel >= 0.5f) return F;
+            return (yRel - xRel == 0.0f && (quadrant == Side::South || quadrant == Side::West)) ? F : NE;
         case SlopeVariant::ISW:
-            return xRel + yRel < 0.5 || (xRel + yRel == 0.5 && (quadrant == Side::North || quadrant == Side::West))
-               ? S
-               : W;
+            if (xRel - yRel >= 0.5f) return F;
+            return (xRel - yRel == 0.0f && (quadrant == Side::North || quadrant == Side::East)) ? F : SW;
         case SlopeVariant::ISE:
-            return yRel - xRel < 0 || (yRel - xRel == 0 && (quadrant == Side::North || quadrant == Side::East))
-               ? S
-               : E;
+            if (xRel + yRel < 0.5f) return F;
+            return (xRel + yRel == 0.5f && (quadrant == Side::North || quadrant == Side::West)) ? F : SE;
         case SlopeVariant::I1:
             return xRel + yRel > 0.5 || (xRel + yRel == 0.5 && (quadrant == Side::South || quadrant == Side::East))
                ? NW

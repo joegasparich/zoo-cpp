@@ -17,7 +17,7 @@ Stage::Stage() :
 {
     tools = std::make_unique<ToolManager>();
     // Aim for 200
-    world = std::make_unique<World>(100, 100);
+    world = std::make_unique<World>(10, 10);
 }
 
 Stage::~Stage() {

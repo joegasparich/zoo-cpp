@@ -21,6 +21,7 @@ public:
     void update();
     void postUpdate();
     void render();
+    void renderDebug();
 
     // Functionality
     void registerTileObject(Entity* tileObject);
@@ -38,7 +39,7 @@ public:
     std::vector<Area*> getAreas();
     Area* getAreaById(std::string id);
     Area* getAreaAtPosition(Vector2 pos);
-    bool getTileWalkability(Cell pos);
+    int getTileWalkability(Cell pos);
 
     // Save & Load
     json save();

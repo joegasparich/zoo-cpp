@@ -87,6 +87,12 @@ void Game::render(double step) {
             Profiler::startTimer("blits");
             renderer.sortAndDrawBlits();
             Profiler::stopTimer("blits");
+            Profiler::startTimer("sceneLate");
+            sceneManager.getCurrentScene()->renderLate(step);
+            Profiler::stopTimer("sceneLate");
+            Profiler::startTimer("blitsLate");
+            renderer.sortAndDrawBlits();
+            Profiler::stopTimer("blitsLate");
         }
         EndMode2D();
 

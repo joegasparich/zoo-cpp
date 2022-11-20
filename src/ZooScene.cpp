@@ -39,6 +39,10 @@ void ZooScene::render(double step) {
     zoo->render(step);
 }
 
+void ZooScene::renderLate(double step) {
+    zoo->renderLate(step);
+}
+
 void ZooScene::onGUI() {
     zoo->onGUI();
 }

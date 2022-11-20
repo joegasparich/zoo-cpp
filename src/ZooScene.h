@@ -22,6 +22,8 @@ public:
 
     void onInput(InputEvent* event) override;
 
+    void renderLate(double step) override;
+
     std::unique_ptr<Zoo> zoo;
 
     // Temp

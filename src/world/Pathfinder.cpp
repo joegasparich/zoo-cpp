@@ -88,7 +88,7 @@ std::vector<Cell> Pathfinder::getPath(Cell from, Cell to) {
             // If the successor is already on the closed list then ignore it
             if (closedList[nx][ny]) continue;
 
-            auto gNew = cellDetails[x][y].gCost + 1.0;
+            auto gNew = cellDetails[x][y].gCost + Root::zoo()->world->getTileWalkability({x, y});
             auto hNew = calculateHValue(neighbour, to);
             auto fNew = gNew + hNew;
 
@@ -131,7 +131,6 @@ bool Pathfinder::isAccessible(Cell tilePos) {
     auto tile = tileGrid->at(x).at(y);
 
     if (!tile.accessible) return false;
-    // TODO (optimisation): Cache this
     if (!Root::zoo()->world->getTileWalkability(tilePos)) return false;
 
     // Make sure at least one direction is accessible

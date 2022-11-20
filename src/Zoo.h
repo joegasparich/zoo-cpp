@@ -23,6 +23,7 @@ public:
     void postUpdate();
     void cleanup();
     void render(double step) const;
+    void renderLate(double step) const;
     void onGUI();
     void onInput(InputEvent* event);
 

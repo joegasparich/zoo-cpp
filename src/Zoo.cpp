@@ -106,10 +106,16 @@ void Zoo::render(double step) const {
         pair.second->render(step);
     }
     Profiler::stopTimer("entities");
+}
 
+void Zoo::renderLate(double step) const {
     Profiler::startTimer("tools");
     tools->render();
     Profiler::stopTimer("tools");
+
+    Profiler::startTimer("debug");
+    world->renderDebug();
+    Profiler::stopTimer("debug");
 
     // Temp
     for (int i = 1; i < path.size(); i++) {

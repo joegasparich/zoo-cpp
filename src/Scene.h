@@ -15,6 +15,7 @@ public:
     virtual void update() = 0;
     virtual void postUpdate() = 0;
     virtual void render(double step) = 0;
+    virtual void renderLate(double step) = 0;
     virtual void onGUI() = 0;
     virtual void onInput(InputEvent* event) = 0;
     virtual void stop() = 0;

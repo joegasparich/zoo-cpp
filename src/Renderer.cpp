@@ -32,11 +32,6 @@ float Renderer::getDepth(float yPos) {
 }
 
 void Renderer::blit(BlitOptions opts) {
-    if (renderedBlits) {
-        std::cout << "Tried to blit too late" << std::endl;
-        return;
-    }
-
     blits.push_back(opts);
 }
 
@@ -70,8 +65,6 @@ void Renderer::sortAndDrawBlits() {
     }
 
     blits.clear();
-
-    renderedBlits = true;
 }
 
 Vector2 Renderer::screenToWorldPos(Vector2 screenPos) {

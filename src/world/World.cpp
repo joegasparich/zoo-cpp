@@ -1,6 +1,5 @@
 #include "constants/world.h"
 #include "util/uuid.h"
-#include "util/util.h"
 #include "Debug.h"
 #include "World.h"
 #include "entities/components/TileObjectComponent.h"
@@ -67,14 +66,13 @@ void World::render() {
     Profiler::startTimer("wall");
     wallGrid->render();
     Profiler::stopTimer("wall");
+}
 
-    Profiler::startTimer("debug");
-    // TODO: move somewhere
+void World::renderDebug() {
     if (Root::zoo()->debugSettings.cellGrid) renderDebugCellGrid();
     if (Root::zoo()->debugSettings.elevationGrid) elevationGrid->renderDebug();
     if (Root::zoo()->debugSettings.areaGrid) renderDebugAreaGrid();
     if (Root::zoo()->debugSettings.pathfindingGrid) pathfinder->drawDebugGrid();
-    Profiler::stopTimer("debug");
 }
 
 void World::registerTileObject(Entity *tileObject) {
@@ -255,15 +253,18 @@ std::vector<Cell> World::getAccessibleAdjacentTiles(Cell tile) {
     return adjacentTiles;
 }
 
-// TODO: Return an enum
-bool World::getTileWalkability(Cell pos) {
+// TODO (optimisation): cache tile cost grids (paths, no water, etc.)
+int World::getTileWalkability(Cell pos) {
     if (tileObjectsMap.contains(pos.toString()) && tileObjectsMap.at(pos.toString())->getComponent<TileObjectComponent>()->data.solid)
-        return false;
+        return 0;
 
     if (elevationGrid->getTileBaseElevation(pos) < 0)
-        return false;
+        return 0;
 
-    return true;
+    if (pathGrid->getPathAtTile(pos)->exists)
+        return 1;
+
+    return 3;
 }
 
 void World::renderDebugCellGrid() {

@@ -1,30 +1,49 @@
 #pragma once
 
-#include "Root.h"
 #include "common.h"
-#include "Scene.h"
-#include "Stage.h"
+#include "entities/Entity.h"
+#include "world/World.h"
+#include "tools/ToolManager.h"
 
-#define ZOO "Zoo"
+struct DebugSettings {
+    bool cellGrid = false;
+    bool elevationGrid = false;
+    bool areaGrid = false;
+};
 
-class Zoo : public Scene {
+class Zoo {
 public:
     Zoo();
     virtual ~Zoo();
 
-    void start() override;
-    void preUpdate() override;
-    void update() override;
-    void postUpdate() override;
-    void render(double step) override;
-    void onGUI() override;
-    void stop() override;
+    void setup();
+    void update();
+    void preUpdate();
+    void postUpdate();
+    void cleanup();
+    void render(double step) const;
+    void onGUI();
+    void onInput(InputEvent* event);
 
-    void onInput(InputEvent* event) override;
+    unsigned int registerEntity(std::unique_ptr<Entity> entity);
+    unsigned int registerEntity(std::unique_ptr<Entity> entity, unsigned int id);
+    void unregisterEntity(unsigned int entityId);
+    Entity* getEntityById(unsigned int entityId);
 
-    std::unique_ptr<Stage> zoo;
+    json save();
+    void load(json data);
 
-    // Temp
-    Texture texture;
+    std::unique_ptr<World> world;
+    std::unique_ptr<ToolManager> tools;
+    DebugSettings debugSettings;
+private:
+    std::unordered_map<unsigned int, std::unique_ptr<Entity>> entities;
+    std::vector<std::unique_ptr<Entity>> entitiesToAdd;
+    std::vector<unsigned int> entitiesToDelete;
+
+    Vector2 dragStart;
+    Vector2 dragCameraOrigin;
+
+    // TODO: This needs to be saved and loaded
+    unsigned int nextEntityId = 0;
 };
-

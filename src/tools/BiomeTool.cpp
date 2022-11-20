@@ -1,9 +1,8 @@
 #include "BiomeTool.h"
 #include "ToolManager.h"
-#include "Zoo.h"
+#include "ZooScene.h"
 #include "UIManager.h"
 #include "ui/GUI.h"
-#include "Messenger.h"
 
 const float DEFAULT_RADIUS = 0.65f;
 const float MARGIN = GAP_SMALL;

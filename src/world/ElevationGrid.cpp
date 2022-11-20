@@ -2,7 +2,7 @@
 #include "ElevationGrid.h"
 #include "constants/world.h"
 #include "Debug.h"
-#include "Zoo.h"
+#include "ZooScene.h"
 #include "Messenger.h"
 
 #define WATER_LEVEL 0.1f

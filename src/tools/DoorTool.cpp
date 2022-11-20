@@ -1,7 +1,7 @@
 #include "DoorTool.h"
 #include "ToolManager.h"
 #include <Game.h>
-#include <Zoo.h>
+#include <ZooScene.h>
 
 DoorTool::DoorTool(ToolManager &toolManager) : Tool(toolManager) {}
 DoorTool::~DoorTool() = default;

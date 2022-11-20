@@ -1,12 +1,12 @@
 #include "SaveManager.h"
 #include "SceneManager.h"
-#include "Zoo.h"
+#include "ZooScene.h"
 
 SaveManager::SaveManager() = default;
 SaveManager::~SaveManager() = default;
 
 void SaveManager::newGame() {
-    Root::sceneManager().loadScene(std::make_unique<Zoo>());
+    Root::sceneManager().loadScene(std::make_unique<ZooScene>());
 }
 
 void SaveManager::saveGame(std::string saveFilePath) {

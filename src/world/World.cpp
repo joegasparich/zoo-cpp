@@ -38,9 +38,6 @@ void World::setup() {
     Messenger::fire(EventType::AreasUpdated);
 
     Pathfinder pf{width, height};
-
-    // Test
-//    currentPath = pf.getPath({1, 1}, {4, 8});
 }
 
 void World::cleanup() {
@@ -79,16 +76,15 @@ void World::render() {
     if (Root::zoo()->debugSettings.areaGrid) renderDebugAreaGrid();
     Profiler::stopTimer("debug");
 
-
-//    // Temp
-//    for (int i = 1; i < path.size(); i++) {
-//        Debug::drawLine(
-//            path[i -1] + Vector2{0.5f, 0.5f},
-//            path[i] + Vector2{0.5f, 0.5f},
-//            {0, 0, 255, 255},
-//            true
-//        );
-//    }
+    // Temp
+    for (int i = 1; i < path.size(); i++) {
+        Debug::drawLine(
+            path[i -1] + Vector2{0.5f, 0.5f},
+            path[i] + Vector2{0.5f, 0.5f},
+            {0, 0, 255, 255},
+            true
+        );
+    }
 }
 
 void World::registerTileObject(Entity *tileObject) {

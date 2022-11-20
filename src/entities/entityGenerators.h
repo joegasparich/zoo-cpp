@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Zoo.h"
+#include "ZooScene.h"
 #include "Entity.h"
 #include "components/RenderComponent.h"
 #include "components/TileObjectComponent.h"

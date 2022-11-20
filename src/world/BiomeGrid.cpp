@@ -1,6 +1,6 @@
 #include "BiomeGrid.h"
 #include "util/jmath.h"
-#include "Zoo.h"
+#include "ZooScene.h"
 #include "Messenger.h"
 #include "ElevationGrid.h"
 #include "util/color.h"

@@ -6,10 +6,10 @@ Game& Root::game() {
     return Game::get();
 }
 
-Stage* Root::zoo() {
+Zoo* Root::zoo() {
     auto scene = sceneManager().getCurrentScene();
     if (scene->name == ZOO) {
-        return ((Zoo*)scene)->zoo.get();
+        return ((ZooScene*)scene)->zoo.get();
     } else {
         return nullptr;
     }

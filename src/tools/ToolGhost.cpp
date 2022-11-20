@@ -1,6 +1,6 @@
 #include "ToolGhost.h"
 #include "Game.h"
-#include "Zoo.h"
+#include "ZooScene.h"
 #include "constants/world.h"
 #include "constants/depth.h"
 

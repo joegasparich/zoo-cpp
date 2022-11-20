@@ -2,14 +2,14 @@
 
 #include "common.h"
 #include "Game.h"
-#include "Stage.h"
 #include "Zoo.h"
+#include "ZooScene.h"
 #include "UIManager.h"
 
 class Root {
 public:
     static Game& game();
-    static Stage* zoo();
+    static Zoo* zoo();
     static Renderer& renderer();
     static UIManager& ui();
     static AssetManager& assetManager();

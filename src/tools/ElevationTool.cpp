@@ -1,7 +1,7 @@
 #include "ElevationTool.h"
 #include "ToolManager.h"
 #include "Game.h"
-#include "Zoo.h"
+#include "ZooScene.h"
 #include "UIManager.h"
 #include "ui/GUI.h"
 

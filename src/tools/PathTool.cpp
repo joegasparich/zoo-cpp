@@ -2,7 +2,7 @@
 #include "ToolManager.h"
 #include "constants/assets.h"
 #include "world/PathGrid.h"
-#include "Zoo.h"
+#include "ZooScene.h"
 #include "Game.h"
 #include "UIManager.h"
 #include "ui/GUI.h"

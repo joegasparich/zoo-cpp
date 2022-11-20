@@ -1,4 +1,5 @@
 #include "Pathfinder.h"
+#include "Root.h"
 #include "util/util.h"
 #include "Debug.h"
 
@@ -130,6 +131,8 @@ bool Pathfinder::isAccessible(Cell tilePos) {
     auto tile = tileGrid->at(x).at(y);
 
     if (!tile.accessible) return false;
+    // TODO (optimisation): Cache this
+    if (!Root::zoo()->world->getTileWalkability(tilePos)) return false;
 
     // Make sure at least one direction is accessible
     if (y > 0 &&                       tileGrid->at(x)    .at(y - 1).connections[int(Direction::S)])  return true;
@@ -150,14 +153,14 @@ std::vector<Cell> Pathfinder::getNeighbours(Cell tilePos) {
 
     std::vector<Cell> connections;
 
-    if (y > 0                       && tileGrid->at(x).at(y - 1).accessible     && tile.connections[int(Direction::N)])  connections.emplace_back(x, y - 1);
-    if (x < width-1 && y > 0        && tileGrid->at(x + 1).at(y - 1).accessible && tile.connections[int(Direction::NE)]) connections.emplace_back(x + 1, y - 1);
-    if (x < width-1                 && tileGrid->at(x + 1).at(y).accessible     && tile.connections[int(Direction::E)])  connections.emplace_back(x + 1, y);
-    if (x < width-1 && y < height-1 && tileGrid->at(x + 1).at(y + 1).accessible && tile.connections[int(Direction::SE)]) connections.emplace_back(x + 1, y + 1);
-    if (y < height-1                && tileGrid->at(x).at(y + 1).accessible     && tile.connections[int(Direction::S)])  connections.emplace_back(x, y + 1);
-    if (x > 0 && y < height-1       && tileGrid->at(x - 1).at(y + 1).accessible && tile.connections[int(Direction::SW)]) connections.emplace_back(x - 1, y + 1);
-    if (x > 0                       && tileGrid->at(x - 1).at(y).accessible     && tile.connections[int(Direction::W)])  connections.emplace_back(x - 1, y);
-    if (x > 0 && y > 0              && tileGrid->at(x - 1).at(y - 1).accessible && tile.connections[int(Direction::NW)]) connections.emplace_back(x - 1, y - 1);
+    if (y > 0                       && isAccessible({x, y - 1})     && tile.connections[int(Direction::N)])  connections.emplace_back(x, y - 1);
+    if (x < width-1 && y > 0        && isAccessible({x + 1, y - 1}) && tile.connections[int(Direction::NE)]) connections.emplace_back(x + 1, y - 1);
+    if (x < width-1                 && isAccessible({x + 1, y})     && tile.connections[int(Direction::E)])  connections.emplace_back(x + 1, y);
+    if (x < width-1 && y < height-1 && isAccessible({x + 1, y + 1}) && tile.connections[int(Direction::SE)]) connections.emplace_back(x + 1, y + 1);
+    if (y < height-1                && isAccessible({x, y + 1})     && tile.connections[int(Direction::S)])  connections.emplace_back(x, y + 1);
+    if (x > 0 && y < height-1       && isAccessible({x - 1, y + 1}) && tile.connections[int(Direction::SW)]) connections.emplace_back(x - 1, y + 1);
+    if (x > 0                       && isAccessible({x - 1, y})     && tile.connections[int(Direction::W)])  connections.emplace_back(x - 1, y);
+    if (x > 0 && y > 0              && isAccessible({x - 1, y - 1}) && tile.connections[int(Direction::NW)]) connections.emplace_back(x - 1, y - 1);
 
     return connections;
 }

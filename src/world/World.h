@@ -38,6 +38,7 @@ public:
     std::vector<Area*> getAreas();
     Area* getAreaById(std::string id);
     Area* getAreaAtPosition(Vector2 pos);
+    bool getTileWalkability(Cell pos);
 
     // Save & Load
     json save();

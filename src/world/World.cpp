@@ -187,6 +187,10 @@ void World::joinAreas(Wall &removedWall) {
     Messenger::fire(EventType::AreasUpdated);
 }
 
+void World::resetAreas() {
+
+}
+
 std::vector<Area*> World::getAreas() {
     // TODO: Store list so we don't have to do this every time?
     std::vector<Area*> a;
@@ -251,8 +255,15 @@ std::vector<Cell> World::getAccessibleAdjacentTiles(Cell tile) {
     return adjacentTiles;
 }
 
-void World::resetAreas() {
+// TODO: Return an enum
+bool World::getTileWalkability(Cell pos) {
+    if (tileObjectsMap.contains(pos.toString()) && tileObjectsMap.at(pos.toString())->getComponent<TileObjectComponent>()->data.solid)
+        return false;
 
+    if (elevationGrid->getTileBaseElevation(pos) < 0)
+        return false;
+
+    return true;
 }
 
 void World::renderDebugCellGrid() {

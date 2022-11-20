@@ -4,7 +4,6 @@
 #include "Debug.h"
 #include "World.h"
 #include "entities/components/TileObjectComponent.h"
-#include "Pathfinder.h"
 #include "Messenger.h"
 #include "Root.h"
 #include "Profiler.h"
@@ -37,7 +36,7 @@ void World::setup() {
     for (auto tile : zooTiles) tileAreaMap.insert_or_assign(tile.toString(), areas.at(ZOO_AREA).get());
     Messenger::fire(EventType::AreasUpdated);
 
-    Pathfinder pf{width, height};
+    pathfinder = std::make_unique<Pathfinder>(width, height);
 }
 
 void World::cleanup() {
@@ -74,17 +73,8 @@ void World::render() {
     if (Root::zoo()->debugSettings.cellGrid) renderDebugCellGrid();
     if (Root::zoo()->debugSettings.elevationGrid) elevationGrid->renderDebug();
     if (Root::zoo()->debugSettings.areaGrid) renderDebugAreaGrid();
+    if (Root::zoo()->debugSettings.pathfindingGrid) pathfinder->drawDebugGrid();
     Profiler::stopTimer("debug");
-
-    // Temp
-    for (int i = 1; i < path.size(); i++) {
-        Debug::drawLine(
-            path[i -1] + Vector2{0.5f, 0.5f},
-            path[i] + Vector2{0.5f, 0.5f},
-            {0, 0, 255, 255},
-            true
-        );
-    }
 }
 
 void World::registerTileObject(Entity *tileObject) {

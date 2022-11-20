@@ -9,6 +9,7 @@ struct DebugSettings {
     bool cellGrid = false;
     bool elevationGrid = false;
     bool areaGrid = false;
+    bool pathfindingGrid = false;
 };
 
 class Zoo {
@@ -43,6 +44,11 @@ private:
 
     Vector2 dragStart;
     Vector2 dragCameraOrigin;
+
+    Cell pathStart;
+    Cell pathEnd;
+    bool endNext;
+    std::vector<Cell> path;
 
     // TODO: This needs to be saved and loaded
     unsigned int nextEntityId = 0;

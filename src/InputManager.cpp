@@ -1,6 +1,7 @@
 #include "InputManager.h"
 #include "Messenger.h"
 #include "Game.h"
+#include "Root.h"
 
 InputManager::InputManager() = default;
 InputManager::~InputManager() = default;
@@ -16,6 +17,7 @@ void InputManager::processInput() {
         event.keyUp = IsKeyReleased(key) ? key : KEY_NULL;
         event.keyHeld = IsKeyDown(key) ? key : KEY_NULL;
         event.mousePos = GetMousePosition();
+        event.mouseWorldPos = Root::renderer().screenToWorldPos(event.mousePos);
 
         fireInputEvent(event);
     }
@@ -30,6 +32,7 @@ void InputManager::processInput() {
         event.mouseButtonUp = IsMouseButtonReleased(mouseButton) ? mouseButton : MOUSE_BUTTON_NULL;
         event.mouseButtonHeld = IsMouseButtonDown(mouseButton) ? mouseButton : MOUSE_BUTTON_NULL;
         event.mousePos = GetMousePosition();
+        event.mouseWorldPos = Root::renderer().screenToWorldPos(event.mousePos);
 
         fireInputEvent(event);
     }
@@ -38,6 +41,7 @@ void InputManager::processInput() {
         InputEvent event = { InputEventType::MouseScroll };
         event.mouseWheelDelta = GetMouseWheelMove();
         event.mousePos = GetMousePosition();
+        event.mouseWorldPos = Root::renderer().screenToWorldPos(event.mousePos);
 
         fireInputEvent(event);
     }

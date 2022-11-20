@@ -21,6 +21,7 @@ struct InputEvent {
     int mouseButtonUp = MOUSE_BUTTON_NULL;
     int mouseButtonHeld = MOUSE_BUTTON_NULL;
     Vector2 mousePos;
+    Vector2 mouseWorldPos;
     float mouseWheelDelta = 0;
     bool consumed = false;
 

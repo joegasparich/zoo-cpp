@@ -2,10 +2,6 @@
 
 #include "common.h"
 
-enum class Direction {
-    N, NE, E, SE, S, SW, W, NW
-};
-
 struct Tile {
     bool connections[8] = { true, true, true, true, true, true, true, true };
     bool accessible = true;
@@ -28,14 +24,17 @@ public:
     std::vector<Cell> getPath(Cell from, Cell to);
     void setAccessibility(Cell tile, Direction direction, bool accessible);
     bool isAccessible(Cell tile);
+
+    void drawDebugGrid();
 private:
     std::vector<Cell> reconstructPath(const std::vector<std::vector<Node>>& cellDetails, const Cell& dest);
     std::vector<Cell> getNeighbours(Cell tile);
     double calculateHValue(Cell a, Cell b);
+    bool isTileInGrid(Cell tile);
 
-    std::unique_ptr<std::vector<std::vector<Tile>>> m_tileGrid;
+    std::unique_ptr<std::vector<std::vector<Tile>>> tileGrid;
 
-    unsigned int m_cols;
-    unsigned int m_rows;
-    bool m_isSetup = false;
+    unsigned int cols;
+    unsigned int rows;
+    bool isSetup = false;
 };

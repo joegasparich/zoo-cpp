@@ -25,12 +25,12 @@ void WallTool::set() {
 }
 
 void WallTool::onInput(InputEvent* event) {
-    auto worldMousePos = Root::renderer().screenToWorldPos(event->mousePos);
-
     if (event->mouseButtonDown == MOUSE_BUTTON_LEFT) {
         isDragging = true;
-        dragTile = floor(worldMousePos);
-        dragQuadrant = World::getQuadrantAtPos(worldMousePos);
+        dragTile = floor(event->mouseWorldPos);
+        dragQuadrant = World::getQuadrantAtPos(event->mouseWorldPos);
+
+        event->consume();
     }
 
     if (event->mouseButtonUp == MOUSE_BUTTON_LEFT) {
@@ -46,6 +46,8 @@ void WallTool::onInput(InputEvent* event) {
             }
             ghosts.pop_back();
         }
+
+        event->consume();
     }
 }
 

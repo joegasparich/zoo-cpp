@@ -3,6 +3,7 @@
 #include "constants/world.h"
 #include "UIManager.h"
 #include "Profiler.h"
+#include "Debug.h"
 
 #define MIN_ZOOM 0.5f
 #define MAX_ZOOM 10.0f
@@ -109,6 +110,16 @@ void Zoo::render(double step) const {
     Profiler::startTimer("tools");
     tools->render();
     Profiler::stopTimer("tools");
+
+    // Temp
+    for (int i = 1; i < path.size(); i++) {
+        Debug::drawLine(
+            path[i -1] + Vector2{0.5f, 0.5f},
+            path[i] + Vector2{0.5f, 0.5f},
+            {0, 0, 255, 255},
+            true
+        );
+    }
 }
 
 void Zoo::onGUI() {
@@ -117,6 +128,19 @@ void Zoo::onGUI() {
 
 void Zoo::onInput(InputEvent* event) {
     tools->onInput(event);
+
+    if (event->consumed) return;
+
+    if (event->mouseButtonDown == MOUSE_BUTTON_LEFT && world->isPositionInMap(event->mouseWorldPos)) {
+        if (endNext) {
+            pathEnd = floor(event->mouseWorldPos);
+        } else {
+            pathStart = floor(event->mouseWorldPos);
+        }
+
+        endNext = !endNext;
+        path = world->pathfinder->getPath(pathStart, pathEnd);
+    }
 }
 
 void Zoo::cleanup() {

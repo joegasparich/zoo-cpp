@@ -8,6 +8,7 @@
 #include "WallGrid.h"
 #include "Area.h"
 #include "PathGrid.h"
+#include "Pathfinder.h"
 
 class World {
 public:
@@ -46,6 +47,7 @@ public:
     std::unique_ptr<ElevationGrid> elevationGrid;
     std::unique_ptr<WallGrid> wallGrid;
     std::unique_ptr<PathGrid> pathGrid;
+    std::unique_ptr<Pathfinder> pathfinder;
     std::map<std::string, std::unique_ptr<Area>> areas;
 private:
     std::vector<Cell> floodFill(Cell startTile);
@@ -58,6 +60,4 @@ private:
     std::unordered_map<unsigned int, Entity*> tileObjects;
     std::unordered_map<std::string, Entity*> tileObjectsMap;
     std::unordered_map<std::string, Area*> tileAreaMap;
-
-    std::vector<Cell> path;
 };

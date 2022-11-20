@@ -1,7 +1,8 @@
 #include "Pathfinder.h"
 #include "util/util.h"
+#include "Debug.h"
 
-Pathfinder::Pathfinder(unsigned int width, unsigned int height) : m_cols{width}, m_rows{height} {
+Pathfinder::Pathfinder(unsigned int width, unsigned int height) : cols{width}, rows{height} {
     auto grid = std::make_unique<std::vector<std::vector<Tile>>>();
 
     // Generate nodes
@@ -12,8 +13,8 @@ Pathfinder::Pathfinder(unsigned int width, unsigned int height) : m_cols{width},
         }
     }
 
-    m_tileGrid = std::move(grid);
-    m_isSetup = true;
+    tileGrid = std::move(grid);
+    isSetup = true;
 
     // Populate connections
     for (int i = 0; i < width; i++) {
@@ -43,15 +44,16 @@ std::vector<Cell> Pathfinder::reconstructPath(const std::vector<std::vector<Node
 
 // https://www.geeksforgeeks.org/a-search-algorithm/
 std::vector<Cell> Pathfinder::getPath(Cell from, Cell to) {
+    if (!isTileInGrid(from) || !isTileInGrid(to)) return {};
     if (!isAccessible(to)) return {};
     if (from == to) return {};
 
-    bool closedList[m_cols][m_rows];
+    bool closedList[cols][rows];
     memset(closedList, false, sizeof(closedList));
 
     std::vector<std::vector<Node>> cellDetails{
-        m_cols,
-        std::vector<Node>(m_rows)
+        cols,
+        std::vector<Node>(rows)
     };
 
     auto [x, y] = from;
@@ -110,14 +112,14 @@ std::vector<Cell> Pathfinder::getPath(Cell from, Cell to) {
 }
 
 void Pathfinder::setAccessibility(Cell tile, Direction direction, bool accessible) {
-    if (!m_isSetup) return;
+    if (!isSetup) return;
 
 //    auto x = tile.x, y = tile.y;
 //    auto width = m_tileGrid->size();
 //    auto height = m_tileGrid->at(0).size();
 //    auto node = m_tileGrid->at(x).at(y);
 
-    m_tileGrid->at(tile.x).at(tile.y).connections[int(direction)] = accessible;
+    tileGrid->at(tile.x).at(tile.y).connections[int(direction)] = accessible;
 
 //    if (accessible) {
 //        switch (direction) {
@@ -137,43 +139,58 @@ void Pathfinder::setAccessibility(Cell tile, Direction direction, bool accessibl
 
 bool Pathfinder::isAccessible(Cell tilePos) {
     auto [x, y] = tilePos;
-    auto width = m_tileGrid->size();
-    auto height = m_tileGrid->at(0).size();
-    auto tile = m_tileGrid->at(x).at(y);
+    auto width = tileGrid->size();
+    auto height = tileGrid->at(0).size();
+    auto tile = tileGrid->at(x).at(y);
 
     if (!tile.accessible) return false;
 
     // Make sure at least one direction is accessible
-    if (y > 0                       && m_tileGrid->at(x)    .at(y - 1).connections[int(Direction::S)])  return true;
-    if (x < width-1 && y > 0        && m_tileGrid->at(x + 1).at(y - 1).connections[int(Direction::SW)]) return true;
-    if (x < width-1                 && m_tileGrid->at(x + 1).at(y)    .connections[int(Direction::W)])  return true;
-    if (x < width-1 && y < height-1 && m_tileGrid->at(x + 1).at(y + 1).connections[int(Direction::NW)]) return true;
-    if (y < height-1                && m_tileGrid->at(x)    .at(y + 1).connections[int(Direction::N)])  return true;
-    if (x > 0 && y < height-1       && m_tileGrid->at(x - 1).at(y + 1).connections[int(Direction::NE)]) return true;
-    if (x > 0                       && m_tileGrid->at(x - 1).at(y)    .connections[int(Direction::E)])  return true;
-    if (x > 0 && y > 0              && m_tileGrid->at(x - 1).at(y - 1).connections[int(Direction::SE)]) return true;
+    if (y > 0 &&                       tileGrid->at(x)    .at(y - 1).connections[int(Direction::S)])  return true;
+    if (x < width-1 && y > 0 &&        tileGrid->at(x + 1).at(y - 1).connections[int(Direction::SW)]) return true;
+    if (x < width-1 &&                 tileGrid->at(x + 1).at(y)    .connections[int(Direction::W)])  return true;
+    if (x < width-1 && y < height-1 && tileGrid->at(x + 1).at(y + 1).connections[int(Direction::NW)]) return true;
+    if (y < height-1 &&                tileGrid->at(x)    .at(y + 1).connections[int(Direction::N)])  return true;
+    if (x > 0 && y < height-1 &&       tileGrid->at(x - 1).at(y + 1).connections[int(Direction::NE)]) return true;
+    if (x > 0 &&                       tileGrid->at(x - 1).at(y)    .connections[int(Direction::E)])  return true;
+    if (x > 0 && y > 0 &&              tileGrid->at(x - 1).at(y - 1).connections[int(Direction::SE)]) return true;
 }
 
 std::vector<Cell> Pathfinder::getNeighbours(Cell tilePos) {
     auto [x, y] = tilePos;
-    auto width = m_tileGrid->size();
-    auto height = m_tileGrid->at(0).size();
-    auto tile = m_tileGrid->at(x).at(y);
+    auto width = tileGrid->size();
+    auto height = tileGrid->at(0).size();
+    auto tile = tileGrid->at(x).at(y);
 
     std::vector<Cell> connections;
 
-    if (y > 0                       && tile.connections[0]) connections.emplace_back(x, y - 1);
-    if (x < width-1 && y > 0        && tile.connections[1]) connections.emplace_back(x + 1, y - 1);
-    if (x < width-1                 && tile.connections[2]) connections.emplace_back(x + 1, y);
-    if (x < width-1 && y < height-1 && tile.connections[3]) connections.emplace_back(x + 1, y + 1);
-    if (y < height-1                && tile.connections[4]) connections.emplace_back(x, y + 1);
-    if (x > 0 && y < height-1       && tile.connections[5]) connections.emplace_back(x - 1, y + 1);
-    if (x > 0                       && tile.connections[6]) connections.emplace_back(x - 1, y);
-    if (x > 0 && y > 0              && tile.connections[7]) connections.emplace_back(x - 1, y - 1);
+    if (y > 0                       && tile.connections[int(Direction::N)])  connections.emplace_back(x, y - 1);
+    if (x < width-1 && y > 0        && tile.connections[int(Direction::NE)]) connections.emplace_back(x + 1, y - 1);
+    if (x < width-1                 && tile.connections[int(Direction::E)])  connections.emplace_back(x + 1, y);
+    if (x < width-1 && y < height-1 && tile.connections[int(Direction::SE)]) connections.emplace_back(x + 1, y + 1);
+    if (y < height-1                && tile.connections[int(Direction::S)])  connections.emplace_back(x, y + 1);
+    if (x > 0 && y < height-1       && tile.connections[int(Direction::SW)]) connections.emplace_back(x - 1, y + 1);
+    if (x > 0                       && tile.connections[int(Direction::W)])  connections.emplace_back(x - 1, y);
+    if (x > 0 && y > 0              && tile.connections[int(Direction::NW)]) connections.emplace_back(x - 1, y - 1);
 
     return connections;
 }
 
+void Pathfinder::drawDebugGrid() {
+    for (int i = 0; i < cols; i++) {
+        for (int j = 0; j < rows; j++) {
+            for (auto neighbour : getNeighbours({ i, j })) {
+                auto [nx, ny] = neighbour;
+                Debug::drawLine({i + 0.5f, j + 0.5f}, {nx + 0.5f, ny + 0.5f}, BLUE, true);
+            }
+        }
+    }
+}
+
 double Pathfinder::calculateHValue(Cell a, Cell b) {
-    return sqrt(pow((a.x - b.x), 2.0) + pow((a.y - b.y), 2.0));
+    return Vector2Distance(a, b);
+}
+
+bool Pathfinder::isTileInGrid(Cell tile) {
+    return tile.x >= 0 && tile.x < cols && tile.y >= 0 && tile.y < rows;
 }

@@ -142,6 +142,13 @@ inline Vector2 divVect(Vector2 a, Vector2 b) {
     };
 }
 
+inline Cell round(Vector2 a) {
+    return {
+        long(std::round(a.x)),
+        long(std::round(a.y))
+    };
+}
+
 inline Cell floor(Vector2 a) {
     return {
         long(std::floor(a.x)),

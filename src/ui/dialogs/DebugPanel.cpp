@@ -32,6 +32,10 @@ void DebugPanel::doWindowContents(Rectangle rect) {
         Root::zoo()->debugSettings.areaGrid = !Root::zoo()->debugSettings.areaGrid;
     curY += BUTTON_HEIGHT + GAP_SMALL;
 
+    if (GUI::buttonText({10, curY, BUTTON_WIDTH, BUTTON_HEIGHT}, "Pathfinding Grid", Root::zoo()->debugSettings.pathfindingGrid ? ENABLED : DISABLED))
+        Root::zoo()->debugSettings.pathfindingGrid = !Root::zoo()->debugSettings.pathfindingGrid;
+    curY += BUTTON_HEIGHT + GAP_SMALL;
+
     GUI::TextColour = BLACK;
     GUI::TextAlign = AlignMode::TopLeft;
 }

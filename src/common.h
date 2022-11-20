@@ -38,3 +38,7 @@ enum class Side {
     South = 2,
     West = 3
 };
+
+enum class Direction {
+    N, NE, E, SE, S, SW, W, NW
+};

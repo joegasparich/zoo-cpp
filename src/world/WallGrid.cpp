@@ -79,7 +79,7 @@ Wall* WallGrid::placeWallAtTile(WallData* data, Cell tilePos, Side side) {
 
     auto& wall = grid.at(x).at(y);
 
-//    this.updatePathfindingAtWall(tilePos, side);
+    updatePathfindingAtWall(wall);
 
 //    Messenger.fire(WorldEvent.PLACE_SOLID, { position: Wall.wallToWorldPos(new Vector(x, y), orientation) });
 
@@ -247,6 +247,47 @@ Wall* WallGrid::getWallAtTile(Cell tilePos, Side side) {
     }
 }
 
+void WallGrid::updatePathfindingAtWall(const Wall& wall) {
+    auto [x, y] = wall.worldPos;
+    auto& pf = Root::zoo()->world->pathfinder;
+
+    if (wall.orientation == Orientation::Horizontal) {
+        if (Root::zoo()->world->isPositionInMap({x - 0.5f, y - 1.0f})) {
+            auto north = round({x - 0.5f, y - 1.0f});
+            pf->setAccessibility(north, Direction::S, !wall.exists);
+            pf->setAccessibility(north, Direction::SE, !wall.exists);
+            pf->setAccessibility(north, Direction::SW, !wall.exists);
+            pf->setAccessibility(north + Cell{-1, 0}, Direction::SE, !wall.exists);
+            pf->setAccessibility(north + Cell{1, 0}, Direction::SW, !wall.exists);
+        }
+        if (Root::zoo()->world->isPositionInMap({x - 0.5f, y})) {
+            auto south = round({x - 0.5f, y});
+            pf->setAccessibility(south, Direction::N, !wall.exists);
+            pf->setAccessibility(south, Direction::NE, !wall.exists);
+            pf->setAccessibility(south, Direction::NW, !wall.exists);
+            pf->setAccessibility(south + Cell{-1, 0}, Direction::NE, !wall.exists);
+            pf->setAccessibility(south + Cell{1, 0}, Direction::NW, !wall.exists);
+        }
+    } else {
+        if (Root::zoo()->world->isPositionInMap({x - 1.0f, y - 0.5f})) {
+            auto west = round({x - 1.0f, y - 0.5f});
+            pf->setAccessibility(west, Direction::E, !wall.exists);
+            pf->setAccessibility(west, Direction::NE, !wall.exists);
+            pf->setAccessibility(west, Direction::SE, !wall.exists);
+            pf->setAccessibility(west + Cell{0, -1}, Direction::SE, !wall.exists);
+            pf->setAccessibility(west + Cell{0, 1}, Direction::NE, !wall.exists);
+        }
+        if (Root::zoo()->world->isPositionInMap({x, y - 0.5f})) {
+            auto east = round({x, y - 0.5f});
+            pf->setAccessibility(east, Direction::W, !wall.exists);
+            pf->setAccessibility(east, Direction::NW, !wall.exists);
+            pf->setAccessibility(east, Direction::SW, !wall.exists);
+            pf->setAccessibility(east + Cell{0, -1}, Direction::SW, !wall.exists);
+            pf->setAccessibility(east + Cell{0, 1}, Direction::NW, !wall.exists);
+        }
+    }
+}
+
 Wall* WallGrid::getWallByGridPos(Cell gridPos) {
     if (!isSetup) return nullptr;
     if (!isWallGridPosInMap(gridPos)) return nullptr;
@@ -284,7 +325,7 @@ std::vector<Cell> WallGrid::getAdjacentTiles(const Wall& wall) {
 
     std::vector<Cell> adjacentTiles{};
     adjacentTiles.reserve(2);
-    auto x = wall.worldPos.x; auto y = wall.worldPos.y;
+    auto [x, y] = wall.worldPos;
 
     if (wall.orientation == Orientation::Horizontal) {
         if (Root::zoo()->world->isPositionInMap(Vector2{x - 0.5f, y - 1.0f})) adjacentTiles.emplace_back(Vector2{x - 0.5f, y - 1.0f});

@@ -16,11 +16,18 @@ void ElevationTool::set() {
 
 void ElevationTool::onInput(InputEvent* event) {
     // Only listen to down and up events so that we can't start dragging from UI
-    if (event->mouseButtonDown == MOUSE_BUTTON_LEFT) dragging = true;
-    if (event->mouseButtonUp == MOUSE_BUTTON_LEFT) dragging = false;
+    if (event->mouseButtonDown == MOUSE_BUTTON_LEFT) {
+        dragging = true;
+        event->consume();
+    }
+    if (event->mouseButtonUp == MOUSE_BUTTON_LEFT) {
+        dragging = false;
+        event->consume();
+    }
+}
 
-    // TODO (optimisation): Don't fire every tick
-    if (dragging) {
+void ElevationTool::update() {
+    if (dragging && Root::game().getTicks() % 5 == 0) {
         Root::zoo()->world->elevationGrid->setElevationInCircle(Root::renderer().screenToWorldPos(GetMousePosition()), 1.0f, currentElevation);
     }
 }

@@ -118,13 +118,27 @@ void ElevationGrid::setElevationInCircle(Vector2 pos, float radius, Elevation el
 
     if (!changed) return;
 
+    std::vector<Cell> affectedCells{};
+
     for (auto point : points) {
         setElevation(point, elevation);
+
+        for(auto& tile : getSurroundingTiles(point)) {
+            affectedCells.push_back(tile);
+        }
     }
 
     generateWaterMesh();
 
-    Messenger::fire(EventType::ElevationUpdated, json{{"pos", pos}, {"radius", radius}});
+    // Notify biome grid
+    auto e1 = ElevationUpdatedEvent{EventType::ElevationUpdated, pos, radius};
+    Messenger::fire(&e1);
+
+    // Notify pathfinders
+    if (elevation == Elevation::Water) {
+        auto e2 = PlaceSolidEvent{EventType::PlaceSolid, &affectedCells};
+        Messenger::fire(&e2);
+    }
 }
 
 void ElevationGrid::generateWaterMesh() {

@@ -30,8 +30,13 @@ void TileObjectTool::onInput(InputEvent* event) {
         if (!toolManager.ghost->canPlace) return;
 
         auto object = createTileObject(currentObject->assetPath, toolManager.ghost->pos);
+
+        if (!object) return;
+
         Root::zoo()->world->registerTileObject(object.get());
         Root::zoo()->registerEntity(std::move(object));
+
+        event->consume();
     }
 }
 

@@ -9,6 +9,7 @@ public:
     ~ElevationTool();
 
     void set() override;
+    void update() override;
     void onInput(InputEvent* event) override;
     void onGUI() override;
 
@@ -17,7 +18,6 @@ public:
 
     std::string getName() override;
     ToolType getType() override;
-
 private:
     Elevation currentElevation;
     bool dragging;

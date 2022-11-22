@@ -10,6 +10,7 @@ public:
     ~BiomeTool() override;
 
     void set() override;
+    void update() override;
     void onInput(InputEvent* event) override;
     void onGUI() override;
 
@@ -18,7 +19,6 @@ public:
 
     void setBiome(Biome biome);
     Biome getBiome();
-
 private:
     Biome currentBiome;
     bool dragging;

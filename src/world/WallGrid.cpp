@@ -3,6 +3,7 @@
 #include "constants/assets.h"
 #include "WallGrid.h"
 #include "constants/world.h"
+#include "Messenger.h"
 
 WallGrid::WallGrid(unsigned int cols, unsigned int rows) : cols(cols), rows(rows) {}
 
@@ -81,11 +82,9 @@ Wall* WallGrid::placeWallAtTile(WallData* data, Cell tilePos, Side side) {
 
     updatePathfindingAtWall(wall);
 
-//    Messenger.fire(WorldEvent.PLACE_SOLID, { position: Wall.wallToWorldPos(new Vector(x, y), orientation) });
-
-   if (shouldCheckForLoop(wall) && checkForLoop(&wall)) {
+    if (shouldCheckForLoop(wall) && checkForLoop(&wall)) {
         Root::zoo()->world->formAreas(grid.at(x).at(y));
-   }
+    }
 
     return &wall;
 }

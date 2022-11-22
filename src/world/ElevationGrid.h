@@ -28,10 +28,12 @@ public:
     void cleanup();
     void render();
     void renderDebug();
+
     bool setElevation(Cell gridPos, Elevation elevation);
     void setElevationInCircle(Vector2 pos, float radius, Elevation elevation);
     void generateWaterMesh();
     bool canElevate(Cell gridPos, Elevation elevation);
+
     float getElevationAtPos(Vector2 pos);
     Elevation getElevationAtGridPos(Cell gridPos);
     SlopeVariant getTileSlopeVariant(Cell tile);

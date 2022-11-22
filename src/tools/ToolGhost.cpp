@@ -19,6 +19,7 @@ void ToolGhost::cleanup() {
     elevate = false;
     visible = true;
     sprite = nullptr;
+    spriteSheet = nullptr;
     canPlace = true;
 
     pos = {0.0f, 0.0f};

@@ -82,40 +82,16 @@ void World::registerTileObject(Entity *tileObject) {
     for (auto tile : component->getTiles()) {
         tileObjectsMap.insert_or_assign(tile.toString(), tileObject);
     }
+
+    if (component->data.solid) {
+        auto tiles = component->getTiles();
+        auto e = PlaceSolidEvent{EventType::PlaceSolid, &tiles};
+        Messenger::fire(&e);
+    }
 }
 
 void World::unregisterTileObject(Entity *tileObject) {
     // TODO
-}
-
-Entity *World::getTileObjectAtPosition(Vector2 pos) {
-    Cell tilePos = Cell{pos};
-    if (!isPositionInMap(tilePos)) return nullptr;
-    if (!tileObjectsMap.contains(tilePos.toString())) return nullptr;
-    return tileObjectsMap.at(tilePos.toString());
-}
-
-bool World::isPositionInMap(Vector2 pos) const {
-    return pos.x >= 0 && pos.x < float(width) && pos.y >= 0 && pos.y < float(height);
-}
-
-Cell World::getTileInDirection(Cell tile, Side direction) {
-    switch (direction) {
-        case Side::North: return {tile.x, tile.y - 1};
-        case Side::South: return {tile.x, tile.y + 1};
-        case Side::West: return {tile.x - 1, tile.y};
-        case Side::East: return {tile.x + 1, tile.y};
-    }
-}
-
-Side World::getQuadrantAtPos(Vector2 pos) {
-    auto xrel = fmod(pos.x + LARGER_THAN_WORLD, 1) - 0.5f;
-    auto yrel = fmod(pos.y + LARGER_THAN_WORLD, 1) - 0.5f;
-
-    if (yrel <= 0 && abs(yrel) >= abs(xrel)) return Side::North;
-    if (xrel >= 0 && abs(xrel) >= abs(yrel)) return Side::East;
-    if (yrel >= 0 && abs(yrel) >= abs(xrel)) return Side::South;
-    if (xrel <= 0 && abs(xrel) >= abs(yrel)) return Side::West;
 }
 
 void World::formAreas(Wall &placedWall) {
@@ -173,12 +149,12 @@ void World::joinAreas(Wall &removedWall) {
     areaA->m_tiles.insert(areaA->m_tiles.end(), areaB->m_tiles.begin(), areaB->m_tiles.end());
     for (auto tile : areaB->m_tiles) tileAreaMap[tile.toString()] = areaA;
     for (const auto& areaConnection : areaB->m_connectedAreas) {
-         const auto& [area, doors] = areaConnection;
-         for (auto door : doors) {
-             areaA->addAreaConnection(area, door);
-             area->addAreaConnection(areaA, door);
-         }
-     }
+        const auto& [area, doors] = areaConnection;
+        for (auto door : doors) {
+            areaA->addAreaConnection(area, door);
+            area->addAreaConnection(areaA, door);
+        }
+    }
     // this.getExhibitByAreaId(area2.id)?.delete();
     areas.erase(areaB->m_id);
 
@@ -187,6 +163,36 @@ void World::joinAreas(Wall &removedWall) {
 
 void World::resetAreas() {
 
+}
+
+Entity *World::getTileObjectAtPosition(Vector2 pos) {
+    Cell tilePos = Cell{pos};
+    if (!isPositionInMap(tilePos)) return nullptr;
+    if (!tileObjectsMap.contains(tilePos.toString())) return nullptr;
+    return tileObjectsMap.at(tilePos.toString());
+}
+
+bool World::isPositionInMap(Vector2 pos) const {
+    return pos.x >= 0 && pos.x < float(width) && pos.y >= 0 && pos.y < float(height);
+}
+
+Cell World::getTileInDirection(Cell tile, Side direction) {
+    switch (direction) {
+        case Side::North: return {tile.x, tile.y - 1};
+        case Side::South: return {tile.x, tile.y + 1};
+        case Side::West: return {tile.x - 1, tile.y};
+        case Side::East: return {tile.x + 1, tile.y};
+    }
+}
+
+Side World::getQuadrantAtPos(Vector2 pos) {
+    auto xrel = fmod(pos.x + LARGER_THAN_WORLD, 1) - 0.5f;
+    auto yrel = fmod(pos.y + LARGER_THAN_WORLD, 1) - 0.5f;
+
+    if (yrel <= 0 && abs(yrel) >= abs(xrel)) return Side::North;
+    if (xrel >= 0 && abs(xrel) >= abs(yrel)) return Side::East;
+    if (yrel >= 0 && abs(yrel) >= abs(xrel)) return Side::South;
+    if (xrel <= 0 && abs(xrel) >= abs(yrel)) return Side::West;
 }
 
 std::vector<Area*> World::getAreas() {

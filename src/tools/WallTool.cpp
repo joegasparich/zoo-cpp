@@ -4,6 +4,7 @@
 #include "ToolManager.h"
 #include "UIManager.h"
 #include "ui/GUI.h"
+#include "Messenger.h"
 
 const float MARGIN = GAP_SMALL;
 const float BUTTON_SIZE = 30;
@@ -35,17 +36,26 @@ void WallTool::onInput(InputEvent* event) {
 
     if (event->mouseButtonUp == MOUSE_BUTTON_LEFT) {
         isDragging = false;
+        std::vector<Cell> affectedCells{};
 
         // Reverse so we are going from drag start to drag end
         std::reverse(ghosts.begin(), ghosts.end());
 
-        while (ghosts.size() > 0) {
+        while (!ghosts.empty()) {
             auto& ghost = ghosts.back();
             if (ghost->canPlace) {
-                Root::zoo()->world->wallGrid->placeWallAtTile(currentWall, flr(ghost->pos), dragQuadrant);
+                auto wall = Root::zoo()->world->wallGrid->placeWallAtTile(currentWall, flr(ghost->pos), dragQuadrant);
+                if (wall) {
+                    for(auto& tile : Root::zoo()->world->wallGrid->getAdjacentTiles(*wall)) {
+                        affectedCells.push_back(tile);
+                    }
+                }
             }
             ghosts.pop_back();
         }
+
+        auto e = PlaceSolidEvent{EventType::PlaceSolid, &affectedCells};
+        Messenger::fire(&e);
 
         event->consume();
     }

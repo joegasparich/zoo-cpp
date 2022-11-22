@@ -181,8 +181,10 @@ void BiomeGrid::setup() {
         }
     }
 
-    elevationListenerHandle = Messenger::on(EventType::ElevationUpdated, [this](json& data) {
-        redrawChunksInRadius(data.at("pos").get<Vector2>() * 2.0f, data.at("radius").get<float>() + 6.0f);
+    elevationListenerHandle = Messenger::on(EventType::ElevationUpdated, [this](Event* _e) {
+        auto e = static_cast<ElevationUpdatedEvent*>(_e);
+
+        redrawChunksInRadius(e->pos * 2.0f, e->radius + 6.0f);
     });
 
     isSetup = true;
@@ -301,8 +303,10 @@ void BiomeGrid::load(json saveData) {
         i++;
     }
 
-    elevationListenerHandle = Messenger::on(EventType::ElevationUpdated, [this](json& data) {
-        redrawChunksInRadius(data.at("pos").get<Vector2>() * 2.0f, data.at("radius").get<float>() + 6.0f);
+    elevationListenerHandle = Messenger::on(EventType::ElevationUpdated, [this](Event* _e) {
+        auto e = static_cast<ElevationUpdatedEvent*>(_e);
+
+        redrawChunksInRadius(e->pos * 2.0f, e->radius + 6.0f);
     });
 }
 

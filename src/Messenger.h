@@ -6,7 +6,18 @@ enum class EventType {
     ApplicationStarted, ApplicationLoaded, ApplicationEnding,
     WindowClosed, WindowResized, WindowFocused, WindowBlurred, WindowMoved,
     InputEvent,
-    ElevationUpdated, AreasUpdated
+    ElevationUpdated, AreasUpdated, PlaceSolid
+};
+
+struct Event {
+    EventType type;
+};
+struct ElevationUpdatedEvent : public Event {
+    Vector2 pos;
+    float radius;
+};
+struct PlaceSolidEvent : public Event {
+    std::vector<Cell>* affectedCells;
 };
 
 constexpr const char* getEventName(EventType type) {
@@ -32,14 +43,15 @@ public:
         return instance;
     }
 
-    static std::string on(const EventType event, std::function<void(json& data)>);
-    static void fire(const EventType event);
-    static void fire(const EventType event, json&& data);
-    static void unsubscribe(const EventType event, std::string handle);
+    static std::string on(EventType e, std::function<void(Event* e)>);
+    static void fire(EventType type);
+    static void fire(Event e);
+    static void fire(Event* e);
+    static void unsubscribe(EventType e, const std::string& handle);
 
 private:
     Messenger();
     ~Messenger();
 
-    std::map<EventType, std::map<std::string, std::function<void(json& data)>>> listeners;
+    std::map<EventType, std::map<std::string, std::function<void(Event* e)>>> listeners;
 };

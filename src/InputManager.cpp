@@ -53,6 +53,7 @@ void InputManager::fireInputEvent(InputEvent event) {
     instance.currentEvent = event;
 
     Game::get().onInput(&instance.currentEvent);
+    // TODO: actually create an input event
     Messenger::fire(EventType::InputEvent);
 }
 

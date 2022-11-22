@@ -81,7 +81,6 @@ std::vector<Cell> Pathfinder::getPath(Cell from, Cell to) {
             if (neighbour == to) {
                 // Destination found!
                 cellDetails[nx][ny].parent = { x, y };
-                std::cout << "Found route to dest!" << std::endl;
                 return reconstructPath(cellDetails, to);
             }
 
@@ -120,6 +119,7 @@ void Pathfinder::setAccessibility(Cell tile, bool accessible) {
 
 void Pathfinder::setAccessibility(Cell tile, Direction direction, bool accessible) {
     if (!isSetup) return;
+    if (!isTileInGrid(tile)) return;
 
     tileGrid->at(tile.x).at(tile.y).connections[int(direction)] = accessible;
 }

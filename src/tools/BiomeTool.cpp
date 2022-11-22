@@ -18,14 +18,21 @@ void BiomeTool::set() {
     toolManager.ghost->elevate = true;
 }
 
+void BiomeTool::update() {
+    if (dragging && Root::game().getTicks() % 5 == 0) {
+        Root::zoo()->world->biomeGrid->setBiomeInRadius(Root::renderer().screenToWorldPos(GetMousePosition()), DEFAULT_RADIUS, currentBiome);
+    }
+}
+
 void BiomeTool::onInput(InputEvent* event) {
     // Only listen to down and up events so that we can't start dragging from UI
-    if (event->mouseButtonDown == MOUSE_BUTTON_LEFT) dragging = true;
-    if (event->mouseButtonUp == MOUSE_BUTTON_LEFT) dragging = false;
-
-    // TODO (optimisation): Don't fire every tick
-    if (dragging) {
-        Root::zoo()->world->biomeGrid->setBiomeInRadius(Root::renderer().screenToWorldPos(GetMousePosition()), DEFAULT_RADIUS, currentBiome);
+    if (event->mouseButtonDown == MOUSE_BUTTON_LEFT) {
+        dragging = true;
+        event->consume();
+    }
+    if (event->mouseButtonUp == MOUSE_BUTTON_LEFT) {
+        dragging = false;
+        event->consume();
     }
 }
 

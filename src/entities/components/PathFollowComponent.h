@@ -21,5 +21,6 @@ private:
     bool isCellInPath(const Cell& cell);
 
     std::vector<Cell> path = {};
+    std::string pathRequestHandle;
     std::string placeSolidListener;
 };

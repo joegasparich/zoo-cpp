@@ -1,5 +1,6 @@
 #pragma once
 
+#include <future>
 #include "common.h"
 
 struct Tile {
@@ -14,26 +15,33 @@ struct Node {
     double fCost = -1.0;
 };
 
-// Creating a shortcut for tuple<int, int, int> type
+// Creating a shortcut for tuple<double, int, int> type
 typedef std::tuple<double, int, int> Tuple;
+
+typedef std::vector<Cell> path;
 
 class Pathfinder {
 public:
     Pathfinder(unsigned int width, unsigned int height);
 
-    std::vector<Cell> getPath(Cell from, Cell to);
+    path getPath(Cell from, Cell to);
+    std::string requestAsyncPath(Cell from, Cell to);
+    bool asyncPathExists(const std::string& handle);
+    bool asyncPathReady(const std::string& handle);
+    path getAsyncPath(const std::string& handle);
     void setAccessibility(Cell tile, bool accessible);
     void setAccessibility(Cell tile, Direction direction, bool accessible);
     bool isAccessible(Cell tile);
 
     void drawDebugGrid();
 private:
-    std::vector<Cell> reconstructPath(const std::vector<std::vector<Node>>& cellDetails, const Cell& dest);
-    std::vector<Cell> getNeighbours(Cell tile);
+    path reconstructPath(const std::vector<std::vector<Node>>& cellDetails, const Cell& dest);
+    path getNeighbours(Cell tile);
     double calculateHValue(Cell a, Cell b);
     bool isTileInGrid(Cell tile);
 
     std::unique_ptr<std::vector<std::vector<Tile>>> tileGrid;
+    std::unique_ptr<std::map<std::string, std::future<path>>> pathRequests;
 
     unsigned int cols;
     unsigned int rows;

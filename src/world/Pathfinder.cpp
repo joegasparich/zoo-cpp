@@ -2,6 +2,7 @@
 #include "Root.h"
 #include "util/util.h"
 #include "Debug.h"
+#include "util/uuid.h"
 
 Pathfinder::Pathfinder(unsigned int width, unsigned int height) : cols{width}, rows{height} {
     auto grid = std::make_unique<std::vector<std::vector<Tile>>>();
@@ -15,6 +16,7 @@ Pathfinder::Pathfinder(unsigned int width, unsigned int height) : cols{width}, r
     }
 
     tileGrid = std::move(grid);
+    pathRequests = std::make_unique<std::map<std::string, std::future<path>>>();
     isSetup = true;
 
     // Populate connections
@@ -27,8 +29,8 @@ Pathfinder::Pathfinder(unsigned int width, unsigned int height) : cols{width}, r
     }
 }
 
-std::vector<Cell> Pathfinder::reconstructPath(const std::vector<std::vector<Node>> &cellDetails, const Cell &dest) {
-    std::vector<Cell> path;
+path Pathfinder::reconstructPath(const std::vector<std::vector<Node>> &cellDetails, const Cell &dest) {
+    path path;
 
     path.push_back(dest);
     auto [x, y] = dest;
@@ -44,7 +46,7 @@ std::vector<Cell> Pathfinder::reconstructPath(const std::vector<std::vector<Node
 }
 
 // https://www.geeksforgeeks.org/a-search-algorithm/
-std::vector<Cell> Pathfinder::getPath(Cell from, Cell to) {
+path Pathfinder::getPath(Cell from, Cell to) {
     if (!isTileInGrid(from) || !isTileInGrid(to)) return {};
     if (!isAccessible(to)) return {};
     if (from == to) return {};
@@ -111,6 +113,33 @@ std::vector<Cell> Pathfinder::getPath(Cell from, Cell to) {
     return {};
 }
 
+std::string Pathfinder::requestAsyncPath(Cell from, Cell to) {
+    auto handle = uuid::generate();
+    // TODO: Do we need to lock the tileGrid?
+    pathRequests->insert({handle, std::async(std::launch::async, &Pathfinder::getPath, this, from, to)});
+
+    return handle;
+}
+
+bool Pathfinder::asyncPathExists(const std::string& handle) {
+    return pathRequests->contains(handle);
+}
+
+bool Pathfinder::asyncPathReady(const std::string& handle) {
+    if (!asyncPathExists(handle)) return false;
+
+    return pathRequests->at(handle).wait_for(std::chrono::seconds(0)) == std::future_status::ready;
+}
+
+path Pathfinder::getAsyncPath(const std::string& handle) {
+    if (!asyncPathExists(handle)) return {};
+
+    auto path = pathRequests->at(handle).get();
+    pathRequests->erase(handle);
+
+    return path;
+}
+
 void Pathfinder::setAccessibility(Cell tile, bool accessible) {
     if (!isSetup) return;
 
@@ -144,13 +173,13 @@ bool Pathfinder::isAccessible(Cell tilePos) {
     if (x > 0 && y > 0 &&              tileGrid->at(x - 1).at(y - 1).connections[int(Direction::SE)]) return true;
 }
 
-std::vector<Cell> Pathfinder::getNeighbours(Cell tilePos) {
+path Pathfinder::getNeighbours(Cell tilePos) {
     auto [x, y] = tilePos;
     auto width = tileGrid->size();
     auto height = tileGrid->at(0).size();
     auto tile = tileGrid->at(x).at(y);
 
-    std::vector<Cell> connections;
+    path connections;
 
     if (y > 0                       && isAccessible({x, y - 1})     && tile.connections[int(Direction::N)])  connections.emplace_back(x, y - 1);
     if (x < width-1 && y > 0        && isAccessible({x + 1, y - 1}) && tile.connections[int(Direction::NE)]) connections.emplace_back(x + 1, y - 1);

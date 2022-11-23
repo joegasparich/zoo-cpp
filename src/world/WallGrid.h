@@ -74,6 +74,7 @@ public:
     static GridPos getGridPosition(Cell tilePos, Side side);
     static WallSpriteInfo getSpriteInfo(Wall& wall, bool isDoor = false);
 
+    bool isSetup;
 private:
     bool shouldCheckForLoop(const Wall& wall);
     bool checkForLoop(Wall* startWall, Wall* currentWall = nullptr, std::unordered_set<std::string> checkedWalls = {}, unsigned int depth = 0);
@@ -81,5 +82,4 @@ private:
     std::vector<std::vector<Wall>> grid;
     unsigned int cols;
     unsigned int rows;
-    bool isSetup;
 };

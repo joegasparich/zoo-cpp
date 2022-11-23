@@ -85,7 +85,7 @@ Wall* WallGrid::placeWallAtTile(WallData* data, Cell tilePos, Side side) {
     updatePathfindingAtWall(wall);
 
     if (shouldCheckForLoop(wall) && checkForLoop(&wall)) {
-        Root::zoo()->world->formAreas(grid.at(x).at(y));
+        Root::zoo()->world->areaManager->formAreas(grid.at(x).at(y));
     }
 
     return &wall;
@@ -128,8 +128,8 @@ void WallGrid::placeDoor(Wall* wall) {
     auto adjacentTiles = getAdjacentTiles(*wall);
     if (adjacentTiles.size() < 2) return;
 
-    auto areaA = Root::zoo()->world->getAreaAtPosition(adjacentTiles[0]);
-    auto areaB = Root::zoo()->world->getAreaAtPosition(adjacentTiles[1]);
+    auto areaA = Root::zoo()->world->areaManager->getAreaAtPosition(adjacentTiles[0]);
+    auto areaB = Root::zoo()->world->areaManager->getAreaAtPosition(adjacentTiles[1]);
 
     areaA->addAreaConnection(areaB, wall);
     areaB->addAreaConnection(areaA, wall);
@@ -142,8 +142,8 @@ void WallGrid::removeDoor(Wall* wall) {
     auto adjacentTiles = getAdjacentTiles(*wall);
     if (adjacentTiles.size() < 2) return;
 
-    auto areaA = Root::zoo()->world->getAreaAtPosition(adjacentTiles[0]);
-    auto areaB = Root::zoo()->world->getAreaAtPosition(adjacentTiles[1]);
+    auto areaA = Root::zoo()->world->areaManager->getAreaAtPosition(adjacentTiles[0]);
+    auto areaB = Root::zoo()->world->areaManager->getAreaAtPosition(adjacentTiles[1]);
     
     areaA->removeAreaConnection(areaB, wall);
     areaB->removeAreaConnection(areaA, wall);

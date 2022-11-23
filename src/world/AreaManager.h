@@ -13,10 +13,11 @@ public:
     void formAreas(Wall& placedWall);
     void joinAreas(Wall& removedWall);
     void resetAreas();
+    std::list<Area*> BFS(Area* start, Area* end) const;
 
-    std::vector<Area*> getAreas();
-    Area* getAreaById(std::string id);
-    Area* getAreaAtPosition(Vector2 pos);
+    std::vector<Area*> getAreas() const;
+    Area* getAreaById(std::string id) const;
+    Area* getAreaAtPosition(Vector2 pos) const;
 
     void renderDebugAreaGrid();
 

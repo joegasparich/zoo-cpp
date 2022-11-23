@@ -1,6 +1,6 @@
 ## Template
 
-Component.h
+[Component.h](Component.h)
 ```cpp
 enum COMPONENT {
     ...
@@ -17,8 +17,6 @@ Header
 class NewComponent : public Component {
 public:
     COMPONENT getId() override;
-    COMPONENT getType() override;
-    std::set<COMPONENT> getRequiredComponents() override;
 
     NewComponent(Entity *entity);
 };
@@ -29,14 +27,10 @@ Source
 #include "entities/Entity.h"
 
 COMPONENT NewComponent::getId() { return NEW_COMPONENT; }
-COMPONENT NewComponent::getType() { return NEW_COMPONENT; }
-std::set<COMPONENT> NewComponent::getRequiredComponents() {
-    return {};
-}
 
 NewComponent::NewComponent(Entity *entity) : Component(entity) {}
 ```
-createComponentById.cpp
+[createComponentById.cpp](createComponentById.cpp)
 ```cpp
         case NEW_COMPONENT:
             entity->addComponent(std::make_unique<NewComponent>(entity));

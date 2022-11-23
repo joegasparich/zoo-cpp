@@ -48,8 +48,8 @@ void SaveManager::loadGame(std::string saveFilePath) {
             curr = &saveData;
             Root::zoo()->serialise();
         } catch(const std::exception& error) {
-            TraceLog(LOG_TRACE, "Error loading save file: %s", saveFilePath.c_str());
-            TraceLog(LOG_TRACE, error.what());
+            TraceLog(LOG_WARNING, "Error loading save file: %s", saveFilePath.c_str());
+            TraceLog(LOG_WARNING, error.what());
         }
     }
 }

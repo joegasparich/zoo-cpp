@@ -4,6 +4,8 @@
 #include "Component.h"
 #include "InputComponent.h"
 
+#define NODE_REACHED_DIST 0.2f
+
 class PathFollowComponent : public InputComponent {
 public:
     PathFollowComponent(Entity *entity);
@@ -13,7 +15,8 @@ public:
     void end() override;
     void update() override;
 
-    void pathTo(Vector2 targetPos);
+    virtual void pathTo(Vector2 targetPos);
+    bool reachedDest();
 
     std::vector<Cell>& getPath();
 
@@ -21,9 +24,9 @@ public:
 
 private:
     Vector2 getCurrentNode();
-    bool isCellInPath(const Cell& cell);
 
     std::vector<Cell> path = {};
     std::string pathRequestHandle;
     std::string placeSolidListener;
+    bool pathCompleted;
 };

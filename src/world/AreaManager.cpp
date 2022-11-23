@@ -12,7 +12,7 @@ void AreaManager::setup () {
     auto zooArea = std::make_unique<Area>(ZOO_AREA);
     auto zooTiles = floodFill(Cell{1, 1});
     assert(!zooTiles.empty());
-    zooArea->m_tiles = zooTiles;
+    zooArea->tiles = zooTiles;
     areas.insert_or_assign(ZOO_AREA, std::move(zooArea));
     for (auto tile : zooTiles) tileAreaMap.insert_or_assign(tile.toString(), areas.at(ZOO_AREA).get());
     Messenger::fire(EventType::AreasUpdated);
@@ -41,7 +41,7 @@ void AreaManager::formAreas(Wall &placedWall) {
     auto oldArea = tileAreaMap.at(startTiles[0].toString());
 
     // Return if areas weren't formed properly (false positive in loop check)
-    if (areaATiles.size() + areaBTiles.size() > oldArea->m_tiles.size()) {
+    if (areaATiles.size() + areaBTiles.size() > oldArea->tiles.size()) {
         TraceLog(LOG_WARNING, "False positive in loop check");
         return;
     }
@@ -51,14 +51,14 @@ void AreaManager::formAreas(Wall &placedWall) {
     auto& larger = areaATiles.size() >= areaBTiles.size() ? areaATiles : areaBTiles;
     auto& smaller = areaATiles.size() < areaBTiles.size() ? areaATiles : areaBTiles;
 
-    oldArea->m_tiles = larger;
+    oldArea->tiles = larger;
     for (auto tile : larger) tileAreaMap[tile.toString()] = oldArea;
-    newArea->m_tiles = smaller;
+    newArea->tiles = smaller;
     for (auto tile : smaller) tileAreaMap[tile.toString()] = newArea.get();
 
-    TraceLog(LOG_TRACE, "Registered new area with size: %u", newArea->m_tiles.size());
+    TraceLog(LOG_TRACE, "Registered new area with size: %u", newArea->tiles.size());
 
-    areas.insert_or_assign(newArea->m_id, std::move(newArea));
+    areas.insert_or_assign(newArea->id, std::move(newArea));
 
     Messenger::fire(EventType::AreasUpdated);
 }
@@ -71,23 +71,23 @@ void AreaManager::joinAreas(Wall &removedWall) {
     auto areaB = getAreaAtPosition(tiles[1]);
 
     // If one of the areas is the main zoo area then ensure we keep it
-    if (areaB->m_id == ZOO_AREA) {
+    if (areaB->id == ZOO_AREA) {
         auto swap = areaA;
         areaA = areaB;
         areaB = swap;
     }
 
     // Delete area B and expand area A
-    areaA->m_tiles.insert(areaA->m_tiles.end(), areaB->m_tiles.begin(), areaB->m_tiles.end());
-    for (auto tile : areaB->m_tiles) tileAreaMap[tile.toString()] = areaA;
-    for (const auto& areaConnection : areaB->m_connectedAreas) {
+    areaA->tiles.insert(areaA->tiles.end(), areaB->tiles.begin(), areaB->tiles.end());
+    for (auto tile : areaB->tiles) tileAreaMap[tile.toString()] = areaA;
+    for (const auto& areaConnection : areaB->connectedAreas) {
         const auto& [area, doors] = areaConnection;
         for (auto door : doors) {
             areaA->addAreaConnection(area, door);
             area->addAreaConnection(areaA, door);
         }
     }
-    areas.erase(areaB->m_id);
+    areas.erase(areaB->id);
 
     Messenger::fire(EventType::AreasUpdated);
 }
@@ -96,7 +96,7 @@ void AreaManager::resetAreas() {
     // TOOD: What was this for?
 }
 
-std::vector<Area*> AreaManager::getAreas() {
+std::vector<Area*> AreaManager::getAreas() const {
     assert(isSetup);
     // TODO: Cache so we don't have to do this every time?
     std::vector<Area*> a;
@@ -106,12 +106,13 @@ std::vector<Area*> AreaManager::getAreas() {
     return a;
 }
 
-Area* AreaManager::getAreaById(std::string id) {
+Area* AreaManager::getAreaById(std::string id) const {
     assert(isSetup);
-    return areas[id].get();
+    if (!areas.contains(id)) return nullptr;
+    return areas.at(id).get();
 }
 
-Area* AreaManager::getAreaAtPosition(Vector2 pos) {
+Area* AreaManager::getAreaAtPosition(Vector2 pos) const {
     assert(isSetup);
     if (!Root::zoo()->world->isPositionInMap(pos)) return nullptr;
 
@@ -145,12 +146,55 @@ std::vector<Cell> AreaManager::floodFill(Cell startTile) {
     return tiles;
 }
 
+std::list<Area*> AreaManager::BFS (Area* start, Area* end) const {
+    std::map<std::string, int> dist;
+    std::map<std::string, std::string> prev;
+
+    dist[start->id] = 0;
+
+    std::queue<Area*> queue;
+    queue.push(start);
+
+    int curDist = 1;
+    while (!queue.empty()) {
+        auto current = queue.front();
+        queue.pop();
+
+        for (const auto& pair : current->connectedAreas) {
+            auto neighbour = pair.first;
+
+            if (dist.contains(neighbour->id) && curDist >= dist.at(neighbour->id)) continue;
+
+            prev[neighbour->id] = current->id;
+            dist[neighbour->id] = curDist;
+            queue.push(neighbour);
+
+            // Found end, construct path
+            if (neighbour == end) {
+                std::list<Area*> path{};
+                path.push_back(end);
+                std::string n = end->id;
+                while (prev.contains(n) && n != start->id) {
+                    n = prev[n];
+                    path.push_back(getAreaById(n));
+                }
+                path.reverse();
+                return path;
+            }
+        }
+
+        curDist++;
+    }
+
+    return {};
+}
+
 void AreaManager::renderDebugAreaGrid() {
     assert(isSetup);
     for (auto& pair : areas) {
         auto& area = pair.second;
-        for (auto& tile : area->m_tiles) {
-            Debug::drawRect(tile, Cell{1, 1}, ColorAlpha(area->m_colour, 0.5f), true);
+        for (auto& tile : area->tiles) {
+            Debug::drawRect(tile, Cell{1, 1}, ColorAlpha(area->colour, 0.5f), true);
         }
     }
 }
@@ -165,7 +209,7 @@ void AreaManager::serialise () {
         std::transform(areas.begin(), areas.end(), std::back_inserter(areaSaveData), [](const std::pair<const std::string, std::unique_ptr<Area>>& pair) {
             const auto& [id, area] = pair;
             std::vector<json> connectedAreaSaveData;
-            std::transform(area->m_connectedAreas.begin(), area->m_connectedAreas.end(), std::back_inserter(connectedAreaSaveData), [](
+            std::transform(area->connectedAreas.begin(), area->connectedAreas.end(), std::back_inserter(connectedAreaSaveData), [](
                 const std::pair<Area *const, std::unordered_set<Wall *>>& connection) {
                 const auto& [connectedArea, doors] = connection;
                 std::vector<Cell> doorGridPositions;
@@ -174,15 +218,15 @@ void AreaManager::serialise () {
                 });
 
                 return json({
-                    {"areaId", connectedArea->m_id},
+                    {"areaId", connectedArea->id},
                     {"doorGridPositions", doorGridPositions}
                 });
             });
 
             return json({
                 {"id", id},
-                {"colour", area->m_colour},
-                {"tiles", area->m_tiles},
+                {"colour", area->colour},
+                {"tiles", area->tiles},
                 {"connectedAreas", connectedAreaSaveData}
             });
         });
@@ -194,10 +238,10 @@ void AreaManager::serialise () {
         for (auto& areaData : data) {
             auto id = areaData.at("id").get<std::string>();
             auto area = std::make_unique<Area>(id);
-            areaData.at("colour").get_to(area->m_colour);
-            areaData.at("tiles").get_to(area->m_tiles);
+            areaData.at("colour").get_to(area->colour);
+            areaData.at("tiles").get_to(area->tiles);
             areas.insert_or_assign(id, std::move(area));
-            for (auto tile : areas.at(id)->m_tiles) tileAreaMap.insert_or_assign(tile.toString(), areas.at(id).get());
+            for (auto tile : areas.at(id)->tiles) tileAreaMap.insert_or_assign(tile.toString(), areas.at(id).get());
         }
 
         // Add connections once all areas have been created

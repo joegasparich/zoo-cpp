@@ -244,6 +244,18 @@ void WallGrid::updatePathfindingAtWall(const Wall& wall) {
     }
 }
 
+// TODO: use cached accessibility grids instead
+void WallGrid::updatePathfinding () {
+    for (int i = 0; i < cols * 2 + 1; i++) {
+        auto orientation = (Orientation) (i % 2);
+        for (int j = 0; j < rows + int(orientation); j++) {
+            auto& wall = grid.at(i).at(j);
+            if (wall.exists)
+                updatePathfindingAtWall(wall);
+        }
+    }
+}
+
 Wall* WallGrid::getWallByGridPos(Cell gridPos) {
     assert(isSetup);
     if (!isWallGridPosInMap(gridPos)) return nullptr;
@@ -477,6 +489,8 @@ void WallGrid::serialise() {
     };
     Root::saveManager().SerialiseValue("grid", get, set);
 
-    if (Root::saveManager().mode == SerialiseMode::Loading)
+    if (Root::saveManager().mode == SerialiseMode::Loading) {
         isSetup = true;
+        updatePathfinding();
+    }
 }

@@ -25,6 +25,8 @@ void DoorTool::onInput(InputEvent* event) {
         if (toolManager.ghost->canPlace) {
             Root::zoo()->world->wallGrid->placeDoor(Root::zoo()->world->wallGrid->getWallAtTile(flr(mousePos), mouseQuadrant));
         }
+
+        event->consume();
     }
 }
 

@@ -59,6 +59,7 @@ public:
     void placeDoor(Wall* wall);
     void removeDoor(Wall* wall);
     void updatePathfindingAtWall(const Wall& wall);
+    void updatePathfinding();
 
     bool isWallPosInMap(Cell tilePos, Side side) const;
     bool isWallGridPosInMap(Cell gridPos);

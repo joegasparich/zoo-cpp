@@ -112,7 +112,7 @@ path Pathfinder::getPath(Cell from, Cell to) {
         }
     }
 
-    TraceLog(LOG_TRACE, "Failed to find route to dest: %s", to.toString().c_str());
+    TraceLog(LOG_TRACE, "Failed to find route from %s to %s", from.toString().c_str(), to.toString().c_str());
     return {};
 }
 

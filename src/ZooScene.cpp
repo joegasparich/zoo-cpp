@@ -3,7 +3,7 @@
 #include "constants/assets.h"
 #include "entities/components/PhysicsComponent.h"
 #include "entities/components/MoveComponent.h"
-#include "entities/components/PathFollowComponent.h"
+#include "entities/components/AreaPathFollowComponent.h"
 #include "Debug.h"
 
 ZooScene::ZooScene() : Scene(ZOO) {}
@@ -21,7 +21,7 @@ void ZooScene::start() {
         test.get(),
         IMG_KEEPER
     ));
-    test->addComponent(std::make_unique<PathFollowComponent>(test.get()));
+    test->addComponent(std::make_unique<AreaPathFollowComponent>(test.get()));
     test->addComponent(std::make_unique<PhysicsComponent>(test.get()));
     test->addComponent(std::make_unique<MoveComponent>(test.get()));
     manId = zoo->registerEntity(std::move(test));
@@ -49,7 +49,7 @@ void ZooScene::renderLate(double step) {
     // Temp
     auto man = zoo->getEntityById(manId);
     if (!man) return;
-    auto path = man->getComponent<PathFollowComponent>()->getPath();
+    auto path = man->getComponent<AreaPathFollowComponent>()->getPath();
     if (!path.empty()) {
         for (int i = 1; i < path.size(); i++) {
             Debug::drawLine(
@@ -72,7 +72,7 @@ void ZooScene::onInput(InputEvent* event) {
     if (event->consumed) return;
 
     if (event->mouseButtonDown == MOUSE_BUTTON_LEFT) {
-        zoo->getEntityById(manId)->getComponent<PathFollowComponent>()->pathTo(event->mouseWorldPos);
+        zoo->getEntityById(manId)->getComponent<AreaPathFollowComponent>()->pathTo(event->mouseWorldPos);
     }
 }
 

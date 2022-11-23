@@ -2,37 +2,37 @@
 #include "Area.h"
 
 Area::Area(std::string id) :
-    m_id{std::move(id)},
-    m_colour{randomChar(), randomChar(), randomChar(), 255}
+    id{std::move(id)},
+    colour{randomChar(), randomChar(), randomChar(), 255}
 {
-    m_connectedAreas = {};
+    connectedAreas = {};
 }
 Area::~Area() = default;
 
 void Area::addAreaConnection(Area* area, Wall* door) {
     assert(door->isDoor);
-    if (m_connectedAreas.contains(area) && m_connectedAreas.at(area).contains(door)) return; // Duplicate door
+    if (connectedAreas.contains(area) && connectedAreas.at(area).contains(door)) return; // Duplicate door
     if (area == this) return; // Don't add connection to itself
 
-    if (m_connectedAreas.contains(area)) {
-        m_connectedAreas.at(area).insert(door);
+    if (connectedAreas.contains(area)) {
+        connectedAreas.at(area).insert(door);
     } else {
-        m_connectedAreas[area] = {door};
+        connectedAreas[area] = {door};
     }
 }
 
 void Area::removeAreaConnection(Area* area, Wall* door) {
     assert(door->isDoor);
-    if (!m_connectedAreas.contains(area)) return; // Area not a connection
-    if (door && !m_connectedAreas.at(area).contains(door)) return; // Door not a connection
+    if (!connectedAreas.contains(area)) return; // Area not a connection
+    if (door && !connectedAreas.at(area).contains(door)) return; // Door not a connection
 
     if (door) {
-        this->m_connectedAreas.at(area).erase(door);
+        this->connectedAreas.at(area).erase(door);
 
-        if (m_connectedAreas.at(area).empty()) {
-            m_connectedAreas.erase(area);
+        if (connectedAreas.at(area).empty()) {
+            connectedAreas.erase(area);
         }
     } else {
-        m_connectedAreas.erase(area);
+        connectedAreas.erase(area);
     }
 }

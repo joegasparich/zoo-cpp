@@ -24,6 +24,8 @@ public:
     template<typename T>
     void SerialiseValue(const std::string& label, T& value);
     template<typename T>
+    void SerialiseValue(const std::string& label, T& get, std::function<void(T)> set);
+    template<typename T>
     void SerialiseValue(const std::string& label, T&& get, std::function<void(T)> set);
     template<typename T>
     void SerialiseValue(const std::string& label, std::function<T()> get, std::function<void(T)> set);
@@ -49,6 +51,15 @@ void SaveManager::SerialiseValue(const std::string& label, T& value) {
 
 template<typename T>
 void SaveManager::SerialiseValue(const std::string& label, T&& get, std::function<void(T)> set) {
+    if (mode == SerialiseMode::Saving)
+        (*curr)[label] = get;
+
+    if (mode == SerialiseMode::Loading)
+        set(curr->at(label).get<T>());
+}
+
+template<typename T>
+void SaveManager::SerialiseValue(const std::string& label, T& get, std::function<void(T)> set) {
     if (mode == SerialiseMode::Saving)
         (*curr)[label] = get;
 

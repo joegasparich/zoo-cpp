@@ -3,8 +3,6 @@
 #include "Root.h"
 #include "Messenger.h"
 
-#define NODE_REACHED_DIST 0.5f
-
 PathFollowComponent::PathFollowComponent(Entity *entity) : InputComponent(entity) {}
 
 COMPONENT PathFollowComponent::getId() { return PATH_FOLLOW_COMPONENT; }
@@ -40,7 +38,6 @@ void PathFollowComponent::update() {
         if (pathRequestHandle.empty()) return;
         if (!pathfinder->asyncPathExists(pathRequestHandle)) return;
         if (!pathfinder->asyncPathReady(pathRequestHandle)) {
-            TraceLog(LOG_TRACE, "Path not ready");
             return;
         };
 
@@ -50,6 +47,7 @@ void PathFollowComponent::update() {
         if (path.empty()) {
             // No valid path
             inputVector = {};
+            pathCompleted = true;
             return;
         };
     }
@@ -62,6 +60,7 @@ void PathFollowComponent::update() {
             // Path complete
             path = {};
             inputVector = {};
+            pathCompleted = true;
             return;
         }
     }
@@ -72,6 +71,11 @@ void PathFollowComponent::update() {
 void PathFollowComponent::pathTo(Vector2 targetPos) {
     path = {};
     pathRequestHandle = Root::zoo()->world->pathfinder->requestAsyncPath(flr(entity->pos), flr(targetPos));
+    pathCompleted = false;
+}
+
+bool PathFollowComponent::reachedDest () {
+    return pathCompleted;
 }
 
 Vector2 PathFollowComponent::getCurrentNode() {

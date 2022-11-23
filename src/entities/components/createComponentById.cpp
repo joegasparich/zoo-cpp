@@ -7,6 +7,7 @@
 #include "PhysicsComponent.h"
 #include "MoveComponent.h"
 #include "PathFollowComponent.h"
+#include "AreaPathFollowComponent.h"
 
 Component* createComponentById(COMPONENT id, Entity *entity) {
     switch(id) {
@@ -28,6 +29,9 @@ Component* createComponentById(COMPONENT id, Entity *entity) {
         case PATH_FOLLOW_COMPONENT:
             entity->addComponent(std::make_unique<PathFollowComponent>(entity));
             return entity->getComponent<PathFollowComponent>();
+        case AREA_PATH_FOLLOW_COMPONENT:
+            entity->addComponent(std::make_unique<AreaPathFollowComponent>(entity));
+            return entity->getComponent<AreaPathFollowComponent>();
         default:
             return nullptr;
     }

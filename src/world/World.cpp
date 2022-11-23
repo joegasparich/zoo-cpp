@@ -28,16 +28,17 @@ void World::setup() {
     pathGrid = std::make_unique<PathGrid>(width, height);
     pathGrid->setup();
 
+    pathfinder = std::make_unique<Pathfinder>(width, height);
+
+    isSetup = true;
+
     auto zooArea = std::make_unique<Area>(ZOO_AREA);
     auto zooTiles = floodFill(Cell{1, 1});
+    assert(!zooTiles.empty());
     zooArea->m_tiles = zooTiles;
     areas.insert_or_assign(ZOO_AREA, std::move(zooArea));
     for (auto tile : zooTiles) tileAreaMap.insert_or_assign(tile.toString(), areas.at(ZOO_AREA).get());
     Messenger::fire(EventType::AreasUpdated);
-
-    pathfinder = std::make_unique<Pathfinder>(width, height);
-
-    isSetup = true;
 }
 
 void World::cleanup() {
@@ -51,15 +52,16 @@ void World::cleanup() {
     isSetup = false;
 }
 
-void World::update() {
+void World::preUpdate () {}
 
-}
+void World::update() {}
 
 void World::postUpdate() {
     biomeGrid->postUpdate();
 }
 
 void World::render() {
+    assert(isSetup);
     Profiler::startTimer("biome");
     biomeGrid->render();
     Profiler::stopTimer("biome");
@@ -75,6 +77,7 @@ void World::render() {
 }
 
 void World::renderDebug() {
+    assert(isSetup);
     if (Root::zoo()->debugSettings.cellGrid) renderDebugCellGrid();
     if (Root::zoo()->debugSettings.elevationGrid) elevationGrid->renderDebug();
     if (Root::zoo()->debugSettings.areaGrid) renderDebugAreaGrid();
@@ -82,7 +85,11 @@ void World::renderDebug() {
 }
 
 void World::registerTileObject(Entity *tileObject) {
+    assert(isSetup);
+    assert(tileObject);
     auto component = tileObject->getComponent<TileObjectComponent>();
+    assert(component);
+    assert(!component->getTiles().empty());
 
     tileObjects.insert_or_assign(tileObject->getId(), tileObject);
     for (auto tile : component->getTiles()) {
@@ -101,13 +108,15 @@ void World::unregisterTileObject(Entity *tileObject) {
 }
 
 void World::formAreas(Wall &placedWall) {
+    assert(placedWall.exists);
+
     std::vector<Cell> areaATiles;
     std::vector<Cell> areaBTiles;
     auto startTiles = wallGrid->getAdjacentTiles(placedWall);
 
     // ! Does not handle situations where final wall is placed on the edge of the map
     // Current solution is to ensure that the map is already surrounded by walls
-    if (startTiles.size() < 2) return;
+    assert(startTiles.size() >= 2);
 
     areaATiles = floodFill(startTiles[0]);
     areaBTiles = floodFill(startTiles[1]);
@@ -139,7 +148,7 @@ void World::formAreas(Wall &placedWall) {
 
 void World::joinAreas(Wall &removedWall) {
     auto tiles = wallGrid->getAdjacentTiles(removedWall);
-    if (tiles.size() != 2) return;
+    assert(tiles.size() == 2);
 
     auto areaA = getAreaAtPosition(tiles[0]);
     auto areaB = getAreaAtPosition(tiles[1]);
@@ -171,7 +180,8 @@ void World::resetAreas() {
 
 }
 
-Entity *World::getTileObjectAtPosition(Vector2 pos) {
+Entity* World::getTileObjectAtPosition(Vector2 pos) {
+    assert(isSetup);
     Cell tilePos = Cell{pos};
     if (!isPositionInMap(tilePos)) return nullptr;
     if (!tileObjectsMap.contains(tilePos.toString())) return nullptr;
@@ -179,10 +189,12 @@ Entity *World::getTileObjectAtPosition(Vector2 pos) {
 }
 
 bool World::isPositionInMap(Vector2 pos) const {
+    assert(isSetup);
     return pos.x >= 0 && pos.x < float(width) && pos.y >= 0 && pos.y < float(height);
 }
 
 Cell World::getTileInDirection(Cell tile, Side direction) {
+    assert(isSetup);
     switch (direction) {
         case Side::North: return {tile.x, tile.y - 1};
         case Side::South: return {tile.x, tile.y + 1};
@@ -202,7 +214,8 @@ Side World::getQuadrantAtPos(Vector2 pos) {
 }
 
 std::vector<Area*> World::getAreas() {
-    // TODO: Store list so we don't have to do this every time?
+    assert(isSetup);
+    // TODO: Cache so we don't have to do this every time?
     std::vector<Area*> a;
     for (const auto& [_, area] : areas) {
         a.push_back(area.get());
@@ -211,10 +224,12 @@ std::vector<Area*> World::getAreas() {
 }
 
 Area* World::getAreaById(std::string id) {
-   return areas[id].get();
+    assert(isSetup);
+    return areas[id].get();
 }
 
 Area* World::getAreaAtPosition(Vector2 pos) {
+    assert(isSetup);
     if (!isPositionInMap(pos)) return nullptr;
 
     auto key = Cell{pos}.toString();
@@ -248,6 +263,7 @@ std::vector<Cell> World::floodFill(Cell startTile) {
 }
 
 std::vector<Cell> World::getAccessibleAdjacentTiles(Cell tile) {
+    assert(isSetup);
     if (!isPositionInMap(tile)) return{};
 
     auto allSides = {Side::North, Side::West, Side::South, Side::East};
@@ -267,6 +283,7 @@ std::vector<Cell> World::getAccessibleAdjacentTiles(Cell tile) {
 
 // TODO (optimisation): cache tile cost grids (paths, no water, etc.)
 int World::getTileWalkability(Cell pos) {
+    assert(isSetup);
     if (tileObjectsMap.contains(pos.toString()) && tileObjectsMap.at(pos.toString())->getComponent<TileObjectComponent>()->data.solid)
         return 0;
 
@@ -280,6 +297,7 @@ int World::getTileWalkability(Cell pos) {
 }
 
 void World::renderDebugCellGrid() {
+    assert(isSetup);
     // Horizontal
     for (auto i = 0; i < height + 1; i++) {
         Debug::drawLine(
@@ -301,6 +319,7 @@ void World::renderDebugCellGrid() {
 }
 
 void World::renderDebugAreaGrid() {
+    assert(isSetup);
     for (auto& pair : areas) {
         auto& area = pair.second;
         for (auto& tile : area->m_tiles) {

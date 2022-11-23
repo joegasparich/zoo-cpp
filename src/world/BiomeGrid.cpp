@@ -71,6 +71,7 @@ void BiomeChunk::postUpdate() {
 
 void BiomeChunk::generateMesh() {
     // Maybe use GenMeshCustom?
+    // - Can't use GenMeshCustom unless I change to 3D camera
     // Test performance on this
 
     triangles.clear();
@@ -103,6 +104,7 @@ void BiomeChunk::generateMesh() {
 };
 
 void BiomeChunk::render() {
+    // Cull off-screen chunks
     if (!Root::renderer().isRectangleOnScreen({x / BIOME_SCALE, y / BIOME_SCALE, rows / BIOME_SCALE, cols / BIOME_SCALE})) return;
 
     for(auto triangle : triangles) {
@@ -218,6 +220,7 @@ void BiomeGrid::render() {
 }
 
 void BiomeGrid::setBiomeInRadius(Vector2 pos, float radius, Biome biome) {
+    assert(isSetup);
     pos *= BIOME_SCALE; radius *= BIOME_SCALE;
 
     for (auto chunk : getChunksInRadius(pos, radius)) {
@@ -226,12 +229,14 @@ void BiomeGrid::setBiomeInRadius(Vector2 pos, float radius, Biome biome) {
 }
 
 void BiomeGrid::redrawChunksInRadius(Vector2 pos, float radius) {
+    assert(isSetup);
     for (auto chunk : getChunksInRadius(pos, radius)) {
         chunk->shouldRegenerate = true;
     }
 }
 
 void BiomeGrid::redrawAllChunks() {
+    assert(isSetup);
     for (auto & i : chunkGrid) {
         for (auto & j : i) {
             j.shouldRegenerate = true;
@@ -240,6 +245,7 @@ void BiomeGrid::redrawAllChunks() {
 }
 
 std::vector<BiomeChunk*> BiomeGrid::getChunksInRadius(Vector2 pos, float radius) {
+    assert(isSetup);
     unsigned int floorX = floor(pos.x / CHUNK_SIZE);
     unsigned int floorY = floor(pos.y / CHUNK_SIZE);
 
@@ -259,6 +265,7 @@ std::vector<BiomeChunk*> BiomeGrid::getChunksInRadius(Vector2 pos, float radius)
 }
 
 bool BiomeGrid::isChunkInGrid(int col, int row) const {
+    assert(isSetup);
     return col >= 0 && col < cols / CHUNK_SIZE && row >= 0 && row < rows / CHUNK_SIZE;
 }
 

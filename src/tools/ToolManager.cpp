@@ -28,6 +28,10 @@ void ToolManager::cleanup() {
     Root::ui().closeWindow(toolbarId);
 }
 
+void ToolManager::preUpdate () {
+    activeTool->preUpdate();
+}
+
 void ToolManager::update() {
     activeTool->update();
 }

@@ -19,6 +19,7 @@ public:
     // Lifecycle
     void setup();
     void cleanup();
+    void preUpdate();
     void update();
     void postUpdate();
     void render();

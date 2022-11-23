@@ -61,7 +61,7 @@ void PathGrid::render() {
 }
 
 Path *PathGrid::placePathAtTile(PathData *data, Cell tilePos) {
-    if (!isSetup) return nullptr;
+    assert(isSetup);
     if (!Root::zoo()->world->isPositionInMap(tilePos)) return nullptr;
     if (getPathAtTile(tilePos)->exists) return nullptr;
 
@@ -78,6 +78,7 @@ Path *PathGrid::placePathAtTile(PathData *data, Cell tilePos) {
 }
 
 Path *PathGrid::getPathAtTile(Cell tilePos) {
+    assert(isSetup);
     if (!Root::zoo()->world->isPositionInMap(tilePos)) return nullptr;
 
     return &grid.at(tilePos.x).at(tilePos.y);

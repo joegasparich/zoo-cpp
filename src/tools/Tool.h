@@ -22,6 +22,7 @@ public:
 
     virtual void set() {};
     virtual void unset() {};
+    virtual void preUpdate() {};
     virtual void update() {};
     virtual void postUpdate() {};
     virtual void render() {};

@@ -47,6 +47,7 @@ path Pathfinder::reconstructPath(const std::vector<std::vector<Node>> &cellDetai
 
 // https://www.geeksforgeeks.org/a-search-algorithm/
 path Pathfinder::getPath(Cell from, Cell to) {
+    assert(isSetup);
     if (!isTileInGrid(from) || !isTileInGrid(to)) return {};
     if (!isAccessible(to)) return {};
     if (from == to) return {};
@@ -114,6 +115,7 @@ path Pathfinder::getPath(Cell from, Cell to) {
 }
 
 std::string Pathfinder::requestAsyncPath(Cell from, Cell to) {
+    assert(isSetup);
     auto handle = uuid::generate();
     // TODO: Do we need to lock the tileGrid?
     pathRequests->insert({handle, std::async(std::launch::async, &Pathfinder::getPath, this, from, to)});
@@ -122,16 +124,19 @@ std::string Pathfinder::requestAsyncPath(Cell from, Cell to) {
 }
 
 bool Pathfinder::asyncPathExists(const std::string& handle) {
+    assert(isSetup);
     return pathRequests->contains(handle);
 }
 
 bool Pathfinder::asyncPathReady(const std::string& handle) {
+    assert(isSetup);
     if (!asyncPathExists(handle)) return false;
 
     return pathRequests->at(handle).wait_for(std::chrono::seconds(0)) == std::future_status::ready;
 }
 
 path Pathfinder::getAsyncPath(const std::string& handle) {
+    assert(isSetup);
     if (!asyncPathExists(handle)) return {};
 
     auto path = pathRequests->at(handle).get();
@@ -141,19 +146,20 @@ path Pathfinder::getAsyncPath(const std::string& handle) {
 }
 
 void Pathfinder::setAccessibility(Cell tile, bool accessible) {
-    if (!isSetup) return;
+    assert(isSetup);
 
     tileGrid->at(tile.x).at(tile.y).accessible = accessible;
 }
 
 void Pathfinder::setAccessibility(Cell tile, Direction direction, bool accessible) {
-    if (!isSetup) return;
+    assert(isSetup);
     if (!isTileInGrid(tile)) return;
 
     tileGrid->at(tile.x).at(tile.y).connections[int(direction)] = accessible;
 }
 
 bool Pathfinder::isAccessible(Cell tilePos) {
+    assert(isSetup);
     auto [x, y] = tilePos;
     auto width = tileGrid->size();
     auto height = tileGrid->at(0).size();
@@ -194,6 +200,7 @@ path Pathfinder::getNeighbours(Cell tilePos) {
 }
 
 void Pathfinder::drawDebugGrid() {
+    assert(isSetup);
     for (int i = 0; i < cols; i++) {
         for (int j = 0; j < rows; j++) {
             if (!isAccessible({i, j})) continue;

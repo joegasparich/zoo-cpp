@@ -63,7 +63,7 @@ void WallGrid::render() {
 }
 
 Wall* WallGrid::placeWallAtTile(WallData* data, Cell tilePos, Side side) {
-    if (!isSetup) return nullptr;
+    assert(isSetup);
     if (!isWallPosInMap(tilePos, side)) return nullptr;
     if (getWallAtTile(tilePos, side)->exists) return nullptr;
 
@@ -90,7 +90,7 @@ Wall* WallGrid::placeWallAtTile(WallData* data, Cell tilePos, Side side) {
 }
 
 void WallGrid::deleteWall(Wall wall) {
-    if (!isSetup) return;
+    assert(isSetup);
 
     this->deleteWallAtTile(
         flr(wall.worldPos),
@@ -99,7 +99,7 @@ void WallGrid::deleteWall(Wall wall) {
 }
 
 void WallGrid::deleteWallAtTile(Cell tilePos, Side side) {
-    if (!isSetup) return;
+    assert(isSetup);
     if (!isWallPosInMap(tilePos, side)) return;
 
     // Get grid position
@@ -115,57 +115,10 @@ void WallGrid::deleteWallAtTile(Cell tilePos, Side side) {
             false,
             false
     };
-
-//    auto [tile1, tile2] = getAdjacentTiles(grid[x][y]);
-
-//    if (Game.world.getAreaAtPosition(tile1) !== Game.world.getAreaAtPosition(tile2)) {
-//        Game.world.joinAreas(this.wallGrid[x][y]);
-//    }
-
-//    // Update pathfinding information
-//    if (side === Side.North && tilePos.y > 0) {
-//        Game.map.setTileAccess(
-//                new Vector(tilePos.x, tilePos.y),
-//                this.getWalledSides(new Vector(tilePos.x, tilePos.y)),
-//        );
-//        Game.map.setTileAccess(
-//                new Vector(tilePos.x, tilePos.y - 1),
-//                this.getWalledSides(new Vector(tilePos.x, tilePos.y - 1)),
-//        );
-//    }
-//    if (side === Side.South && tilePos.y < Game.map.rows - 1) {
-//        Game.map.setTileAccess(
-//                new Vector(tilePos.x, tilePos.y),
-//                this.getWalledSides(new Vector(tilePos.x, tilePos.y)),
-//        );
-//        Game.map.setTileAccess(
-//                new Vector(tilePos.x, tilePos.y + 1),
-//                this.getWalledSides(new Vector(tilePos.x, tilePos.y + 1)),
-//        );
-//    }
-//    if (side === Side.West && tilePos.x > 0) {
-//        Game.map.setTileAccess(
-//                new Vector(tilePos.x, tilePos.y),
-//                this.getWalledSides(new Vector(tilePos.x, tilePos.y)),
-//        );
-//        Game.map.setTileAccess(
-//                new Vector(tilePos.x - 1, tilePos.y),
-//                this.getWalledSides(new Vector(tilePos.x - 1, tilePos.y)),
-//        );
-//    }
-//    if (side === Side.East && tilePos.x < Game.map.cols - 1) {
-//        Game.map.setTileAccess(
-//                new Vector(tilePos.x, tilePos.y),
-//                this.getWalledSides(new Vector(tilePos.x, tilePos.y)),
-//        );
-//        Game.map.setTileAccess(
-//                new Vector(tilePos.x + 1, tilePos.y),
-//                this.getWalledSides(new Vector(tilePos.x + 1, tilePos.y)),
-//        );
-//    }
 }
 
 void WallGrid::placeDoor(Wall* wall) {
+    assert(isSetup);
     if (!wall) return;
 
     wall->isDoor = true;
@@ -181,6 +134,7 @@ void WallGrid::placeDoor(Wall* wall) {
 }
 
 void WallGrid::removeDoor(Wall* wall) {
+    assert(isSetup);
     wall->isDoor = false;
 
     auto adjacentTiles = getAdjacentTiles(*wall);
@@ -194,7 +148,7 @@ void WallGrid::removeDoor(Wall* wall) {
 }
 
 bool WallGrid::isWallPosInMap(Cell tilePos, Side side) const {
-    if (!isSetup) return false;
+    assert(isSetup);
 
     return (
         Root::zoo()->world->isPositionInMap(tilePos) ||
@@ -206,13 +160,13 @@ bool WallGrid::isWallPosInMap(Cell tilePos, Side side) const {
 }
 
 bool WallGrid::isWallGridPosInMap(Cell gridPos) {
-    if (!isSetup) return false;
+    assert(isSetup);
 
     return gridPos.x >= 0 && gridPos.x < grid.size() && gridPos.y >= 0 && gridPos.y < grid[gridPos.x].size();
 }
 
 Wall* WallGrid::getWallAtTile(Cell tilePos, Side side) {
-    if (!isSetup) return nullptr;
+    assert(isSetup);
 
     if (!isWallPosInMap(tilePos, side)) {
         // Invert position and side if tile pos is correct but on the outside of the map
@@ -247,6 +201,7 @@ Wall* WallGrid::getWallAtTile(Cell tilePos, Side side) {
 }
 
 void WallGrid::updatePathfindingAtWall(const Wall& wall) {
+    assert(isSetup);
     auto [x, y] = wall.worldPos;
     auto& pf = Root::zoo()->world->pathfinder;
 
@@ -288,14 +243,14 @@ void WallGrid::updatePathfindingAtWall(const Wall& wall) {
 }
 
 Wall* WallGrid::getWallByGridPos(Cell gridPos) {
-    if (!isSetup) return nullptr;
+    assert(isSetup);
     if (!isWallGridPosInMap(gridPos)) return nullptr;
 
     return &grid[gridPos.x][gridPos.y];
 }
 
 std::vector<Wall*> WallGrid::getAdjacentWalls(const Wall &wall) {
-    if (!isSetup) return {};
+    assert(isSetup);
 
     std::vector<Wall*> adjacentWalls{};
     auto x = wall.gridPos.x; auto y = wall.gridPos.y;
@@ -320,7 +275,7 @@ std::vector<Wall*> WallGrid::getAdjacentWalls(const Wall &wall) {
 }
 
 std::vector<Cell> WallGrid::getAdjacentTiles(const Wall& wall) {
-    if (!isSetup) return {};
+    assert(isSetup);
 
     std::vector<Cell> adjacentTiles{};
     adjacentTiles.reserve(2);
@@ -338,6 +293,7 @@ std::vector<Cell> WallGrid::getAdjacentTiles(const Wall& wall) {
 }
 
 std::array<Cell, 2> WallGrid::getWallVertices(const Wall &wall) {
+    assert(isSetup);
     switch (wall.orientation) {
         case Orientation::Horizontal:
             return {
@@ -353,6 +309,7 @@ std::array<Cell, 2> WallGrid::getWallVertices(const Wall &wall) {
 }
 
 std::vector<Wall*> WallGrid::getSurroundingWalls(Cell gridPos) {
+    assert(isSetup);
     std::vector<Wall*> walls{};
 
     walls.push_back(getWallAtTile(gridPos, Side::North));
@@ -364,6 +321,7 @@ std::vector<Wall*> WallGrid::getSurroundingWalls(Cell gridPos) {
 }
 
 bool WallGrid::isWallSloped(const Wall &wall) {
+    assert(isSetup);
     auto& elevationGrid = Root::zoo()->world->elevationGrid;
     auto [v1, v2] = getWallVertices(wall);
 

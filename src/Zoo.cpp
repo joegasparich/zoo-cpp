@@ -40,6 +40,9 @@ void Zoo::setup() {
 }
 
 void Zoo::preUpdate() {
+    tools->preUpdate();
+    world->preUpdate();
+
     for (auto& pair: entities) {
         pair.second->preUpdate();
     }

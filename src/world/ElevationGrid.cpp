@@ -18,9 +18,9 @@ void ElevationGrid::setup() {
         }
     }
 
-    generateWaterMesh();
-
     isSetup = true;
+
+    generateWaterMesh();
 }
 
 void ElevationGrid::cleanup() {
@@ -37,6 +37,7 @@ void ElevationGrid::render() {
 }
 
 void ElevationGrid::renderDebug() {
+    assert(isSetup);
     if (grid.empty()) return;
 
     for (auto i = 0; i < cols; i++) {
@@ -64,6 +65,7 @@ void ElevationGrid::renderDebug() {
 }
 
 bool ElevationGrid::setElevation(Cell gridPos, Elevation elevation) {
+    assert(isSetup);
     if (!canElevate(gridPos, elevation)) return false;
 
     // Flatten surrounding terrain
@@ -82,6 +84,7 @@ bool ElevationGrid::setElevation(Cell gridPos, Elevation elevation) {
 }
 
 void ElevationGrid::setElevationInCircle(Vector2 pos, float radius, Elevation elevation) {
+    assert(isSetup);
     if (!isPositionInGrid(pos)) return;
 
     bool changed = false;
@@ -170,6 +173,7 @@ void ElevationGrid::generateWaterMesh() {
 }
 
 bool ElevationGrid::canElevate(Cell gridPos, Elevation elevation) {
+    assert(isSetup);
     if (elevation == Elevation::Water) {
         // Check 4 surrounding wall slots for walls
         for (auto wall : Root::zoo()->world->wallGrid->getSurroundingWalls(gridPos)) {
@@ -207,6 +211,7 @@ bool ElevationGrid::canElevate(Cell gridPos, Elevation elevation) {
 }
 
 Elevation ElevationGrid::getElevationAtGridPos(Cell gridPos) {
+    assert(isSetup);
     if (grid.empty()) return Elevation::Flat;
     if (!isPositionInGrid(gridPos)) return Elevation::Flat;
 
@@ -214,6 +219,7 @@ Elevation ElevationGrid::getElevationAtGridPos(Cell gridPos) {
 }
 
 float ElevationGrid::getTileBaseElevation(Cell tile) {
+    assert(isSetup);
     auto a = (float(std::min({
          int(getElevationAtGridPos(tile)),
          int(getElevationAtGridPos(tile + Cell{0, 1})),
@@ -225,6 +231,7 @@ float ElevationGrid::getTileBaseElevation(Cell tile) {
 }
 
 SlopeVariant ElevationGrid::getTileSlopeVariant(Cell tile) {
+    assert(isSetup);
     auto nw = getElevationAtGridPos(tile);
     auto ne = getElevationAtGridPos(tile + Cell{1, 0});
     auto sw = getElevationAtGridPos(tile + Cell{0, 1});
@@ -251,6 +258,7 @@ SlopeVariant ElevationGrid::getTileSlopeVariant(Cell tile) {
 }
 
 std::vector<Vector2> ElevationGrid::getTileWaterVertices(Cell gridPos) {
+    assert(isSetup);
     auto slopeVariant = getTileSlopeVariant(gridPos);
     std::vector<Vector2> vertices{};
 
@@ -361,9 +369,8 @@ std::vector<Vector2> ElevationGrid::getTileWaterVertices(Cell gridPos) {
 }
 
 float ElevationGrid::getElevationAtPos(Vector2 pos) {
-    if (!isPositionInGrid(pos)) {
-        return 0;
-    }
+    assert(isSetup);
+    if (!isPositionInGrid(pos)) return 0;
 
     float relX = float(fmod(pos.x, 1));
     float relY = float(fmod(pos.y, 1));
@@ -410,6 +417,7 @@ float ElevationGrid::getElevationAtPos(Vector2 pos) {
 }
 
 std::vector<Cell> ElevationGrid::getSurroundingTiles(Cell gridPos) {
+    assert(isSetup);
     return {
         gridPos + Cell{-1, -1},
         gridPos + Cell{-1, 0},
@@ -419,14 +427,17 @@ std::vector<Cell> ElevationGrid::getSurroundingTiles(Cell gridPos) {
 }
 
 bool ElevationGrid::isPositionInGrid(Vector2 pos) const {
+    assert(isSetup);
     return pos.x >= 0 && pos.x < float(cols) && pos.y >= 0 && pos.y < float(rows);
 }
 
 bool ElevationGrid::isPositionSloped(Vector2 pos) {
+    assert(isSetup);
     return getTileSlopeVariant(flr(pos)) != SlopeVariant::Flat;
 }
 
 bool ElevationGrid::isPositionSlopeCorner(Vector2 pos) {
+    assert(isSetup);
     return (
         getTileSlopeVariant(flr(pos)) != SlopeVariant::Flat &&
         getTileSlopeVariant(flr(pos)) != SlopeVariant::N &&
@@ -437,10 +448,12 @@ bool ElevationGrid::isPositionSlopeCorner(Vector2 pos) {
 }
 
 bool ElevationGrid::isPositionWater(Vector2 pos) {
+    assert(isSetup);
     return isTileWater(flr(pos));
 }
 
 bool ElevationGrid::isTileWater(Cell pos) {
+    assert(isSetup);
     if (!isPositionInGrid(pos)) return false;
     return getTileBaseElevation(pos) < 0;
 }
@@ -450,6 +463,7 @@ std::vector<Cell> ElevationGrid::getAdjacentGridPositions(Cell gridPos) {
 }
 
 std::vector<Cell> ElevationGrid::getAdjacentGridPositions(Cell gridPos, bool diagonals) {
+    assert(isSetup);
     auto positions = std::vector<Cell>{
         gridPos + Cell{1, 0},
         gridPos + Cell{-1, 0},
@@ -476,7 +490,7 @@ void ElevationGrid::serialise() {
         cols = grid.size();
         rows = grid[0].size();
 
-        generateWaterMesh();
         isSetup = true;
+        generateWaterMesh();
     }
 }

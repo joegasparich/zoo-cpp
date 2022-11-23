@@ -1,5 +1,6 @@
 #include "MoveComponent.h"
 #include "entities/Entity.h"
+#include "Root.h"
 
 MoveComponent::MoveComponent(Entity *entity) : Component(entity) {}
 MoveComponent::MoveComponent(Entity* entity, float acceleration)
@@ -20,14 +21,8 @@ void MoveComponent::update() {
     physics->addForce(input->inputVector * acceleration);
 }
 
-json MoveComponent::save() {
-    auto saveData = Component::save();
-    saveData.push_back({"acceleration", acceleration});
+void MoveComponent::serialise() {
+    Component::serialise();
 
-    return saveData;
-}
-
-void MoveComponent::load(json data) {
-    Component::load(data);
-    data.at("acceleration").get_to(acceleration);
+    Root::saveManager().SerialiseValue("acceleration", acceleration);
 }

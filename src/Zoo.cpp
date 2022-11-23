@@ -144,37 +144,6 @@ void Zoo::cleanup() {
     Root::renderer().resetCamera();
 }
 
-json Zoo::save() {
-    std::vector<json> entitiesSaveData;
-
-    for (auto& pair : entities) {
-        entitiesSaveData.push_back(pair.second->save());
-    }
-
-    return json{
-        { "world", world->save() },
-        { "entities", json{
-            { "nextEntityId", nextEntityId },
-            { "entityList", entitiesSaveData }
-        }}
-    };
-}
-
-void Zoo::load(json data) {
-    cleanup();
-    setup();
-
-    world->load(data.at("world"));
-
-    json entitiesData = data.at("entities");
-    entitiesData.at("nextEntityId").get_to(nextEntityId);
-    for (auto& entityData : entitiesData.at("entityList").get<std::vector<json>>()) {
-        auto entity = std::make_unique<Entity>();
-        entity->load(entityData);
-        registerEntity(std::move(entity), entityData.at("id").get<unsigned int>());
-    }
-}
-
 unsigned int Zoo::registerEntity(std::unique_ptr<Entity> entity) {
     return registerEntity(std::move(entity), nextEntityId++);
 }
@@ -199,4 +168,44 @@ Entity *Zoo::getEntityById(unsigned int entityId) {
     auto& ptr = entities.at(entityId);
     if (ptr) return ptr.get();
     return nullptr;
+}
+
+void Zoo::serialise() {
+    if (Root::saveManager().mode == SerialiseMode::Loading) {
+        cleanup();
+        // TODO: this is basically cleaning up and setting up twice
+        // Once to make a new save and another to load the file
+        // Fix me
+        setup();
+    }
+
+    Root::saveManager().SerialiseDeep("world", world.get());
+    SerialiseEntities("entities", entities);
+    Root::saveManager().SerialiseValue("nextEntityId", nextEntityId);
+}
+
+void Zoo::SerialiseEntities (const std::string& label, std::unordered_map<unsigned int, std::unique_ptr<Entity>>& collection) {
+    auto parent = Root::saveManager().getCurrentSerialiseNode();
+
+    if (Root::saveManager().mode == SerialiseMode::Saving) {
+        json saveData{};
+        for (auto& pair : collection) {
+            json data{};
+            Root::saveManager().setCurrentSerialiseNode(&data);
+            pair.second->serialise();
+            saveData[pair.first] = data;
+        }
+        (*parent)[label] = saveData;
+    }
+    if (Root::saveManager().mode == SerialiseMode::Loading) {
+        for (auto& data : parent->at(label).get<json>()) {
+            auto entity = std::make_unique<Entity>();
+            Root::saveManager().setCurrentSerialiseNode(&data);
+            entity->serialise();
+            auto id = entity->getId();
+            Root::zoo()->registerEntity(std::move(entity), id);
+        }
+    }
+
+    Root::saveManager().setCurrentSerialiseNode(parent);
 }

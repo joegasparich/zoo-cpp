@@ -3,6 +3,7 @@
 #include "common.h"
 #include "Registry.h"
 #include "Renderer.h"
+#include "ISerialisable.h"
 
 #define MAX_PATHS 32
 
@@ -26,7 +27,7 @@ struct PathSpriteInfo {
     float elevation;
 };
 
-class PathGrid {
+class PathGrid : public ISerialisable {
 public:
     PathGrid(unsigned int mRows, unsigned int mCols);
 
@@ -34,13 +35,13 @@ public:
     void cleanup();
     void render();
 
+    void serialise() override;
+
     Path* placePathAtTile(PathData* path, Cell tilePos);
     Path* getPathAtTile(Cell tilePos);
 
     static PathSpriteInfo getSpriteInfo(Path& path);
 
-    json save();
-    void load(json saveData);
 private:
     std::vector<std::vector<Path>> grid;
     unsigned int rows;

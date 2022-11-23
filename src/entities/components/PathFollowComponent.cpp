@@ -14,6 +14,8 @@ void PathFollowComponent::start() {
 
     // TODO: check performance on this
     placeSolidListener = Messenger::on(EventType::PlaceSolid, [this](Event* _e) {
+        if (path.empty()) return;
+
         auto e = static_cast<PlaceSolidEvent*>(_e);
 
         for (auto& cell : path) {
@@ -79,4 +81,10 @@ Vector2 PathFollowComponent::getCurrentNode() {
 
 std::vector<Cell>& PathFollowComponent::getPath() {
     return path;
+}
+
+void PathFollowComponent::serialise() {
+    Component::serialise();
+
+    Root::saveManager().SerialiseValue("path", path);
 }

@@ -1,5 +1,6 @@
 #include "Component.h"
 #include "entities/Entity.h"
+#include "Root.h"
 
 Component::Component(Entity* entity) {
     this->entity = entity;
@@ -15,13 +16,7 @@ void Component::postUpdate() {}
 void Component::render(double step) {}
 void Component::end() {}
 
-json Component::save() {
-    return json({
-        {"id", getId()},
-        {"isDisabled", disabled}
-    });
-}
-
-void Component::load(json data) {
-    data.at("isDisabled").get_to(disabled);
+void Component::serialise() {
+    Root::saveManager().SerialiseValue("id", getId(), (std::function<void(COMPONENT)>)[](auto _){});
+    Root::saveManager().SerialiseValue("disabled", disabled);
 }

@@ -262,52 +262,54 @@ bool BiomeGrid::isChunkInGrid(int col, int row) const {
     return col >= 0 && col < cols / CHUNK_SIZE && row >= 0 && row < rows / CHUNK_SIZE;
 }
 
-json BiomeGrid::save() {
-    // 5D Chess
-    std::vector<std::vector<std::vector<std::vector<std::vector<Biome>>>>> gridData;
-    std::transform(chunkGrid.begin(), chunkGrid.end(), std::back_inserter(gridData), [](std::vector<BiomeChunk>& row) {
-        std::vector<std::vector<std::vector<std::vector<Biome>>>> rowData;
-        std::transform(row.begin(), row.end(), std::back_inserter(rowData), [](BiomeChunk& chunk) {
-            return chunk.save();
+void BiomeGrid::serialise() {
+    if (Root::saveManager().mode == SerialiseMode::Loading) {
+        cleanup();
+
+        elevationListenerHandle = Messenger::on(EventType::ElevationUpdated, [this](Event* _e) {
+            auto e = static_cast<ElevationUpdatedEvent*>(_e);
+
+            redrawChunksInRadius(e->pos * 2.0f, e->radius + 6.0f);
         });
-        return rowData;
-    });
-
-    return json{
-        {"grid", gridData},
-        {"cols", cols},
-        {"rows", rows}
-    };
-
-}
-
-void BiomeGrid::load(json saveData) {
-    cleanup();
-
-    saveData.at("cols").get_to(cols);
-    saveData.at("rows").get_to(rows);
-
-    auto gridData = saveData.at("grid").get<std::vector<std::vector<std::vector<std::vector<std::vector<Biome>>>>>>();
-
-    unsigned int i = 0;
-    for (auto& row : gridData) {
-        unsigned int j = 0;
-        chunkGrid.emplace_back();
-        for (auto& chunkData : row) {
-            chunkGrid.at(i).push_back(BiomeChunk{
-                chunkData, i * CHUNK_SIZE, j * CHUNK_SIZE
-            });
-            chunkGrid.at(i).at(j).setup();
-            j++;
-        }
-        i++;
     }
 
-    elevationListenerHandle = Messenger::on(EventType::ElevationUpdated, [this](Event* _e) {
-        auto e = static_cast<ElevationUpdatedEvent*>(_e);
+    Root::saveManager().SerialiseValue("cols", cols);
+    Root::saveManager().SerialiseValue("rows", rows);
 
-        redrawChunksInRadius(e->pos * 2.0f, e->radius + 6.0f);
-    });
+    std::function<json()> get = [&](){
+        // 5D Chess
+        std::vector<std::vector<std::vector<std::vector<std::vector<Biome>>>>> gridData;
+        std::transform(chunkGrid.begin(), chunkGrid.end(), std::back_inserter(gridData), [](std::vector<BiomeChunk>& row) {
+            std::vector<std::vector<std::vector<std::vector<Biome>>>> rowData;
+            std::transform(row.begin(), row.end(), std::back_inserter(rowData), [](BiomeChunk& chunk) {
+                return chunk.save();
+            });
+            return rowData;
+        });
+
+        return gridData;
+    };
+    std::function<void(json)> set = [&](json data){
+        auto gridData = data.get<std::vector<std::vector<std::vector<std::vector<std::vector<Biome>>>>>>();
+
+        unsigned int i = 0;
+        for (auto& row : gridData) {
+            unsigned int j = 0;
+            chunkGrid.emplace_back();
+            for (auto& chunkData : row) {
+                chunkGrid.at(i).push_back(BiomeChunk{
+                    chunkData, i * CHUNK_SIZE, j * CHUNK_SIZE
+                });
+                chunkGrid.at(i).at(j).setup();
+                j++;
+            }
+            i++;
+        }
+    };
+    Root::saveManager().SerialiseValue("grid", get, set);
+
+    if (Root::saveManager().mode == SerialiseMode::Loading)
+        isSetup = true;
 }
 
 float BiomeGrid::getQuadrantSlopeColour(Vector2 pos, Side quadrant) {

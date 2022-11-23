@@ -1,6 +1,7 @@
 #pragma once
 
 #include "common.h"
+#include "ISerialisable.h"
 
 class Entity;
 
@@ -14,7 +15,7 @@ enum COMPONENT {
     PATH_FOLLOW_COMPONENT
 };
 
-class Component {
+class Component: public ISerialisable {
 public:
     Component(Entity* entity);
     virtual COMPONENT getId() = 0;
@@ -26,8 +27,7 @@ public:
     virtual void render(double step);
     virtual void end();
 
-    virtual json save();
-    virtual void load(json data);
+    void serialise() override;
 
     bool disabled = false;
 protected:

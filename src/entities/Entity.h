@@ -4,8 +4,9 @@
 
 #include "components/Component.h"
 #include "util/typeMap.h"
+#include "ISerialisable.h"
 
-class Entity {
+class Entity : public ISerialisable {
 public:
     Entity();
     Entity(Vector2 pos);
@@ -18,6 +19,7 @@ public:
     void update();
     void postUpdate();
     void render(double step) const;
+    void cleanup();
 
     template<typename T>
     T* addComponent(std::unique_ptr<T> component);
@@ -30,8 +32,8 @@ public:
     void setId(unsigned int id);
     unsigned int getId();
 
-    json save();
-    void load(json data);
+    void serialise() override;
+    void SerialiseComponentMap(const std::string& label, TypeMap<std::unique_ptr<Component>>& collection);
 
 private:
     unsigned int id;

@@ -20,6 +20,7 @@ void ToolGhost::cleanup() {
     visible = true;
     sprite = nullptr;
     spriteSheet = nullptr;
+    spriteSheetIndex = 0;
     canPlace = true;
 
     pos = {0.0f, 0.0f};

@@ -3,6 +3,7 @@
 #include "common.h"
 #include "Registry.h"
 #include "Renderer.h"
+#include "ISerialisable.h"
 
 #define MAX_WALLS 32
 
@@ -42,7 +43,7 @@ struct WallSpriteInfo {
     float elevation;
 };
 
-class WallGrid {
+class WallGrid : public ISerialisable {
 public:
     WallGrid(unsigned int cols, unsigned int rows);
 
@@ -50,12 +51,13 @@ public:
     void cleanup();
     void render();
 
+    void serialise() override;
+
     Wall* placeWallAtTile(WallData* wall, Cell tilePos, Side side);
     void deleteWall(Wall wall);
     void deleteWallAtTile(Cell tilePos, Side side);
     void placeDoor(Wall* wall);
     void removeDoor(Wall* wall);
-
     void updatePathfindingAtWall(const Wall& wall);
 
     bool isWallPosInMap(Cell tilePos, Side side) const;
@@ -72,8 +74,6 @@ public:
     static GridPos getGridPosition(Cell tilePos, Side side);
     static WallSpriteInfo getSpriteInfo(Wall& wall, bool isDoor = false);
 
-    json save();
-    void load(json saveData);
 private:
     bool shouldCheckForLoop(const Wall& wall);
     bool checkForLoop(Wall* startWall, Wall* currentWall = nullptr, std::unordered_set<std::string> checkedWalls = {}, unsigned int depth = 0);

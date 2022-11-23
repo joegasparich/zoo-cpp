@@ -10,11 +10,12 @@ void SaveManager::newGame() {
 }
 
 void SaveManager::saveGame(std::string saveFilePath) {
-    json saveData;
+    json saveData{};
     try {
-        saveData = json{
-                {"zoo", Root::zoo()->save()}
-        };
+        mode = SerialiseMode::Saving;
+        curr = &saveData;
+        Root::zoo()->serialise();
+
     } catch(const std::exception& error) {
         std::cout << "Error saving game " << std::endl;
         std::cout << error.what() << std::endl;
@@ -42,11 +43,20 @@ void SaveManager::loadGame(std::string saveFilePath) {
         if (saveData.empty()) return;
 
         try {
-            Root::zoo()->load(saveData["zoo"]);
+            mode = SerialiseMode::Loading;
+            curr = &saveData;
+            Root::zoo()->serialise();
         } catch(const std::exception& error) {
             std::cout << "Error loading save file: " << saveFilePath << std::endl;
             std::cout << error.what() << std::endl;
         }
     }
+}
 
+json* SaveManager::getCurrentSerialiseNode () {
+    return curr;
+}
+
+void SaveManager::setCurrentSerialiseNode (json* node) {
+    curr = node;
 }

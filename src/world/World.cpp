@@ -36,6 +36,8 @@ void World::setup() {
     Messenger::fire(EventType::AreasUpdated);
 
     pathfinder = std::make_unique<Pathfinder>(width, height);
+
+    isSetup = true;
 }
 
 void World::cleanup() {
@@ -43,6 +45,10 @@ void World::cleanup() {
     elevationGrid->cleanup();
     wallGrid->cleanup();
     pathGrid->cleanup();
+
+    // TODO: Clean up areas
+
+    isSetup = false;
 }
 
 void World::update() {
@@ -303,74 +309,72 @@ void World::renderDebugAreaGrid() {
     }
 }
 
-json World::save() {
-    // Fuck c++ is so verbose this is ridiculous
-    // Give me my array.map() back
-    std::vector<json> areaSaveData;
-    std::transform(areas.begin(), areas.end(), std::back_inserter(areaSaveData), [](const std::pair<const std::string, std::unique_ptr<Area>>& pair) {
-        const auto& [id, area] = pair;
-        std::vector<json> connectedAreaSaveData;
-        std::transform(area->m_connectedAreas.begin(), area->m_connectedAreas.end(), std::back_inserter(connectedAreaSaveData), [](
-            const std::pair<Area *const, std::unordered_set<Wall *>>& connection) {
-            const auto& [connectedArea, doors] = connection;
-            std::vector<Cell> doorGridPositions;
-            std::transform(doors.begin(), doors.end(), std::back_inserter(doorGridPositions), [](Wall* door) {
-                return door->gridPos;
+void World::serialise() {
+    Root::saveManager().SerialiseDeep("elevationGrid", elevationGrid.get());
+    Root::saveManager().SerialiseDeep("biomeGrid", biomeGrid.get());
+    Root::saveManager().SerialiseDeep("wallGrid", wallGrid.get());
+    Root::saveManager().SerialiseDeep("pathGrid", pathGrid.get());
+
+    std::function<json()> get = [&](){
+        // TODO: Can I use ISerialisable here?
+
+        // Fuck c++ is so verbose this is ridiculous
+        // Give me my array.map() back
+        std::vector<json> areaSaveData;
+        std::transform(areas.begin(), areas.end(), std::back_inserter(areaSaveData), [](const std::pair<const std::string, std::unique_ptr<Area>>& pair) {
+            const auto& [id, area] = pair;
+            std::vector<json> connectedAreaSaveData;
+            std::transform(area->m_connectedAreas.begin(), area->m_connectedAreas.end(), std::back_inserter(connectedAreaSaveData), [](
+                const std::pair<Area *const, std::unordered_set<Wall *>>& connection) {
+                const auto& [connectedArea, doors] = connection;
+                std::vector<Cell> doorGridPositions;
+                std::transform(doors.begin(), doors.end(), std::back_inserter(doorGridPositions), [](Wall* door) {
+                    return door->gridPos;
+                });
+
+                return json({
+                    {"areaId", connectedArea->m_id},
+                    {"doorGridPositions", doorGridPositions}
+                });
             });
 
             return json({
-                {"areaId", connectedArea->m_id},
-                {"doorGridPositions", doorGridPositions}
+                {"id", id},
+                {"colour", area->m_colour},
+                {"tiles", area->m_tiles},
+                {"connectedAreas", connectedAreaSaveData}
             });
         });
 
-        return json({
-            {"id", id},
-            {"colour", area->m_colour},
-            {"tiles", area->m_tiles},
-            {"connectedAreas", connectedAreaSaveData}
-        });
-    });
-
-    return json{
-        {"elevation", elevationGrid->save()},
-        {"biomes",    biomeGrid->save()},
-        {"walls",     wallGrid->save()},
-        {"paths",     pathGrid->save()},
-        {"areas",     areaSaveData}
+        return areaSaveData;
     };
-}
+    std::function<void(json)> set = [&](json data){
+        // Create areas
+        for (auto& areaData : data) {
+            auto id = areaData.at("id").get<std::string>();
+            auto area = std::make_unique<Area>(id);
+            areaData.at("colour").get_to(area->m_colour);
+            areaData.at("tiles").get_to(area->m_tiles);
+            areas.insert_or_assign(id, std::move(area));
+            for (auto tile : areas.at(id)->m_tiles) tileAreaMap.insert_or_assign(tile.toString(), areas.at(id).get());
+        }
 
-void World::load(json saveData) {
-    cleanup();
-
-    // TODO: Check these exist first?
-    elevationGrid->load(saveData.at("elevation"));
-    biomeGrid->load(saveData.at("biomes"));
-    wallGrid->load(saveData.at("walls"));
-    pathGrid->load(saveData.at("paths"));
-
-    // Create areas
-    for (auto& areaData : saveData.at("areas")) {
-        auto id = areaData.at("id").get<std::string>();
-        auto area = std::make_unique<Area>(id);
-        areaData.at("colour").get_to(area->m_colour);
-        areaData.at("tiles").get_to(area->m_tiles);
-        areas.insert_or_assign(id, std::move(area));
-        for (auto tile : areas.at(id)->m_tiles) tileAreaMap.insert_or_assign(tile.toString(), areas.at(id).get());
-    }
-
-    // Add connections once all areas have been created
-    for (auto& areaData : saveData.at("areas")) {
-        auto area = getAreaById(areaData.at("id").get<std::string>());
-        for (auto& connectedAreaData : areaData.at("connectedAreas")) {
-            auto connectedArea = getAreaById(connectedAreaData.at("areaId").get<std::string>());
-            for (auto& doorGridPos : connectedAreaData.at("doorGridPositions")) {
-                auto door = wallGrid->getWallByGridPos(doorGridPos.get<Cell>());
-                area->addAreaConnection(connectedArea, door);
+        // Add connections once all areas have been created
+        for (auto& areaData : data) {
+            auto area = getAreaById(areaData.at("id").get<std::string>());
+            for (auto& connectedAreaData : areaData.at("connectedAreas")) {
+                auto connectedArea = getAreaById(connectedAreaData.at("areaId").get<std::string>());
+                for (auto& doorGridPos : connectedAreaData.at("doorGridPositions")) {
+                    auto door = wallGrid->getWallByGridPos(doorGridPos.get<Cell>());
+                    area->addAreaConnection(connectedArea, door);
+                }
             }
         }
-    }
 
-    Messenger::fire(EventType::AreasUpdated);
+        Messenger::fire(EventType::AreasUpdated);
+    };
+    Root::saveManager().SerialiseValue("areas", get, set);
+
+    if (Root::saveManager().mode == SerialiseMode::Loading)
+        isSetup = true;
 }

@@ -44,19 +44,13 @@ void RenderComponent::setSource(Rectangle _source) {
     source = _source;
 }
 
-json RenderComponent::save() {
-    auto saveData = Component::save();
-    saveData.push_back({"spritePath", spritePath});
-    saveData.push_back({"source", source});
-    saveData.push_back({"pivot", pivot});
+void RenderComponent::serialise() {
+    Component::serialise();
 
-    return saveData;
-}
+    Root::saveManager().SerialiseValue("spritePath", spritePath);
+    Root::saveManager().SerialiseValue("source", source);
+    Root::saveManager().SerialiseValue("pivot", pivot);
 
-void RenderComponent::load(json data) {
-    Component::load(data);
-    data.at("spritePath").get_to(spritePath);
-    data.at("source").get_to(source);
-    data.at("pivot").get_to(pivot);
-    sprite = Root::assetManager().getTexture(spritePath);
+    if (Root::saveManager().mode == SerialiseMode::Loading)
+        sprite = Root::assetManager().getTexture(spritePath);
 }

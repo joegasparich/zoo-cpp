@@ -9,8 +9,9 @@
 #include "Area.h"
 #include "PathGrid.h"
 #include "Pathfinder.h"
+#include "ISerialisable.h"
 
-class World {
+class World : public ISerialisable {
 public:
     World(unsigned int width, unsigned int height);
     virtual ~World();
@@ -30,6 +31,8 @@ public:
     void joinAreas(Wall& removedWall);
     void resetAreas();
 
+    void serialise() override;
+
     // Getters & Setters
     bool isPositionInMap(Vector2 pos) const;
     Cell getTileInDirection(Cell tile, Side direction);
@@ -40,10 +43,6 @@ public:
     Area* getAreaById(std::string id);
     Area* getAreaAtPosition(Vector2 pos);
     int getTileWalkability(Cell pos);
-
-    // Save & Load
-    json save();
-    void load(json saveData);
 
     std::unique_ptr<BiomeGrid> biomeGrid;
     std::unique_ptr<ElevationGrid> elevationGrid;
@@ -62,4 +61,6 @@ private:
     std::unordered_map<unsigned int, Entity*> tileObjects;
     std::unordered_map<std::string, Entity*> tileObjectsMap;
     std::unordered_map<std::string, Area*> tileAreaMap;
+
+    bool isSetup = false;
 };

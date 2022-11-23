@@ -3,6 +3,7 @@
 #include "common.h"
 
 #include "Renderer.h"
+#include "ISerialisable.h"
 
 #define ELEVATION_HEIGHT 0.5f
 
@@ -20,7 +21,7 @@ enum class SlopeVariant {
     I1, I2
 };
 
-class ElevationGrid {
+class ElevationGrid : public ISerialisable {
 public:
     ElevationGrid(unsigned int rows, unsigned int cols);
 
@@ -28,6 +29,8 @@ public:
     void cleanup();
     void render();
     void renderDebug();
+
+    void serialise() override;
 
     bool setElevation(Cell gridPos, Elevation elevation);
     void setElevationInCircle(Vector2 pos, float radius, Elevation elevation);
@@ -47,13 +50,13 @@ public:
     bool isPositionSlopeCorner(Vector2 pos);
     bool isPositionInGrid(Vector2 pos) const;
 
-    json save();
-    void load(json saveData);
 private:
     unsigned int rows;
     unsigned int cols;
     std::vector<std::vector<Elevation>> grid;
     std::vector<std::vector<Vector2>> polygons;
+
+    bool isSetup = false;
 
     std::vector<Vector2> getTileWaterVertices(Cell gridPos);
 };

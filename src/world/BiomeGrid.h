@@ -3,6 +3,7 @@
 #include "common.h"
 
 #include "Renderer.h"
+#include "ISerialisable.h"
 
 #define CHUNK_SIZE 5
 #define NUM_BIOMES 3
@@ -67,7 +68,7 @@ public:
     std::vector<BiomeTriangle> triangles;
 };
 
-class BiomeGrid {
+class BiomeGrid : public ISerialisable {
 public:
     BiomeGrid(unsigned int cols, unsigned int rows);
 
@@ -75,15 +76,16 @@ public:
     void cleanup();
     void postUpdate();
     void render();
+
+    void serialise() override;
+
     void setBiomeInRadius(Vector2 pos, float radius, Biome biome);
     void redrawChunksInRadius(Vector2 pos, float radius);
     void redrawAllChunks();
+
     bool isChunkInGrid(int col, int row) const;
-
-    json save();
-    void load(json saveData);
-
     static float getQuadrantSlopeColour(Vector2 pos, Side quadrant);
+
 private:
     std::vector<BiomeChunk*> getChunksInRadius(Vector2 pos, float radius);
 

@@ -16,6 +16,9 @@ public:
     void pathTo(Vector2 targetPos);
 
     std::vector<Cell>& getPath();
+
+    void serialise() override;
+
 private:
     Vector2 getCurrentNode();
     bool isCellInPath(const Cell& cell);

@@ -100,49 +100,49 @@ PathSpriteInfo PathGrid::getSpriteInfo(Path &path) {
     return {(unsigned int)PathSpriteIndex::Flat, 0.0f};
 }
 
-json PathGrid::save() {
-    std::vector<std::vector<json>> saveData;
-    std::transform(grid.begin(), grid.end(), std::back_inserter(saveData), [](std::vector<Path>& row) {
-        std::vector<json> rowData;
-        std::transform(row.begin(), row.end(), std::back_inserter(rowData), [](Path& path) {
-            return json({
-                {"assetPath", path.exists ? path.data->assetPath : ""},
-                {"indestructable", path.indestructable}
+void PathGrid::serialise() {
+    if (Root::saveManager().mode == SerialiseMode::Loading)
+        cleanup();
+
+    Root::saveManager().SerialiseValue("cols", cols);
+    Root::saveManager().SerialiseValue("rows", rows);
+
+    std::function<json()> get = [&](){
+        std::vector<std::vector<json>> gridData;
+        std::transform(grid.begin(), grid.end(), std::back_inserter(gridData), [](std::vector<Path>& row) {
+            std::vector<json> rowData;
+            std::transform(row.begin(), row.end(), std::back_inserter(rowData), [](Path& path) {
+                return json({
+                    {"assetPath", path.exists ? path.data->assetPath : ""},
+                    {"indestructable", path.indestructable}
+                });
             });
+            return rowData;
         });
-        return rowData;
-    });
 
-    return json({
-        {"grid", saveData},
-        {"cols", cols},
-        {"rows", rows}
-    });
-}
+        return gridData;
+    };
+    std::function<void(json)> set = [&](json data){
+        auto gridData = data.get<std::vector<std::vector<json>>>();
 
-void PathGrid::load(json saveData) {
-    cleanup();
+        for (int i = 0; i < cols; i++) {
+            grid.emplace_back();
+            for (int j = 0; j < rows; j++) {
+                auto pathData = gridData.at(i).at(j);
+                auto assetPath = pathData.at("assetPath").get<std::string>();
+                auto exists = assetPath.length() > 0;
 
-    saveData.at("cols").get_to(cols);
-    saveData.at("rows").get_to(rows);
-
-    auto gridData = saveData.at("grid").get<std::vector<std::vector<json>>>();
-
-    for (int i = 0; i < cols; i++) {
-        grid.emplace_back();
-        for (int j = 0; j < rows; j++) {
-            auto pathData = gridData.at(i).at(j);
-            auto assetPath = pathData.at("assetPath").get<std::string>();
-            auto exists = assetPath.length() > 0;
-
-            grid.at(i).push_back({
-                exists ? &Registry::getPath(pathData.at("assetPath").get<std::string>()) : nullptr,
-                {i, j},
-                exists,
-                false
-            });
+                grid.at(i).push_back({
+                     exists ? &Registry::getPath(pathData.at("assetPath").get<std::string>()) : nullptr,
+                     {i, j},
+                     exists,
+                     false
+                 });
+            }
         }
-    }
+    };
+    Root::saveManager().SerialiseValue("grid", get, set);
 
-    isSetup = true;
+    if (Root::saveManager().mode == SerialiseMode::Loading)
+        isSetup = true;
 }

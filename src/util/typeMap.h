@@ -17,6 +17,7 @@ public:
     const_iterator end() const { return map.end();  }
     iterator begin() { return map.begin();  }
     iterator end() { return map.end(); }
+    void clear() { map.clear(); }
 
     // Finds the value associated with the type "Key" in the type map.
     template <class Key>

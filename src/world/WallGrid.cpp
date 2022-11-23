@@ -468,55 +468,55 @@ bool WallGrid::checkForLoop(Wall* startWall, Wall* currentWall, std::unordered_s
     return found;
 }
 
-json WallGrid::save() {
-    std::vector<std::vector<json>> saveData;
-    std::transform(grid.begin(), grid.end(), std::back_inserter(saveData), [](std::vector<Wall>& row) {
-        std::vector<json> rowData;
-        std::transform(row.begin(), row.end(), std::back_inserter(rowData), [](Wall& wall) {
-            return json({
-                {"assetPath", wall.exists ? wall.data->assetPath : ""},
-                {"exists", wall.exists}, // TODO: might be redundant because of assetPath?
-                {"indestructable", wall.indestructable},
-                {"isDoor", wall.isDoor}
+void WallGrid::serialise() {
+    if (Root::saveManager().mode == SerialiseMode::Loading)
+        cleanup();
+
+    Root::saveManager().SerialiseValue("rows", rows);
+    Root::saveManager().SerialiseValue("cols", cols);
+
+    std::function<json()> get = [&](){
+        std::vector<std::vector<json>> gridData;
+        std::transform(grid.begin(), grid.end(), std::back_inserter(gridData), [](std::vector<Wall>& row) {
+            std::vector<json> rowData;
+            std::transform(row.begin(), row.end(), std::back_inserter(rowData), [](Wall& wall) {
+                return json({
+                    {"assetPath", wall.exists ? wall.data->assetPath : ""},
+                    {"exists", wall.exists}, // TODO: might be redundant because of assetPath?
+                    {"indestructable", wall.indestructable},
+                    {"isDoor", wall.isDoor}
+                });
             });
+            return rowData;
         });
-        return rowData;
-    });
 
-    return json({
-        {"grid", saveData},
-        {"cols", cols},
-        {"rows", rows}
-    });
-}
+        return gridData;
+    };
+    std::function<void(json)> set = [&](json data){
+        auto gridData = data.get<std::vector<std::vector<json>>>();
 
-void WallGrid::load(json saveData) {
-    cleanup();
+        for (int i = 0; i < cols * 2 + 1; i++) {
+            auto orientation = (Orientation)(i % 2);
+            grid.emplace_back();
+            for (int j = 0; j < rows + int(orientation); j++) {
+                auto worldPos = WallGrid::wallToWorldPosition({i, j}, orientation);
+                auto wallData = gridData.at(i).at(j);
+                auto exists = wallData.at("exists").get<bool>();
 
-    saveData.at("cols").get_to(cols);
-    saveData.at("rows").get_to(rows);
-
-    auto gridData = saveData.at("grid").get<std::vector<std::vector<json>>>();
-
-    for (int i = 0; i < cols * 2 + 1; i++) {
-        auto orientation = (Orientation)(i % 2);
-        grid.emplace_back();
-        for (int j = 0; j < rows + int(orientation); j++) {
-            auto worldPos = WallGrid::wallToWorldPosition({i, j}, orientation);
-            auto wallData = gridData.at(i).at(j);
-            auto exists = wallData.at("exists").get<bool>();
-
-            grid.at(i).push_back({
-                exists ? &Registry::getWall(wallData.at("assetPath").get<std::string>()) : nullptr,
-                orientation,
-                worldPos,
-                {i, j},
-                exists,
-                wallData.at("indestructable").get<bool>(),
-                wallData.at("isDoor").get<bool>(),
-            });
+                grid.at(i).push_back({
+                     exists ? &Registry::getWall(wallData.at("assetPath").get<std::string>()) : nullptr,
+                     orientation,
+                     worldPos,
+                     {i, j},
+                     exists,
+                     wallData.at("indestructable").get<bool>(),
+                     wallData.at("isDoor").get<bool>(),
+                 });
+            }
         }
-    }
+    };
+    Root::saveManager().SerialiseValue("grid", get, set);
 
-    isSetup = true;
+    if (Root::saveManager().mode == SerialiseMode::Loading)
+        isSetup = true;
 }

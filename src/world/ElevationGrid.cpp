@@ -19,12 +19,15 @@ void ElevationGrid::setup() {
     }
 
     generateWaterMesh();
+
+    isSetup = true;
 }
 
 void ElevationGrid::cleanup() {
     cols = 0;
     rows = 0;
     grid.clear();
+    isSetup = false;
 }
 
 void ElevationGrid::render() {
@@ -463,18 +466,17 @@ std::vector<Cell> ElevationGrid::getAdjacentGridPositions(Cell gridPos, bool dia
     return positions;
 }
 
-json ElevationGrid::save() {
-    return json{
-        {"grid", grid}
-    };
-}
+void ElevationGrid::serialise() {
+    if (Root::saveManager().mode == SerialiseMode::Loading)
+        cleanup();
 
-void ElevationGrid::load(json saveData) {
-    cleanup();
+    Root::saveManager().SerialiseValue("grid", grid);
 
-    saveData.at("grid").get_to(grid);
-    cols = grid.size();
-    rows = grid[0].size();
+    if (Root::saveManager().mode == SerialiseMode::Loading) {
+        cols = grid.size();
+        rows = grid[0].size();
 
-    generateWaterMesh();
+        generateWaterMesh();
+        isSetup = true;
+    }
 }

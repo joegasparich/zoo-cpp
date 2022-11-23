@@ -4,6 +4,7 @@
 #include "entities/Entity.h"
 #include "world/World.h"
 #include "tools/ToolManager.h"
+#include "ISerialisable.h"
 
 struct DebugSettings {
     bool cellGrid = false;
@@ -12,7 +13,7 @@ struct DebugSettings {
     bool pathfindingGrid = false;
 };
 
-class Zoo {
+class Zoo : public ISerialisable {
 public:
     Zoo();
     virtual ~Zoo();
@@ -32,8 +33,8 @@ public:
     void unregisterEntity(unsigned int entityId);
     Entity* getEntityById(unsigned int entityId);
 
-    json save();
-    void load(json data);
+    void serialise() override;
+    void SerialiseEntities(const std::string& label, std::unordered_map<unsigned int, std::unique_ptr<Entity>>& collection);
 
     std::unique_ptr<World> world;
     std::unique_ptr<ToolManager> tools;

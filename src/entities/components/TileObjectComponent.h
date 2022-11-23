@@ -16,8 +16,7 @@ public:
 
     std::vector<Cell> getTiles();
 
-    json save() override;
-    void load(json data) override;
+    void serialise() override;
 
     ObjectData data;
 private:

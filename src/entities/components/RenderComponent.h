@@ -20,8 +20,7 @@ public:
     void setSprite(std::string spritePath);
     void setSource(Rectangle source);
 
-    json save() override;
-    void load(json data) override;
+    void serialise() override;
 
     Vector2 pivot = Vector2{0.5f, 0.5f};
     Vector2 offset = Vector2{0, 0};

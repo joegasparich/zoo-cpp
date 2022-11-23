@@ -1,5 +1,6 @@
 #include "PhysicsComponent.h"
 #include "entities/Entity.h"
+#include "Root.h"
 
 PhysicsComponent::PhysicsComponent(Entity *entity) : Component(entity) {}
 PhysicsComponent::PhysicsComponent(Entity* entity, float mass, float friction)
@@ -28,20 +29,11 @@ void PhysicsComponent::addForce(Vector2 f) {
     force += f;
 }
 
-json PhysicsComponent::save() {
-    auto saveData = Component::save();
-    saveData.push_back({"velocity", velocity});
-    saveData.push_back({"force", force});
-    saveData.push_back({"mass", mass});
-    saveData.push_back({"friction", friction});
+void PhysicsComponent::serialise() {
+    Component::serialise();
 
-    return saveData;
-}
-
-void PhysicsComponent::load(json data) {
-    Component::load(data);
-    data.at("velocity").get_to(velocity);
-    data.at("force").get_to(force);
-    data.at("mass").get_to(mass);
-    data.at("friction").get_to(friction);
+    Root::saveManager().SerialiseValue("velocity", velocity);
+    Root::saveManager().SerialiseValue("force", force);
+    Root::saveManager().SerialiseValue("mass", mass);
+    Root::saveManager().SerialiseValue("friction", friction);
 }

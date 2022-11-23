@@ -10,7 +10,6 @@ public:
     typedef MoveComponent base;
 
     MoveComponent(Entity *entity);
-
     MoveComponent(Entity* entity, float acceleration);
 
     COMPONENT getId() override;
@@ -18,8 +17,7 @@ public:
     void start() override;
     void update() override;
 
-    json save() override;
-    void load(json data) override;
+    void serialise() override;
 
     float acceleration = 0.5f;
 private:

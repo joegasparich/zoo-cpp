@@ -27,14 +27,10 @@ std::vector<Cell> TileObjectComponent::getTiles() {
     return tiles;
 }
 
-json TileObjectComponent::save() {
-    auto saveData = Component::save();
-    saveData.push_back({"path", data.assetPath});
+void TileObjectComponent::serialise() {
+    Component::serialise();
 
-    return saveData;
-}
-
-void TileObjectComponent::load(json _data) {
-    Component::load(_data);
-    data = Registry::getObject(_data.at("path").get<std::string>());
+    Root::saveManager().SerialiseValue("path",
+        (std::function<json()>)     [&]() { return data.assetPath; },
+        (std::function<void(json)>) [&](auto path) { data = Registry::getObject(path); });
 }

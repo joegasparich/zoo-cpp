@@ -18,8 +18,7 @@ public:
 
     void addForce(Vector2 force);
 
-    json save() override;
-    void load(json data) override;
+    void serialise() override;
 
     float mass = 50;
     float friction = 0.5f;

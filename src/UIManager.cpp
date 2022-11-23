@@ -10,7 +10,9 @@ UIManager::UIManager() : windowStack(), openWindowMap(), windowsToOpen(), window
 }
 UIManager::~UIManager() = default;
 
-void UIManager::init() {}
+void UIManager::init() {
+    TraceLog(LOG_INFO, "Initialising UI");
+}
 
 void UIManager::render() {
     currentEvent = UIEvent::Draw;

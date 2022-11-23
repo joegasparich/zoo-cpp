@@ -6,6 +6,7 @@ SaveManager::SaveManager() = default;
 SaveManager::~SaveManager() = default;
 
 void SaveManager::newGame() {
+    TraceLog(LOG_INFO, "Starting New Game");
     Root::sceneManager().loadScene(std::make_unique<ZooScene>());
 }
 
@@ -17,8 +18,8 @@ void SaveManager::saveGame(std::string saveFilePath) {
         Root::zoo()->serialise();
 
     } catch(const std::exception& error) {
-        std::cout << "Error saving game " << std::endl;
-        std::cout << error.what() << std::endl;
+        TraceLog(LOG_WARNING, "Error saving game");
+        TraceLog(LOG_WARNING, error.what());
     }
 
     std::ofstream file;
@@ -47,8 +48,8 @@ void SaveManager::loadGame(std::string saveFilePath) {
             curr = &saveData;
             Root::zoo()->serialise();
         } catch(const std::exception& error) {
-            std::cout << "Error loading save file: " << saveFilePath << std::endl;
-            std::cout << error.what() << std::endl;
+            TraceLog(LOG_INFO, "Error loading save file: %s", saveFilePath.c_str());
+            TraceLog(LOG_INFO, error.what());
         }
     }
 }

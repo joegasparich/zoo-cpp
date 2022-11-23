@@ -10,7 +10,7 @@ void Profiler::begin(const std::string& label) {
     auto& instance = Profiler::get();
 
     if (instance.current != nullptr) {
-        std::cout << "Profiling was not ended" << std::endl;
+        TraceLog(LOG_WARNING, "Profiling was not ended");
     }
 
     instance.rootLabel = label;
@@ -25,7 +25,7 @@ double Profiler::end(const std::string& label) {
     auto& instance = Profiler::get();
 
     if (instance.current != instance.root.get()) {
-        std::cout << "Timer was not ended: " << instance.current->label << std::endl;
+        TraceLog(LOG_WARNING, "Timer was not ended: %s", instance.current->label.c_str());
     }
 
     instance.root->endTime = GetTimeMs();
@@ -60,7 +60,7 @@ void Profiler::stopTimer(const std::string& label) {
     auto& instance = Profiler::get();
 
     if (label != instance.current->label) {
-        std::cout << "Incorrect timer ended: " << label << " Current is: " << instance.current->label << std::endl;
+        TraceLog(LOG_WARNING, "Incorrect timer ended: %s Current is: %s", label.c_str(), instance.current->label.c_str());
         return;
     }
 

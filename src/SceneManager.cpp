@@ -5,7 +5,7 @@ SceneManager::~SceneManager() = default;
 
 void SceneManager::loadScene(std::unique_ptr<Scene> scene) {
     if (currentScene) {
-        std::cout << "Stopping scene: " << currentScene->name << std::endl;
+        TraceLog(LOG_INFO, "Stopping scene: %s", currentScene->name.c_str());
         currentScene->stop();
     }
 

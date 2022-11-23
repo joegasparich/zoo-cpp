@@ -8,6 +8,8 @@
 PathGrid::PathGrid(unsigned int rows, unsigned int cols) : rows(rows), cols(cols) {}
 
 void PathGrid::setup() {
+    TraceLog(LOG_INFO, "Setting up path grid");
+
     // Grid
     for (unsigned int i = 0; i < cols; i++) {
         grid.emplace_back();

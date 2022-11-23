@@ -155,7 +155,7 @@ unsigned int Zoo::registerEntity(std::unique_ptr<Entity> entity, unsigned int id
     entity->setId(id);
     entitiesToAdd.push_back(std::move(entity));
 
-    std::cout << "Registered entity with id " << id << std::endl;
+    TraceLog(LOG_INFO, "Registered entity with id: %u", id);
 
     return id;
 }

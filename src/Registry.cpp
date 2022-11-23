@@ -7,19 +7,19 @@ std::map<std::string, PathData> Registry::pathRegistry{};
 void Registry::registerObject(const std::string &assetPath, const ObjectData &data) {
     objectRegistry.insert_or_assign(assetPath, data);
 
-    std::cout << "Registered Object: " << data.name << std::endl;
+    TraceLog(LOG_INFO, "Registered Object: %s", data.name.c_str());
 }
 
 void Registry::registerWall(const std::string& assetPath, const WallData& data) {
     wallRegistry.insert_or_assign(assetPath, data);
 
-    std::cout << "Registered Wall: " << data.name << std::endl;
+    TraceLog(LOG_INFO, "Registered Wall: %s", data.name.c_str());
 }
 
 void Registry::registerPath(const std::string &assetPath, const PathData &data) {
     pathRegistry.insert_or_assign(assetPath, data);
 
-    std::cout << "Registered Path: " << data.name << std::endl;
+    TraceLog(LOG_INFO, "Registered Path: %s", data.name.c_str());
 }
 
 ObjectData& Registry::getObject(const std::string &assetPath) {

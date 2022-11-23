@@ -1,22 +1,23 @@
 #include "Game.h"
 #include "Renderer.h"
-#include "SaveManager.h"
 #include "Messenger.h"
 #include "UIManager.h"
 #include "Profiler.h"
-#include "Root.h"
 
 Game::Game() : ui(), renderer() {
+    TraceLog(LOG_INFO, "Application Started");
     Messenger::fire(EventType::ApplicationStarted);
 }
 
 Game::~Game() {
+    TraceLog(LOG_INFO, "Application Ended");
     Messenger::fire(EventType::ApplicationEnding);
 }
 
 void Game::run() {
     init();
 
+    TraceLog(LOG_INFO, "Application Loaded");
     Messenger::fire(EventType::ApplicationLoaded);
 
     doLoop();
@@ -26,6 +27,7 @@ void Game::init() {
     renderer.init();
     ui.init();
 
+    TraceLog(LOG_INFO, "Loading Assets");
     assetManager.loadAssets();
     assetManager.loadWalls();
     assetManager.loadPaths();

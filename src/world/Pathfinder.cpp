@@ -5,6 +5,8 @@
 #include "util/uuid.h"
 
 Pathfinder::Pathfinder(unsigned int width, unsigned int height) : cols{width}, rows{height} {
+    TraceLog(LOG_INFO, "Setting up pathfinder");
+
     auto grid = std::make_unique<std::vector<std::vector<Tile>>>();
 
     // Generate nodes
@@ -110,7 +112,7 @@ path Pathfinder::getPath(Cell from, Cell to) {
         }
     }
 
-    std::cout << "Failed to find route to dest " << to.toString() << std::endl;
+    TraceLog(LOG_TRACE, "Failed to find route to dest: %s", to.toString().c_str());
     return {};
 }
 

@@ -100,7 +100,7 @@ void TileObjectTool::setObject(ObjectData* object) {
         toolManager.ghost->spriteSheet = Root::assetManager().getSpriteSheet(object->spriteSheetPath);
         toolManager.ghost->spriteSheetIndex = 0;
     } else {
-        std::cout << "[TileObjectTool] No object sprite" << std::endl;
+        TraceLog(LOG_WARNING, "[TileObjectTool] No object sprite: %s", object->name.c_str());
     }
     toolManager.ghost->pivot = object->pivot;
     toolManager.ghost->offset = object->size / 2.0f;

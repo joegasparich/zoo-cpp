@@ -21,7 +21,7 @@ void PathFollowComponent::start() {
         for (auto& cell : path) {
             if (std::find(e->affectedCells->begin(), e->affectedCells->end(), cell) != e->affectedCells->end()) {
                 pathTo(path.back());
-                std::cout << "Path blocked, finding new path" << std::endl;
+                TraceLog(LOG_TRACE, "Path blocked, finding new path");
                 return;
             }
         }
@@ -40,7 +40,7 @@ void PathFollowComponent::update() {
         if (pathRequestHandle.empty()) return;
         if (!pathfinder->asyncPathExists(pathRequestHandle)) return;
         if (!pathfinder->asyncPathReady(pathRequestHandle)) {
-            std::cout << "path not ready" << std::endl;
+            TraceLog(LOG_TRACE, "Path not ready");
             return;
         };
 

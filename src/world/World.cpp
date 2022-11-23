@@ -16,6 +16,7 @@ World::~World() {
 }
 
 void World::setup() {
+    TraceLog(LOG_INFO, "Generating world of size %ux%u", width, height);
     elevationGrid = std::make_unique<ElevationGrid>(width + 1, height + 1);
     elevationGrid->setup();
 
@@ -39,6 +40,8 @@ void World::setup() {
     areas.insert_or_assign(ZOO_AREA, std::move(zooArea));
     for (auto tile : zooTiles) tileAreaMap.insert_or_assign(tile.toString(), areas.at(ZOO_AREA).get());
     Messenger::fire(EventType::AreasUpdated);
+
+    TraceLog(LOG_INFO, "Finished setting up world");
 }
 
 void World::cleanup() {
@@ -125,7 +128,7 @@ void World::formAreas(Wall &placedWall) {
 
     // Return if areas weren't formed properly (false positive in loop check)
     if (areaATiles.size() + areaBTiles.size() > oldArea->m_tiles.size()) {
-        std::cout << "False positive in loop check" << std::endl;
+        TraceLog(LOG_WARNING, "False positive in loop check");
         return;
     }
 
@@ -139,7 +142,7 @@ void World::formAreas(Wall &placedWall) {
     newArea->m_tiles = smaller;
     for (auto tile : smaller) tileAreaMap[tile.toString()] = newArea.get();
 
-    std::cout << "Registered new area with size" << newArea->m_tiles.size() << std::endl;
+    TraceLog(LOG_INFO, "Registered new area with size: %u", newArea->m_tiles.size());
 
     areas.insert_or_assign(newArea->m_id, std::move(newArea));
 

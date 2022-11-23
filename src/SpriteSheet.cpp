@@ -13,7 +13,7 @@ Rectangle SpriteSheet::getCellBounds(unsigned int col, unsigned int row) {
     auto yFrac = float(cellHeight) / float(texture->height);
 
     if (col >= cols || row >= rows) {
-        std::cout << "Spritesheet cell out of bounds " << col << ", " << row << std::endl;
+        TraceLog(LOG_WARNING, "Spritesheet cell out of bounds %u, %u", col, row);
         return {};
     }
 

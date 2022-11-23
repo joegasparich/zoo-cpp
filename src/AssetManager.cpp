@@ -19,7 +19,6 @@ void AssetManager::loadObjects() {
             auto j = readJSON(ASSETS_PATH"/" + path);
 
             // Map to Object
-            SpriteSheet* spriteSheet = nullptr;
             std::string spritePath = "";
             std::string spriteSheetPath = "";
             if (j["spriteSheet"].is_string()) {
@@ -48,8 +47,8 @@ void AssetManager::loadObjects() {
 
             });
         } catch(const std::exception& error) {
-            std::cout << "Error loading object: " << path << std::endl;
-            std::cout << error.what() << std::endl;
+            TraceLog(LOG_WARNING, "Error loading object: %s", path.c_str());
+            TraceLog(LOG_WARNING, error.what());
         }
     }
 }
@@ -71,8 +70,8 @@ void AssetManager::loadWalls() {
                 imagePath
             });
         } catch(const std::exception& error) {
-            std::cout << "Error loading wall: " << path << std::endl;
-            std::cout << error.what() << std::endl;
+            TraceLog(LOG_WARNING, "Error loading wall: %s", path.c_str());
+            TraceLog(LOG_WARNING, error.what());
         }
     }
 }
@@ -92,8 +91,8 @@ void AssetManager::loadPaths() {
                 imagePath
             });
         } catch(const std::exception& error) {
-            std::cout << "Error loading path: " << path << std::endl;
-            std::cout << error.what() << std::endl;
+            TraceLog(LOG_WARNING, "Error loading path: %s", path.c_str());
+            TraceLog(LOG_WARNING, error.what());
         }
     }
 }

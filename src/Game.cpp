@@ -5,19 +5,19 @@
 #include "Profiler.h"
 
 Game::Game() : ui(), renderer() {
-    TraceLog(LOG_INFO, "Application Started");
+    TraceLog(LOG_TRACE, "Application Started");
     Messenger::fire(EventType::ApplicationStarted);
 }
 
 Game::~Game() {
-    TraceLog(LOG_INFO, "Application Ended");
+    TraceLog(LOG_TRACE, "Application Ended");
     Messenger::fire(EventType::ApplicationEnding);
 }
 
 void Game::run() {
     init();
 
-    TraceLog(LOG_INFO, "Application Loaded");
+    TraceLog(LOG_TRACE, "Application Loaded");
     Messenger::fire(EventType::ApplicationLoaded);
 
     doLoop();
@@ -27,7 +27,7 @@ void Game::init() {
     renderer.init();
     ui.init();
 
-    TraceLog(LOG_INFO, "Loading Assets");
+    TraceLog(LOG_TRACE, "Loading Assets");
     assetManager.loadAssets();
     assetManager.loadWalls();
     assetManager.loadPaths();

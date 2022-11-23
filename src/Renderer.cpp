@@ -6,7 +6,7 @@ Renderer::Renderer() : camera() {};
 Renderer::~Renderer() = default;
 
 void Renderer::init() {
-    TraceLog(LOG_INFO, "Initialising Renderer");
+    TraceLog(LOG_TRACE, "Initialising Renderer");
     InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, WINDOW_TITLE);
     SetTargetFPS(60);
 

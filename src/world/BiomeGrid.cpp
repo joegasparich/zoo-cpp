@@ -166,7 +166,7 @@ std::vector<std::vector<std::vector<Biome>>> BiomeChunk::save() {
 BiomeGrid::BiomeGrid(unsigned int cols, unsigned int rows) : cols{cols}, rows{rows} {}
 
 void BiomeGrid::setup() {
-    TraceLog(LOG_INFO, "Setting up biome grid");
+    TraceLog(LOG_TRACE, "Setting up biome grid");
 
     auto chunkCols = cols / CHUNK_SIZE + (cols % CHUNK_SIZE != 0);
     auto chunkRows = rows / CHUNK_SIZE + (rows % CHUNK_SIZE != 0);

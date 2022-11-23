@@ -16,7 +16,7 @@ World::~World() {
 }
 
 void World::setup() {
-    TraceLog(LOG_INFO, "Generating world of size %ux%u", width, height);
+    TraceLog(LOG_TRACE, "Generating world of size %ux%u", width, height);
     elevationGrid = std::make_unique<ElevationGrid>(width + 1, height + 1);
     elevationGrid->setup();
 
@@ -41,7 +41,7 @@ void World::setup() {
     for (auto tile : zooTiles) tileAreaMap.insert_or_assign(tile.toString(), areas.at(ZOO_AREA).get());
     Messenger::fire(EventType::AreasUpdated);
 
-    TraceLog(LOG_INFO, "Finished setting up world");
+    TraceLog(LOG_TRACE, "Finished setting up world");
 }
 
 void World::cleanup() {
@@ -142,7 +142,7 @@ void World::formAreas(Wall &placedWall) {
     newArea->m_tiles = smaller;
     for (auto tile : smaller) tileAreaMap[tile.toString()] = newArea.get();
 
-    TraceLog(LOG_INFO, "Registered new area with size: %u", newArea->m_tiles.size());
+    TraceLog(LOG_TRACE, "Registered new area with size: %u", newArea->m_tiles.size());
 
     areas.insert_or_assign(newArea->m_id, std::move(newArea));
 

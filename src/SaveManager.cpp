@@ -6,7 +6,7 @@ SaveManager::SaveManager() = default;
 SaveManager::~SaveManager() = default;
 
 void SaveManager::newGame() {
-    TraceLog(LOG_INFO, "Starting New Game");
+    TraceLog(LOG_TRACE, "Starting New Game");
     Root::sceneManager().loadScene(std::make_unique<ZooScene>());
 }
 
@@ -48,8 +48,8 @@ void SaveManager::loadGame(std::string saveFilePath) {
             curr = &saveData;
             Root::zoo()->serialise();
         } catch(const std::exception& error) {
-            TraceLog(LOG_INFO, "Error loading save file: %s", saveFilePath.c_str());
-            TraceLog(LOG_INFO, error.what());
+            TraceLog(LOG_TRACE, "Error loading save file: %s", saveFilePath.c_str());
+            TraceLog(LOG_TRACE, error.what());
         }
     }
 }

@@ -11,7 +11,7 @@ UIManager::UIManager() : windowStack(), openWindowMap(), windowsToOpen(), window
 UIManager::~UIManager() = default;
 
 void UIManager::init() {
-    TraceLog(LOG_INFO, "Initialising UI");
+    TraceLog(LOG_TRACE, "Initialising UI");
 }
 
 void UIManager::render() {

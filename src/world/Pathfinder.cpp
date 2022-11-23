@@ -5,7 +5,7 @@
 #include "util/uuid.h"
 
 Pathfinder::Pathfinder(unsigned int width, unsigned int height) : cols{width}, rows{height} {
-    TraceLog(LOG_INFO, "Setting up pathfinder");
+    TraceLog(LOG_TRACE, "Setting up pathfinder");
 
     auto grid = std::make_unique<std::vector<std::vector<Tile>>>();
 

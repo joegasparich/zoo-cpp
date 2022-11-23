@@ -11,7 +11,7 @@
 ElevationGrid::ElevationGrid(unsigned int rows, unsigned int cols) : rows(rows), cols(cols) {}
 
 void ElevationGrid::setup() {
-    TraceLog(LOG_INFO, "Setting up elevation grid");
+    TraceLog(LOG_TRACE, "Setting up elevation grid");
 
     for (unsigned int i = 0; i < cols; i++) {
         grid.emplace_back();

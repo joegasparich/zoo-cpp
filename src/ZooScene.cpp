@@ -10,7 +10,7 @@ ZooScene::ZooScene() : Scene(ZOO) {}
 ZooScene::~ZooScene() {}
 
 void ZooScene::start() {
-    TraceLog(LOG_INFO, "Creating New Zoo");
+    TraceLog(LOG_TRACE, "Creating New Zoo");
     zoo = std::make_unique<Zoo>();
 
     zoo->setup();

@@ -8,7 +8,7 @@
 WallGrid::WallGrid(unsigned int cols, unsigned int rows) : cols(cols), rows(rows) {}
 
 void WallGrid::setup() {
-    TraceLog(LOG_INFO, "Setting up wall grid");
+    TraceLog(LOG_TRACE, "Setting up wall grid");
 
     auto walls = Registry::getAllWalls();
 

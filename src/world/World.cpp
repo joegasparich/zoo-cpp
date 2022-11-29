@@ -73,6 +73,7 @@ void World::render() {
 void World::renderDebug() {
     assert(isSetup);
     if (Root::zoo()->debugSettings.cellGrid) renderDebugCellGrid();
+    if (Root::zoo()->debugSettings.biomeChunks) biomeGrid->renderChunkDebug();
     if (Root::zoo()->debugSettings.elevationGrid) elevationGrid->renderDebug();
     if (Root::zoo()->debugSettings.areaGrid) areaManager->renderDebugAreaGrid();
     if (Root::zoo()->debugSettings.pathfindingGrid) pathfinder->drawDebugGrid();
@@ -85,7 +86,7 @@ void World::registerTileObject(Entity *tileObject) {
     assert(component);
     assert(!component->getTiles().empty());
 
-    tileObjects.insert_or_assign(tileObject->getId(), tileObject);
+    tileObjects.insert_or_assign(tileObject->id, tileObject);
     for (auto tile : component->getTiles()) {
         tileObjectsMap.insert_or_assign(tile.toString(), tileObject);
     }
@@ -98,7 +99,16 @@ void World::registerTileObject(Entity *tileObject) {
 }
 
 void World::unregisterTileObject(Entity *tileObject) {
-    // TODO
+    assert(isSetup);
+    assert(tileObject);
+    auto component = tileObject->getComponent<TileObjectComponent>();
+    assert(component);
+    assert(!component->getTiles().empty());
+
+    tileObjects.erase(tileObject->id);
+    for (auto tile : component->getTiles()) {
+        tileObjectsMap.erase(tile.toString());
+    }
 }
 
 Entity* World::getTileObjectAtPosition(Vector2 pos) {
@@ -197,4 +207,12 @@ void World::serialise() {
 
     if (Root::saveManager().mode == SerialiseMode::Loading)
         isSetup = true;
+}
+
+unsigned int World::getWidth () const {
+    return width;
+}
+
+unsigned int World::getHeight () const {
+    return height;
 }

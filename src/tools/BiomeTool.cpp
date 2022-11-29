@@ -8,7 +8,9 @@ const float DEFAULT_RADIUS = 0.65f;
 const float MARGIN = GAP_SMALL;
 const float BUTTON_SIZE = 30;
 
-BiomeTool::BiomeTool(ToolManager &toolManager) : Tool(toolManager) {}
+BiomeTool::BiomeTool(ToolManager &toolManager) : Tool(toolManager) {
+    oldChunkData = std::make_unique<std::map<std::string, json>>();
+}
 BiomeTool::~BiomeTool() = default;
 
 void BiomeTool::set() {
@@ -20,7 +22,14 @@ void BiomeTool::set() {
 
 void BiomeTool::update() {
     if (dragging && Root::game().getTicks() % 5 == 0) {
-        Root::zoo()->world->biomeGrid->setBiomeInRadius(Root::renderer().screenToWorldPos(GetMousePosition()), DEFAULT_RADIUS, currentBiome);
+        // Save backups for undo
+        for (auto chunk : Root::zoo()->world->biomeGrid->getChunksInRadius(InputManager::getMouseWorldPos() * BIOME_SCALE, DEFAULT_RADIUS * BIOME_SCALE)) {
+            auto cellKey = Cell{int(chunk->x), int(chunk->y)}.toString();
+            if (!oldChunkData->contains(cellKey))
+                oldChunkData->insert({cellKey, chunk->save()});
+        }
+
+        Root::zoo()->world->biomeGrid->setBiomeInRadius(InputManager::getMouseWorldPos() * BIOME_SCALE, DEFAULT_RADIUS * BIOME_SCALE, currentBiome);
     }
 }
 
@@ -31,7 +40,23 @@ void BiomeTool::onInput(InputEvent* event) {
         event->consume();
     }
     if (event->mouseButtonUp == MOUSE_BUTTON_LEFT) {
+        if (!dragging) return;
         dragging = false;
+
+        toolManager.pushAction(std::make_unique<Action>(Action{
+            "Biome brush",
+            *oldChunkData,
+            [] (json& data) {
+                auto chunksData = data.get<std::map<std::string, json>>();
+                for(auto [posStr, chunkData] : chunksData) {
+                    auto pos = cellFromString(posStr);
+                    auto chunk = Root::zoo()->world->biomeGrid->getChunk(pos.x, pos.y);
+                    chunk->load(chunkData.get<std::vector<std::vector<std::vector<Biome>>>>());
+                }
+            }
+        }));
+
+        oldChunkData->clear();
         event->consume();
     }
 }

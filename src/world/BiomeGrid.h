@@ -57,6 +57,7 @@ public:
     bool isPositionInChunk(Vector2 pos);
 
     std::vector<std::vector<std::vector<Biome>>> save();
+    void load(std::vector<std::vector<std::vector<Biome>>> gridData);
 
     unsigned int x;
     unsigned int y;
@@ -76,19 +77,20 @@ public:
     void cleanup();
     void postUpdate();
     void render();
+    void renderChunkDebug();
 
     void serialise() override;
 
     void setBiomeInRadius(Vector2 pos, float radius, Biome biome);
-    void redrawChunksInRadius(Vector2 pos, float radius);
-    void redrawAllChunks();
+    void regenerateChunksInRadius(Vector2 pos, float radius);
+    void regenerateAllChunks();
 
     bool isChunkInGrid(int col, int row) const;
+    BiomeChunk* getChunk(int col, int row) const;
+    std::vector<BiomeChunk*> getChunksInRadius(Vector2 pos, float radius);
     static float getQuadrantSlopeColour(Vector2 pos, Side quadrant);
 
 private:
-    std::vector<BiomeChunk*> getChunksInRadius(Vector2 pos, float radius);
-
     unsigned int rows;
     unsigned int cols;
     bool isSetup = false;

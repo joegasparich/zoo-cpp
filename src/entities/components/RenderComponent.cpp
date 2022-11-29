@@ -29,11 +29,13 @@ void RenderComponent::render(double step) {
     opts.scale = Vector2{float(sprite->width) * source.width, float(sprite->height) * source.height} * PIXEL_SCALE;
     opts.depth = Root::renderer().getDepth(entity->pos.y);
     opts.pivot = pivot;
-    opts.pickId = entity->getId();
+    opts.pickId = entity->id;
+    opts.colour = overrideColour;
 
     Root::renderer().blit(opts);
-}
 
+    overrideColour = WHITE;
+}
 
 void RenderComponent::setSprite(std::string path) {
     sprite = Root::assetManager().getTexture(path);

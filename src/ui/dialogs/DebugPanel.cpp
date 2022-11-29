@@ -24,6 +24,10 @@ void DebugPanel::doWindowContents(Rectangle rect) {
         Root::zoo()->debugSettings.cellGrid = !Root::zoo()->debugSettings.cellGrid;
     curY += BUTTON_HEIGHT + GAP_SMALL;
 
+    if (GUI::buttonText({10, curY, BUTTON_WIDTH, BUTTON_HEIGHT}, "Biome Chunks", Root::zoo()->debugSettings.biomeChunks ? ENABLED : DISABLED))
+        Root::zoo()->debugSettings.biomeChunks = !Root::zoo()->debugSettings.biomeChunks;
+    curY += BUTTON_HEIGHT + GAP_SMALL;
+
     if (GUI::buttonText({10, curY, BUTTON_WIDTH, BUTTON_HEIGHT}, "Elevation Grid", Root::zoo()->debugSettings.elevationGrid ? ENABLED : DISABLED))
         Root::zoo()->debugSettings.elevationGrid = !Root::zoo()->debugSettings.elevationGrid;
     curY += BUTTON_HEIGHT + GAP_SMALL;

@@ -39,6 +39,8 @@ public:
 
     static Side getQuadrantAtPos(Vector2 pos);
     static Cell getTileInDirection(Cell tile, Side direction);
+    unsigned int getWidth () const;
+    unsigned int getHeight () const;
 
     std::unique_ptr<BiomeGrid> biomeGrid;
     std::unique_ptr<ElevationGrid> elevationGrid;

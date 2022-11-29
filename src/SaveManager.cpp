@@ -43,14 +43,15 @@ void SaveManager::loadGame(std::string saveFilePath) {
         auto saveData = json::parse(contents);
         if (saveData.empty()) return;
 
-        try {
+        // TODO: use this try catch when in production
+//        try {
             mode = SerialiseMode::Loading;
             curr = &saveData;
             Root::zoo()->serialise();
-        } catch(const std::exception& error) {
-            TraceLog(LOG_WARNING, "Error loading save file: %s", saveFilePath.c_str());
-            TraceLog(LOG_WARNING, error.what());
-        }
+//        } catch(const std::exception& error) {
+//            TraceLog(LOG_WARNING, "Error loading save file: %s", saveFilePath.c_str());
+//            TraceLog(LOG_WARNING, error.what());
+//        }
     }
 }
 

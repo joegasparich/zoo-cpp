@@ -4,8 +4,6 @@
 #include "constants/world.h"
 #include "constants/depth.h"
 
-#define GHOST_COLOUR Color{102, 204, 255, 255}
-#define BLOCKED_COLOUR Color{255, 102, 26, 255}
 #define CIRCLE_RESOLUTION 16
 
 ToolGhost::ToolGhost() {
@@ -22,6 +20,8 @@ void ToolGhost::cleanup() {
     spriteSheet = nullptr;
     spriteSheetIndex = 0;
     canPlace = true;
+    ghostColour = GHOST_COLOUR;
+    blockedColour = BLOCKED_COLOUR;
 
     pos = {0.0f, 0.0f};
     scale = {1.0f, 1.0f};
@@ -32,7 +32,7 @@ void ToolGhost::cleanup() {
 
 void ToolGhost::render() {
     if (follow) {
-        pos = Root::renderer().screenToWorldPos(GetMousePosition());
+        pos = InputManager::getMouseWorldPos();
     }
     if (snap) {
         pos = flr(pos);
@@ -66,12 +66,22 @@ void ToolGhost::renderCircle() {
     }
     vertices[CIRCLE_RESOLUTION + 1] = vertices[1];
 
-    DrawLineStrip(&vertices[1], vertices.size() - 1, GHOST_COLOUR);
-    DrawTriangleFan(&vertices[0], vertices.size(), ColorAlpha(GHOST_COLOUR, 0.5f));
+    DrawLineStrip(&vertices[1], vertices.size() - 1, ghostColour);
+    DrawTriangleFan(&vertices[0], vertices.size(), ColorAlpha(ghostColour, 0.5f));
 }
 
 void ToolGhost::renderSquare() {
+    std::array<Vector2, 6> vertices{};
 
+    vertices[0] = (pos + Vector2{scale.x/2, scale.y/2}) * WORLD_SCALE; // Centre for fan
+    vertices[1] = (pos + Vector2{0,         0})         * WORLD_SCALE;
+    vertices[2] = (pos + Vector2{0,         scale.y})   * WORLD_SCALE;
+    vertices[3] = (pos + Vector2{scale.x,   scale.y})   * WORLD_SCALE;
+    vertices[4] = (pos + Vector2{scale.x,   0})         * WORLD_SCALE;
+    vertices[5] = vertices[1]; // close loop
+
+    DrawLineStrip(&vertices[1], vertices.size() - 1, ghostColour);
+    DrawTriangleFan(&vertices[0], vertices.size(), ColorAlpha(ghostColour, 0.5f));
 }
 
 void ToolGhost::renderSprite() {
@@ -83,7 +93,7 @@ void ToolGhost::renderSprite() {
     opts.scale = Vector2{float(opts.texture->width), float(opts.texture->height)} * PIXEL_SCALE;
     opts.depth = DEPTH::UI;
     opts.pivot = pivot;
-    opts.colour = canPlace ? GHOST_COLOUR : BLOCKED_COLOUR;
+    opts.colour = canPlace ? ghostColour : blockedColour;
 
     if (elevate)
         opts.pos.y += -Root::zoo()->world->elevationGrid->getElevationAtPos(pos + Vector2{0.5f, 0.5f}) * WORLD_SCALE;
@@ -101,7 +111,7 @@ void ToolGhost::renderSpriteSheet() {
     opts.scale = Vector2{float(opts.texture->width) * opts.source.width, float(opts.texture->height) * opts.source.height} * PIXEL_SCALE;
     opts.depth = DEPTH::UI;
     opts.pivot = pivot;
-    opts.colour = canPlace ? GHOST_COLOUR : BLOCKED_COLOUR;
+    opts.colour = canPlace ? ghostColour : blockedColour;
 
     Root::renderer().blit(opts);
 }

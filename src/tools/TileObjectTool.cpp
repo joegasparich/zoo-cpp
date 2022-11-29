@@ -34,7 +34,15 @@ void TileObjectTool::onInput(InputEvent* event) {
         if (!object) return;
 
         Root::zoo()->world->registerTileObject(object.get());
-        Root::zoo()->registerEntity(std::move(object));
+        auto id = Root::zoo()->registerEntity(std::move(object));
+
+        toolManager.pushAction(std::make_unique<Action>(Action{
+            "Place " + currentObject->name,
+            id,
+            [] (json& data) {
+                Root::zoo()->getEntityById(data.get<unsigned int>())->destroy();
+            }
+        }));
 
         event->consume();
     }
@@ -43,14 +51,13 @@ void TileObjectTool::onInput(InputEvent* event) {
 void TileObjectTool::update() {
     if (!currentObject) return;
     auto& elevationGrid = Root::zoo()->world->elevationGrid;
-    auto mousePos = flr(Root::renderer().screenToWorldPos(GetMousePosition()));
 
     toolManager.ghost->visible = true;
     toolManager.ghost->canPlace = true;
 
     for (int i = 0; i < currentObject->size.x; i++) {
         for (int j = 0; j < currentObject->size.y; j++) {
-            auto pos = mousePos + Cell{i, j};
+            auto pos = flr(InputManager::getMouseWorldPos()) + Cell{i, j};
             if (Root::zoo()->world->getTileObjectAtPosition(pos)) toolManager.ghost->canPlace = false;
             if (elevationGrid->isTileWater(pos)) toolManager.ghost->canPlace = false;
             if (!Root::zoo()->world->isPositionInMap(pos)) {

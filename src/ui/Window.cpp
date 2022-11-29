@@ -24,7 +24,7 @@ void Window::handleInput(InputEvent* event) {
     doWindowContents(rect);
 
     // Consume event if it's a mouse button down on the window
-    if (pointInRect(rect, GetMousePosition()) && event->mouseButtonDown != MOUSE_BUTTON_NULL) {
+    if (pointInRect(rect, event->mousePos) && event->mouseButtonDown != MOUSE_BUTTON_NULL) {
         event->consume();
     }
 }

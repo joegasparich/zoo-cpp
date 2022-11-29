@@ -22,4 +22,5 @@ public:
 private:
     Biome currentBiome;
     bool dragging;
+    std::unique_ptr<std::map<std::string, json>> oldChunkData;
 };

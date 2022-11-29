@@ -19,11 +19,20 @@ void DoorTool::onInput(InputEvent* event) {
     if (event->mouseButtonDown == MOUSE_BUTTON_LEFT) {
         auto& wallGrid = Root::zoo()->world->wallGrid;
 
-        auto mousePos = Root::renderer().screenToWorldPos(GetMousePosition());
-        auto mouseQuadrant = World::getQuadrantAtPos(mousePos);
+        auto mouseQuadrant = World::getQuadrantAtPos(event->mouseWorldPos);
 
         if (toolManager.ghost->canPlace) {
-            Root::zoo()->world->wallGrid->placeDoor(Root::zoo()->world->wallGrid->getWallAtTile(flr(mousePos), mouseQuadrant));
+            auto wall = Root::zoo()->world->wallGrid->getWallAtTile(flr(event->mouseWorldPos), mouseQuadrant);
+            Root::zoo()->world->wallGrid->placeDoor(wall);
+
+            toolManager.pushAction(std::make_unique<Action>(Action{
+                "Place door",
+                wall->gridPos,
+                [] (json& data) {
+                    auto wall = Root::zoo()->world->wallGrid->getWallByGridPos(data.get<Cell>());
+                    Root::zoo()->world->wallGrid->removeDoor(wall);
+                }
+            }));
         }
 
         event->consume();

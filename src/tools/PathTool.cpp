@@ -29,25 +29,41 @@ void PathTool::onInput(InputEvent* event) {
     if (event->mouseButtonDown == MOUSE_BUTTON_LEFT) {
         isDragging = true;
         dragTile = flr(Root::renderer().screenToWorldPos(event->mousePos));
+
+        event->consume();
     }
 
     if (event->mouseButtonUp == MOUSE_BUTTON_LEFT) {
         isDragging = false;
 
-        while (ghosts.size() > 0) {
+        std::vector<Cell> undoData;
+
+        while (!ghosts.empty()) {
             auto& ghost = ghosts.back();
             if (ghost->canPlace) {
                 Root::zoo()->world->pathGrid->placePathAtTile(currentPath, flr(ghost->pos));
+                undoData.push_back(flr(ghost->pos));
             }
             ghosts.pop_back();
         }
+
+        toolManager.pushAction(std::make_unique<Action>(Action{
+            "Place paths",
+            undoData,
+            [] (json& data) {
+                auto tiles = data.get<std::vector<Cell>>();
+                for(auto tile : tiles) {
+                    Root::zoo()->world->pathGrid->removePathAtTile(tile);
+                }
+            }
+        }));
+
+        event->consume();
     }
 }
 
 void PathTool::update() {
     if (!currentPath) return;
-
-    auto mousePos = Root::renderer().screenToWorldPos(GetMousePosition());
 
     updateGhostSprite(*toolManager.ghost);
 
@@ -55,8 +71,8 @@ void PathTool::update() {
         // Dragging
         toolManager.ghost->visible = false;
 
-        auto xDif = flr(mousePos).x - dragTile.x;
-        auto yDif = flr(mousePos).y - dragTile.y;
+        auto xDif = flr(InputManager::getMouseWorldPos()).x - dragTile.x;
+        auto yDif = flr(InputManager::getMouseWorldPos()).y - dragTile.y;
         auto horizontal = abs(xDif) > abs(yDif);
         auto length = (horizontal ? abs(xDif) : abs(yDif)) + 1;
 
@@ -78,9 +94,9 @@ void PathTool::update() {
             updateGhostSprite(*ghost);
 
             if (horizontal) {
-                i += sign(flr(mousePos).x - i);
+                i += sign(flr(InputManager::getMouseWorldPos()).x - i);
             } else {
-                j += sign(flr(mousePos).y - j);
+                j += sign(flr(InputManager::getMouseWorldPos()).y - j);
             }
         }
 

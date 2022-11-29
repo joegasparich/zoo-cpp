@@ -41,11 +41,14 @@ void WallTool::onInput(InputEvent* event) {
         // Reverse so we are going from drag start to drag end
         std::reverse(ghosts.begin(), ghosts.end());
 
+        std::vector<Cell> undoData;
+
         while (!ghosts.empty()) {
             auto& ghost = ghosts.back();
             if (ghost->canPlace) {
                 auto wall = Root::zoo()->world->wallGrid->placeWallAtTile(currentWall, flr(ghost->pos), dragQuadrant);
                 if (wall) {
+                    undoData.push_back(wall->gridPos);
                     for(auto& tile : Root::zoo()->world->wallGrid->getAdjacentTiles(*wall)) {
                         affectedCells.push_back(tile);
                     }
@@ -54,8 +57,22 @@ void WallTool::onInput(InputEvent* event) {
             ghosts.pop_back();
         }
 
+        // Update any paths that have been blocked by walls
         auto e = PlaceSolidEvent{EventType::PlaceSolid, &affectedCells};
         Messenger::fire(&e);
+
+        // Undo action
+        toolManager.pushAction(std::make_unique<Action>(Action{
+            "Place walls",
+            undoData,
+            [] (json& data) {
+                auto wallPositions = data.get<std::vector<Cell>>();
+                for(auto wallPos : wallPositions) {
+                    auto wall = Root::zoo()->world->wallGrid->getWallByGridPos(wallPos);
+                    Root::zoo()->world->wallGrid->deleteWall(wall);
+                }
+            }
+        }));
 
         event->consume();
     }
@@ -66,7 +83,7 @@ void WallTool::update() {
 
     auto& wallGrid = Root::zoo()->world->wallGrid;
 
-    auto mousePos = Root::renderer().screenToWorldPos(GetMousePosition());
+    auto mousePos = InputManager::getMouseWorldPos();
     auto mouseQuadrant = World::getQuadrantAtPos(mousePos);
 
     if (isDragging) {
@@ -93,7 +110,7 @@ void WallTool::update() {
         auto j = floor(dragTile.y);
         for (auto& ghost : ghosts) {
             ghost->pos = {float(i), float(j)};
-            updateGhostSprite(*ghost, {long(i), long(j)}, dragQuadrant);
+            updateGhostSprite(*ghost, {int(i), int(j)}, dragQuadrant);
 
             if (horizontal) {
                 i += sign(flr(mousePos).x - i);

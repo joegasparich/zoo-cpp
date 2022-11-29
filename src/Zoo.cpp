@@ -98,10 +98,14 @@ void Zoo::postUpdate() {
 
     for (auto& entity : entitiesToAdd) {
         entity->setup();
-        entities.insert_or_assign(entity->getId(), std::move(entity));
+        entities.insert_or_assign(entity->id, std::move(entity));
     }
-
     entitiesToAdd.clear();
+
+    for (auto id : entitiesToDelete) {
+        entities.erase(id);
+    }
+    entitiesToDelete.clear();
 }
 
 void Zoo::render(double step) const {
@@ -137,12 +141,12 @@ void Zoo::onInput(InputEvent* event) {
 }
 
 void Zoo::cleanup() {
-    tools->cleanup();
-    world->cleanup();
-
     entities.clear();
     entitiesToAdd.clear();
     entitiesToDelete.clear();
+
+    tools->cleanup();
+    world->cleanup();
 
     Root::renderer().resetCamera();
 }
@@ -152,7 +156,7 @@ unsigned int Zoo::registerEntity(std::unique_ptr<Entity> entity) {
 }
 
 unsigned int Zoo::registerEntity(std::unique_ptr<Entity> entity, unsigned int id) {
-    entity->setId(id);
+    entity->id = id;
     entitiesToAdd.push_back(std::move(entity));
 
     TraceLog(LOG_TRACE, "Registered entity with id: %u", id);
@@ -161,11 +165,11 @@ unsigned int Zoo::registerEntity(std::unique_ptr<Entity> entity, unsigned int id
 }
 
 void Zoo::unregisterEntity(unsigned int entityId) {
-    // TODO: Implement
+    entitiesToDelete.push_back(entityId);
 }
 
 Entity *Zoo::getEntityById(unsigned int entityId) {
-    if (entities.empty() || entities.size() < entityId)
+    if (entities.empty())
         return nullptr;
 
     auto& ptr = entities.at(entityId);
@@ -183,6 +187,7 @@ void Zoo::serialise() {
     }
 
     Root::saveManager().SerialiseDeep("world", world.get());
+    // TODO: Do we need to clear entitiesToAdd and entitiesToDelete first?
     SerialiseEntities("entities", entities);
     Root::saveManager().SerialiseValue("nextEntityId", nextEntityId);
 }
@@ -196,19 +201,25 @@ void Zoo::SerialiseEntities (const std::string& label, std::unordered_map<unsign
             json data{};
             Root::saveManager().setCurrentSerialiseNode(&data);
             pair.second->serialise();
-            saveData[pair.first] = data;
+            saveData.push_back(data);
         }
         (*parent)[label] = saveData;
     }
     if (Root::saveManager().mode == SerialiseMode::Loading) {
-        for (auto& data : parent->at(label).get<json>()) {
-            auto entity = std::make_unique<Entity>();
-            Root::saveManager().setCurrentSerialiseNode(&data);
-            entity->serialise();
-            auto id = entity->getId();
-            Root::zoo()->registerEntity(std::move(entity), id);
-        }
+        loadEntitiesFromJson(parent->at(label).get<json>());
     }
 
     Root::saveManager().setCurrentSerialiseNode(parent);
+}
+
+void Zoo::loadEntitiesFromJson (json data) {
+    auto prevNode = Root::saveManager().getCurrentSerialiseNode();
+    for (auto& entitiyData : data) {
+        auto entity = std::make_unique<Entity>();
+        Root::saveManager().setCurrentSerialiseNode(&entitiyData);
+        entity->serialise();
+        auto id = entity->id;
+        Root::zoo()->registerEntity(std::move(entity), id);
+    }
+    Root::saveManager().setCurrentSerialiseNode(prevNode);
 }

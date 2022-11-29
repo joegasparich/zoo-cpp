@@ -5,6 +5,7 @@
 #include "ElevationGrid.h"
 #include "util/color.h"
 #include "constants/world.h"
+#include "Debug.h"
 
 #define SLOPE_COLOUR_STRENGTH 0.3f
 
@@ -83,7 +84,7 @@ void BiomeChunk::generateMesh() {
                 // Apply biome color
                 auto color = col2vec(getBiomeInfo(cell.quadrants[q]).color);
                 color = rgb2hsv(color);
-                auto slopeColor = BiomeGrid::getQuadrantSlopeColour({float(i + x), float(j + y)}, (Side)q);
+                auto slopeColor = BiomeGrid::getQuadrantSlopeColour({float(i + x * CHUNK_SIZE), float(j + y * CHUNK_SIZE)}, (Side)q);
                 color = hsv2rgb({color.x, color.y, clamp(color.z + slopeColor * SLOPE_COLOUR_STRENGTH, 0.0f, 1.0f)});
 
                 // generate triangle
@@ -91,7 +92,7 @@ void BiomeChunk::generateMesh() {
                 int k = 0;
                 for (auto vertex : getQuadrantVertices({float(i), float(j)}, (Side)q)) {
                     // Apply elevation
-                    auto elevation = Root::zoo()->world->elevationGrid->getElevationAtPos((vertex + Vector2{float(x), float(y)}) / 2.0f);
+                    auto elevation = Root::zoo()->world->elevationGrid->getElevationAtPos((vertex + Vector2{float(x * CHUNK_SIZE), float(y * CHUNK_SIZE)}) / 2.0f);
                     // push vertex
                     triangle.vertices[k] = {vertex.x, vertex.y - (elevation * 2.0f)},
                     k++;
@@ -105,12 +106,12 @@ void BiomeChunk::generateMesh() {
 
 void BiomeChunk::render() {
     // Cull off-screen chunks
-    if (!Root::renderer().isRectangleOnScreen({x / BIOME_SCALE, y / BIOME_SCALE, rows / BIOME_SCALE, cols / BIOME_SCALE})) return;
+    if (!Root::renderer().isRectangleOnScreen({x * CHUNK_SIZE / BIOME_SCALE, y * CHUNK_SIZE / BIOME_SCALE, rows / BIOME_SCALE, cols / BIOME_SCALE})) return;
 
     for(auto triangle : triangles) {
         auto scale = WORLD_SCALE / BIOME_SCALE;
         auto [a,b,c] = triangle.vertices;
-        auto pos = Vector2{float(x), float(y)} * scale;
+        auto pos = Vector2{float(x * CHUNK_SIZE), float(y * CHUNK_SIZE)} * scale;
         DrawTriangle(pos + a * scale, pos + b * scale, pos + c * scale, triangle.color);
     }
 }
@@ -161,6 +162,29 @@ std::vector<std::vector<std::vector<Biome>>> BiomeChunk::save() {
     return chunkData;
 }
 
+void BiomeChunk::load (std::vector<std::vector<std::vector<Biome>>> gridData) {
+    cols = gridData.size();
+    rows = gridData[0].size();
+
+    grid.clear();
+
+    auto rowIndex = 0;
+    for (auto& row : gridData) {
+        grid.emplace_back();
+        for (auto& square : row) {
+            grid.at(rowIndex).push_back(BiomeCell{{
+                square[0],
+                square[1],
+                square[2],
+                square[3]
+            }});
+        }
+        rowIndex++;
+    }
+
+    shouldRegenerate = true;
+}
+
 // -- BiomeGrid -- //
 
 BiomeGrid::BiomeGrid(unsigned int cols, unsigned int rows) : cols{cols}, rows{rows} {}
@@ -175,8 +199,8 @@ void BiomeGrid::setup() {
         chunkGrid.emplace_back();
         for (unsigned int j = 0; j < chunkRows; j++) {
             chunkGrid.at(i).push_back(BiomeChunk{
-                i * CHUNK_SIZE,
-                j * CHUNK_SIZE,
+                i,
+                j,
                 i == chunkCols - 1 && cols % CHUNK_SIZE != 0 ? cols & CHUNK_SIZE : CHUNK_SIZE,
                 j == chunkRows - 1 && rows % CHUNK_SIZE != 0 ? rows & CHUNK_SIZE : CHUNK_SIZE,
             });
@@ -188,7 +212,7 @@ void BiomeGrid::setup() {
     elevationListenerHandle = Messenger::on(EventType::ElevationUpdated, [this](Event* _e) {
         auto e = static_cast<ElevationUpdatedEvent*>(_e);
 
-        redrawChunksInRadius(e->pos * 2.0f, e->radius + 6.0f);
+        regenerateChunksInRadius(e->pos * 2.0f, e->radius + 6.0f);
     });
 
     isSetup = true;
@@ -221,23 +245,44 @@ void BiomeGrid::render() {
     }
 }
 
-void BiomeGrid::setBiomeInRadius(Vector2 pos, float radius, Biome biome) {
+void BiomeGrid::renderChunkDebug () {
     assert(isSetup);
-    pos *= BIOME_SCALE; radius *= BIOME_SCALE;
-
-    for (auto chunk : getChunksInRadius(pos, radius)) {
-        chunk->setBiomeInRadius(pos - Vector2{float(chunk->x), float(chunk->y)}, radius, biome);
+    // Horizontal
+    for (auto i = 0; i < (rows / CHUNK_SIZE) + 1; i++) {
+        Debug::drawLine(
+            {0, float(i) * CHUNK_SIZE / BIOME_SCALE},
+            {float(Root::zoo()->world->getHeight()), float(i) * CHUNK_SIZE / BIOME_SCALE},
+            ORANGE,
+            true
+        );
+    }
+    // Vertical
+    for (auto i = 0; i < (cols / CHUNK_SIZE) + 1; i++) {
+        Debug::drawLine(
+            {float(i) * CHUNK_SIZE / BIOME_SCALE, 0},
+            {float(i) * CHUNK_SIZE / BIOME_SCALE, float(Root::zoo()->world->getWidth())},
+            ORANGE,
+            true
+        );
     }
 }
 
-void BiomeGrid::redrawChunksInRadius(Vector2 pos, float radius) {
+void BiomeGrid::setBiomeInRadius(Vector2 pos, float radius, Biome biome) {
+    assert(isSetup);
+
+    for (auto chunk : getChunksInRadius(pos, radius)) {
+        chunk->setBiomeInRadius(pos - Vector2{float(chunk->x * CHUNK_SIZE), float(chunk->y * CHUNK_SIZE)}, radius, biome);
+    }
+}
+
+void BiomeGrid::regenerateChunksInRadius(Vector2 pos, float radius) {
     assert(isSetup);
     for (auto chunk : getChunksInRadius(pos, radius)) {
         chunk->shouldRegenerate = true;
     }
 }
 
-void BiomeGrid::redrawAllChunks() {
+void BiomeGrid::regenerateAllChunks() {
     assert(isSetup);
     for (auto & i : chunkGrid) {
         for (auto & j : i) {
@@ -266,6 +311,12 @@ std::vector<BiomeChunk*> BiomeGrid::getChunksInRadius(Vector2 pos, float radius)
     return chunks;
 }
 
+BiomeChunk* BiomeGrid::getChunk (int col, int row) const {
+    if (!isChunkInGrid(col, row)) return nullptr;
+
+    return const_cast<BiomeChunk*>(&chunkGrid.at(col).at(row));
+}
+
 bool BiomeGrid::isChunkInGrid(int col, int row) const {
     assert(isSetup);
     return col >= 0 && col < cols / CHUNK_SIZE && row >= 0 && row < rows / CHUNK_SIZE;
@@ -275,10 +326,11 @@ void BiomeGrid::serialise() {
     if (Root::saveManager().mode == SerialiseMode::Loading) {
         cleanup();
 
+        // TODO: move this somewhere along with the one in setup
         elevationListenerHandle = Messenger::on(EventType::ElevationUpdated, [this](Event* _e) {
             auto e = static_cast<ElevationUpdatedEvent*>(_e);
 
-            redrawChunksInRadius(e->pos * 2.0f, e->radius + 6.0f);
+            regenerateChunksInRadius(e->pos * 2.0f, e->radius + 6.0f);
         });
     }
 
@@ -307,7 +359,7 @@ void BiomeGrid::serialise() {
             chunkGrid.emplace_back();
             for (auto& chunkData : row) {
                 chunkGrid.at(i).push_back(BiomeChunk{
-                    chunkData, i * CHUNK_SIZE, j * CHUNK_SIZE
+                    chunkData, i, j
                 });
                 chunkGrid.at(i).at(j).setup();
                 j++;

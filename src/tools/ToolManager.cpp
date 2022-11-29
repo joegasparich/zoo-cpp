@@ -10,6 +10,7 @@
 #include "DoorTool.h"
 #include "PathTool.h"
 #include "Root.h"
+#include "DeleteTool.h"
 
 ToolManager::ToolManager() {}
 ToolManager::~ToolManager() {
@@ -26,6 +27,9 @@ void ToolManager::setup() {
 void ToolManager::cleanup() {
     setTool(ToolType::None);
     Root::ui().closeWindow(toolbarId);
+
+    while(!actionStack.empty())
+        actionStack.pop();
 }
 
 void ToolManager::preUpdate () {
@@ -57,6 +61,23 @@ void ToolManager::onInput(InputEvent* event) {
         setTool(ToolType::None);
         event->consume();
     }
+
+    // TODO: ctrl/cmd Z
+    if (event->keyDown == KEY_Z) {
+        undo();
+        event->consume();
+    }
+}
+
+void ToolManager::pushAction (std::unique_ptr<Action> action) {
+    actionStack.push(std::move(action));
+}
+
+void ToolManager::undo () {
+    if (actionStack.empty()) return;
+
+    actionStack.top()->undo(actionStack.top()->data);
+    actionStack.pop();
 }
 
 void ToolManager::setTool(ToolType type) {
@@ -86,6 +107,9 @@ void ToolManager::setTool(ToolType type) {
             break;
         case ToolType::TileObject:
             activeTool = std::make_unique<TileObjectTool>(*this);
+            break;
+        case ToolType::Delete:
+            activeTool = std::make_unique<DeleteTool>(*this);
             break;
         case ToolType::None:
         default:

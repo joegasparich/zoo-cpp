@@ -57,6 +57,14 @@ void InputManager::fireInputEvent(InputEvent event) {
     Messenger::fire(EventType::InputEvent);
 }
 
+Vector2 InputManager::getMousePos () {
+    return GetMousePosition();
+}
+
+Vector2 InputManager::getMouseWorldPos () {
+    return Root::renderer().screenToWorldPos(GetMousePosition());
+}
+
 InputEvent *InputManager::getCurrentEvent() {
     return &InputManager::get().currentEvent;
 }

@@ -13,6 +13,7 @@ public:
     COMPONENT getId() override;
 
     void start() override;
+    void end () override;
 
     std::vector<Cell> getTiles();
 

@@ -494,5 +494,7 @@ void ElevationGrid::serialise() {
 
         isSetup = true;
         generateWaterMesh();
+
+        Root::zoo()->world->biomeGrid->regenerateAllChunks();
     }
 }

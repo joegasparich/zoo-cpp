@@ -31,6 +31,7 @@ struct Wall {
     bool exists;
     bool indestructable;
     bool isDoor;
+    Color overrideColour = WHITE; // Gets reset after each frame
 };
 
 struct GridPos {
@@ -54,7 +55,7 @@ public:
     void serialise() override;
 
     Wall* placeWallAtTile(WallData* wall, Cell tilePos, Side side);
-    void deleteWall(Wall wall);
+    void deleteWall(Wall* wall);
     void deleteWallAtTile(Cell tilePos, Side side);
     void placeDoor(Wall* wall);
     void removeDoor(Wall* wall);
@@ -67,6 +68,7 @@ public:
     Wall* getWallByGridPos(Cell gridPos);
     std::vector<Wall*> getAdjacentWalls(const Wall& wall);
     std::vector<Cell> getAdjacentTiles(const Wall& wall);
+    Cell getOppositeTile(const Wall& wall, Cell tile);
     std::array<Cell, 2> getWallVertices(const Wall& wall);
     std::vector<Wall*> getSurroundingWalls(Cell gridPos);
     bool isWallSloped(const Wall& wall);

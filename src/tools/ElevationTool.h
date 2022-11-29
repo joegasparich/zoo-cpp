@@ -21,4 +21,5 @@ public:
 private:
     Elevation currentElevation;
     bool dragging;
+    std::unique_ptr<json> oldElevationData;
 };

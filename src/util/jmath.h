@@ -41,6 +41,11 @@ inline int clg(float a) {
 
 // Extended min max (stolen from glm)
 template<typename T>
+inline T min(T const& x, T const& y) {
+    return std::min(x, y);
+}
+
+template<typename T>
 inline T min(T const& x, T const& y, T const& z) {
     return std::min(std::min(x, y), z);
 }
@@ -68,6 +73,11 @@ inline C<T> min(C<T> const& x, typename C<T>::T const& y, typename C<T>::T const
 template<typename T, template<typename> class C>
 inline C<T> min(C<T> const& x, C<T> const& y, C<T> const& z, C<T> const& w) {
     return std::min(std::min(x, y), std::min(z, w));
+}
+
+template<typename T>
+inline T max(T const& x, T const& y) {
+    return std::max(x, y);
 }
 
 template<typename T>
@@ -108,8 +118,8 @@ inline bool pointInCircle(Vector2 circlePos, float radius, Vector2 point) {
 }
 
 inline bool pointInRect(Rectangle rect, Vector2 point) {
-    return point.x > rect.x && point.x < rect.x + rect.width
-        && point.y > rect.y && point.y < rect.y + rect.height;
+    return point.x >= rect.x && point.x <= rect.x + rect.width
+        && point.y >= rect.y && point.y <= rect.y + rect.height;
 }
 
 inline bool circleIntersectsRect(Vector2 boxPos, Vector2 boxDim, Vector2 circlePos, float circleRad) {
@@ -152,21 +162,21 @@ inline Vector2 divVect(Vector2 a, Vector2 b) {
 
 inline Cell round(Vector2 a) {
     return {
-        long(std::round(a.x)),
-        long(std::round(a.y))
+        int(std::round(a.x)),
+        int(std::round(a.y))
     };
 }
 
 inline Cell flr(Vector2 a) {
     return {
-        long(std::floor(a.x)),
-        long(std::floor(a.y))
+        int(std::floor(a.x)),
+        int(std::floor(a.y))
     };
 }
 inline Cell clg(Vector2 a) {
     return {
-        long(std::ceil(a.x)),
-        long(std::ceil(a.y))
+        int(std::ceil(a.x)),
+        int(std::ceil(a.y))
     };
 }
 

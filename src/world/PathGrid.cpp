@@ -11,9 +11,9 @@ void PathGrid::setup() {
     TraceLog(LOG_TRACE, "Setting up path grid");
 
     // Grid
-    for (unsigned int i = 0; i < cols; i++) {
+    for (int i = 0; i < cols; i++) {
         grid.emplace_back();
-        for (unsigned int j = 0; j < rows; j++) {
+        for (int j = 0; j < rows; j++) {
             grid.at(i).push_back({
                 nullptr,
                 {i, j},
@@ -55,8 +55,11 @@ void PathGrid::render() {
                 opts.depth = DEPTH::GROUND;
                 opts.pos = pos * WORLD_SCALE;
                 opts.scale = Vector2{1, 2} * WORLD_SCALE;
+                opts.colour = path.overrideColour;
 
                 Root::renderer().blit(opts);
+
+                path.overrideColour = WHITE;
             }
         }
     }
@@ -65,6 +68,7 @@ void PathGrid::render() {
 Path *PathGrid::placePathAtTile(PathData *data, Cell tilePos) {
     assert(isSetup);
     if (!Root::zoo()->world->isPositionInMap(tilePos)) return nullptr;
+    // TODO: path replacement
     if (getPathAtTile(tilePos)->exists) return nullptr;
 
     grid.at(tilePos.x).at(tilePos.y) = Path{
@@ -74,9 +78,24 @@ Path *PathGrid::placePathAtTile(PathData *data, Cell tilePos) {
         false
     };
 
-    // TODO: update pathfinding
+    // TODO: update pathfinding once using walkability grid
 
     return &grid.at(tilePos.x).at(tilePos.y);
+}
+
+void PathGrid::removePathAtTile (Cell tilePos) {
+    assert(isSetup);
+    if (!Root::zoo()->world->isPositionInMap(tilePos)) return;
+    if (!getPathAtTile(tilePos)->exists) return;
+
+    grid.at(tilePos.x).at(tilePos.y) = Path{
+        nullptr,
+        tilePos,
+        false,
+        false
+    };
+
+    // TODO: update pathfinding once using walkability grid
 }
 
 Path *PathGrid::getPathAtTile(Cell tilePos) {

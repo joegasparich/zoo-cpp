@@ -42,6 +42,8 @@ public:
     static void processInput();
     static void fireInputEvent(InputEvent event);
 
+    static Vector2 getMousePos();
+    static Vector2 getMouseWorldPos();
     static InputEvent* getCurrentEvent();
 
 private:

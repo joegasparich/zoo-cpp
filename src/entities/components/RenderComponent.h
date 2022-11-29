@@ -19,11 +19,13 @@ public:
 
     void setSprite(std::string spritePath);
     void setSource(Rectangle source);
+    void overrideColourThisFrame(Color colour);
 
     void serialise() override;
 
     Vector2 pivot = Vector2{0.5f, 0.5f};
     Vector2 offset = Vector2{0, 0};
+    Color overrideColour = WHITE; // Gets reset after each frame
 private:
     Texture* sprite = nullptr;
     std::string spritePath;

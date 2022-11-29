@@ -25,6 +25,7 @@
 #include "raylib.h"
 #include "raymath.h"
 #include "util/cell.h"
+#include "util/rect.h"
 #include "util/raymath_operators.h"
 #include "util/jmath.h"
 #include "util/time.h"

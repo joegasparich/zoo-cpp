@@ -12,6 +12,7 @@ struct Path {
     Cell pos;
     bool exists;
     bool indestructable;
+    Color overrideColour = WHITE; // Gets reset after each frame
 };
 
 enum class PathSpriteIndex {
@@ -38,6 +39,7 @@ public:
     void serialise() override;
 
     Path* placePathAtTile(PathData* path, Cell tilePos);
+    void removePathAtTile(Cell tilePos);
     Path* getPathAtTile(Cell tilePos);
 
     static PathSpriteInfo getSpriteInfo(Path& path);

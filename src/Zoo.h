@@ -8,6 +8,7 @@
 
 struct DebugSettings {
     bool cellGrid = false;
+    bool biomeChunks = false;
     bool elevationGrid = false;
     bool areaGrid = false;
     bool pathfindingGrid = false;
@@ -35,6 +36,7 @@ public:
 
     void serialise() override;
     void SerialiseEntities(const std::string& label, std::unordered_map<unsigned int, std::unique_ptr<Entity>>& collection);
+    void loadEntitiesFromJson(json data);
 
     std::unique_ptr<World> world;
     std::unique_ptr<ToolManager> tools;

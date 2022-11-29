@@ -18,7 +18,7 @@ Rectangle getAbsRect(Rectangle rect) {
     };
 }
 bool mouseOverUI(Rectangle rect) {
-    return pointInRect(getAbsRect(rect), GetMousePosition());
+    return pointInRect(getAbsRect(rect), InputManager::getMousePos());
 }
 Rectangle maintainAspectRatio(Rectangle rect, Texture* texture, Rectangle source = {0, 0, 1, 1}) {
     float texWidth = texture->width * source.width;

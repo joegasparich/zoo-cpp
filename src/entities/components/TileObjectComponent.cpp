@@ -16,6 +16,12 @@ void TileObjectComponent::start() {
     Root::zoo()->world->registerTileObject(entity);
 }
 
+void TileObjectComponent::end () {
+    Component::end();
+
+    Root::zoo()->world->unregisterTileObject(entity);
+}
+
 std::vector<Cell> TileObjectComponent::getTiles() {
     std::vector<Cell> tiles{};
     auto base = Cell{entity->pos - data.size / 2.0f};

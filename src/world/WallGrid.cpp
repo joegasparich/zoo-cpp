@@ -57,8 +57,11 @@ void WallGrid::render() {
                 opts.pos = pos * WORLD_SCALE;
                 opts.depth = Root::renderer().getDepth(wall.worldPos.y);
                 opts.scale = Vector2{1, 2} * WORLD_SCALE;
+                opts.colour = wall.overrideColour;
 
                 Root::renderer().blit(opts);
+
+                wall.overrideColour = WHITE;
             }
         }
     }
@@ -91,12 +94,13 @@ Wall* WallGrid::placeWallAtTile(WallData* data, Cell tilePos, Side side) {
     return &wall;
 }
 
-void WallGrid::deleteWall(Wall wall) {
+void WallGrid::deleteWall(Wall* wall) {
     assert(isSetup);
+    assert(wall);
 
     this->deleteWallAtTile(
-        flr(wall.worldPos),
-        wall.orientation == Orientation::Horizontal ? Side::North : Side::West
+        flr(wall->worldPos),
+        wall->orientation == Orientation::Horizontal ? Side::North : Side::West
     );
 }
 
@@ -117,6 +121,8 @@ void WallGrid::deleteWallAtTile(Cell tilePos, Side side) {
             false,
             false
     };
+
+    updatePathfindingAtWall(grid[x][y]);
 }
 
 void WallGrid::placeDoor(Wall* wall) {
@@ -137,7 +143,6 @@ void WallGrid::placeDoor(Wall* wall) {
 
 void WallGrid::removeDoor(Wall* wall) {
     assert(isSetup);
-    wall->isDoor = false;
 
     auto adjacentTiles = getAdjacentTiles(*wall);
     if (adjacentTiles.size() < 2) return;
@@ -147,6 +152,8 @@ void WallGrid::removeDoor(Wall* wall) {
     
     areaA->removeAreaConnection(areaB, wall);
     areaB->removeAreaConnection(areaA, wall);
+
+    wall->isDoor = false;
 }
 
 bool WallGrid::isWallPosInMap(Cell tilePos, Side side) const {
@@ -306,6 +313,20 @@ std::vector<Cell> WallGrid::getAdjacentTiles(const Wall& wall) {
     return adjacentTiles;
 }
 
+Cell WallGrid::getOppositeTile (const Wall& wall, Cell tile) {
+    bool foundMatch = false;
+    Cell other;
+
+    for (auto t : getAdjacentTiles(wall)) {
+        if (t == tile) foundMatch = true;
+        else other = t;
+    }
+
+    assert(foundMatch);
+
+    return other;
+}
+
 std::array<Cell, 2> WallGrid::getWallVertices(const Wall &wall) {
     assert(isSetup);
     switch (wall.orientation) {
@@ -326,10 +347,13 @@ std::vector<Wall*> WallGrid::getSurroundingWalls(Cell gridPos) {
     assert(isSetup);
     std::vector<Wall*> walls{};
 
+    if (!Root::zoo()->world->isPositionInMap(gridPos))
+        return walls;
+
     walls.push_back(getWallAtTile(gridPos, Side::North));
     walls.push_back(getWallAtTile(gridPos, Side::West));
-    walls.push_back(getWallAtTile(gridPos - Cell{1, 1}, Side::South));
-    walls.push_back(getWallAtTile(gridPos - Cell{1, 1}, Side::East));
+    walls.push_back(getWallAtTile(gridPos, Side::South));
+    walls.push_back(getWallAtTile(gridPos, Side::East));
 
     return walls;
 }

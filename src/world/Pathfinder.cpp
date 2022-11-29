@@ -92,6 +92,7 @@ path Pathfinder::getPath(Cell from, Cell to) {
             // If the successor is already on the closed list then ignore it
             if (closedList[nx][ny]) continue;
 
+            // TODO: use walkability grid insteadz
             auto gNew = cellDetails[x][y].gCost + Root::zoo()->world->getTileWalkability({x, y});
             auto hNew = calculateHValue(neighbour, to);
             auto fNew = gNew + hNew;

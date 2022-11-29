@@ -12,7 +12,8 @@ enum class ToolType {
     Wall,
     Door,
     Path,
-    TileObject
+    TileObject,
+    Delete
 };
 
 class Tool {

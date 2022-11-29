@@ -42,6 +42,10 @@ void Toolbar::doWindowContents(Rectangle rect) {
         m_toolManager->setTool(ToolType::TileObject);
     curX += BUTTON_WIDTH + GAP_SMALL;
 
+    if (GUI::buttonText({curX, 10, BUTTON_WIDTH, 25}, "Delete"))
+        m_toolManager->setTool(ToolType::Delete);
+    curX += BUTTON_WIDTH + GAP_SMALL;
+
     if (GUI::buttonText({curX, 10, BUTTON_WIDTH, 25}, "New"))
         Root::saveManager().newGame();
     curX += BUTTON_WIDTH + GAP_SMALL;

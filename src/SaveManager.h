@@ -31,8 +31,8 @@ public:
     void SerialiseValue(const std::string& label, std::function<T()> get, std::function<void(T)> set);
     template<typename T>
     void SerialiseDeep(const std::string& label, T value);
-//    template<typename T>
-//    void SerialiseCollectionDeep(const std::string& label, T& collection);
+    template<typename T>
+    void SerialiseCollectionDeep(const std::string& label, T& collection);
 
     SerialiseMode mode;
 private:
@@ -92,18 +92,18 @@ void SaveManager::SerialiseDeep(const std::string& label, T value) {
     curr = parent;
 }
 
-//template<typename T>
-//void SaveManager::SerialiseCollectionDeep(const std::string& label, T& collection) {
-//    json saveData{};
-//
-//    auto parent = curr;
-//    for (auto& val : collection) {
-//        json j{};
-//        curr = &j;
-//        val->serialise();
-//        saveData.push_back(j);
-//    }
-//    curr = parent;
-//
-//    (*curr)[label] = saveData;
-//}
+template<typename T>
+void SaveManager::SerialiseCollectionDeep(const std::string& label, T& collection) {
+    json saveData{};
+
+    auto parent = curr;
+    for (auto& val : collection) {
+        json j{};
+        curr = &j;
+        val->serialise();
+        saveData.push_back(j);
+    }
+    curr = parent;
+
+    (*curr)[label] = saveData;
+}

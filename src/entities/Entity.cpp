@@ -54,12 +54,8 @@ void Entity::cleanup () {
     components.clear();
 }
 
-void Entity::setId(unsigned int _id) {
-    id = _id;
-}
-
-unsigned int Entity::getId() {
-    return id;
+void Entity::destroy () {
+    Root::zoo()->unregisterEntity(id);
 }
 
 bool Entity::hasComponent(COMPONENT type) {

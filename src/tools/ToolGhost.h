@@ -5,6 +5,9 @@
 #include "Renderer.h"
 #include "SpriteSheet.h"
 
+#define GHOST_COLOUR Color{102, 204, 255, 255}
+#define BLOCKED_COLOUR Color{255, 102, 26, 255}
+
 enum class GhostType {
     None,
     Circle,
@@ -34,6 +37,8 @@ public:
     float radius;
     Vector2 offset;
     Vector2 pivot = {0.5f, 0.5f};
+    Color ghostColour = GHOST_COLOUR;
+    Color blockedColour = BLOCKED_COLOUR;
 
 private:
     void renderCircle();

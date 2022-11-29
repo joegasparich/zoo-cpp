@@ -3,12 +3,12 @@
 #include "common.h"
 
 struct Cell {
-    long x;
-    long y;
+    int x;
+    int y;
 
     Cell() : x(0), y(0) {}
-    Cell(long x, long y) : x(x), y(y) {}
-    explicit Cell(Vector2 v) : Cell{long(floor(v.x)), long(floor(v.y))} {}
+    Cell(int x, int y) : x(x), y(y) {}
+    explicit Cell(Vector2 v) : Cell{int(floor(v.x)), int(floor(v.y))} {}
 
     // TODO: Is this fine?
     // TODO: Is the conversion allocating memory and is it slow?
@@ -22,6 +22,10 @@ struct Cell {
         return Vector2{float(x), float(y)};
     }
 };
+
+inline Cell cellFromString(std::string str) {
+    return {str[0] - '0', str[2] - '0'};
+}
 
 namespace std {
     template<>

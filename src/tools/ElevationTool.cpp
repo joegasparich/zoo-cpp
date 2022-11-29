@@ -18,17 +18,34 @@ void ElevationTool::onInput(InputEvent* event) {
     // Only listen to down and up events so that we can't start dragging from UI
     if (event->mouseButtonDown == MOUSE_BUTTON_LEFT) {
         dragging = true;
+        oldElevationData = std::make_unique<json>();
+        Root::saveManager().setCurrentSerialiseNode(oldElevationData.get());
+        Root::saveManager().mode = SerialiseMode::Saving;
+        Root::saveManager().SerialiseDeep("elevation", Root::zoo()->world->elevationGrid.get());
+
         event->consume();
     }
     if (event->mouseButtonUp == MOUSE_BUTTON_LEFT) {
+        if (!dragging) return;
         dragging = false;
+
+        toolManager.pushAction(std::make_unique<Action>(Action{
+            "Elevation brush",
+            *oldElevationData,
+            [] (json& data) {
+                Root::saveManager().setCurrentSerialiseNode(&data);
+                Root::saveManager().mode = SerialiseMode::Loading;
+                Root::saveManager().SerialiseDeep("elevation", Root::zoo()->world->elevationGrid.get());
+            }
+        }));
+
         event->consume();
     }
 }
 
 void ElevationTool::update() {
     if (dragging && Root::game().getTicks() % 5 == 0) {
-        Root::zoo()->world->elevationGrid->setElevationInCircle(Root::renderer().screenToWorldPos(GetMousePosition()), 1.0f, currentElevation);
+        Root::zoo()->world->elevationGrid->setElevationInCircle(InputManager::getMouseWorldPos(), 1.0f, currentElevation);
     }
 }
 

@@ -12,7 +12,8 @@ public:
     Entity(Vector2 pos);
     ~Entity();
 
-    Vector2 pos;
+    unsigned int id = 0;
+    Vector2 pos = {0, 0};
 
     void setup();
     void preUpdate();
@@ -20,6 +21,8 @@ public:
     void postUpdate();
     void render(double step) const;
     void cleanup();
+
+    void destroy();
 
     template<typename T>
     T* addComponent(std::unique_ptr<T> component);
@@ -29,14 +32,10 @@ public:
     bool hasComponent() const;
     bool hasComponent(COMPONENT type);
 
-    void setId(unsigned int id);
-    unsigned int getId();
-
     void serialise() override;
     void SerialiseComponentMap(const std::string& label, TypeMap<std::unique_ptr<Component>>& collection);
 
 private:
-    unsigned int id;
     TypeMap<std::unique_ptr<Component>> components;
     TypeMap<Component*> baseComponents;
     bool hasStarted;

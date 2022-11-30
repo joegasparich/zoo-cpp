@@ -96,7 +96,10 @@ std::vector<Entity*> DeleteTool::getHighlightedTileObjects () {
 
     for (int i = dragRect.x; i < dragRect.xMax(); i++) {
         for (int j = dragRect.y; j < dragRect.yMax(); j++) {
-            auto tileObject = Root::zoo()->world->getTileObjectAtPosition(Cell{i, j});
+            Cell cell{i, j};
+            if (!Root::zoo()->world->isPositionInMap(cell)) continue;
+            
+            auto tileObject = Root::zoo()->world->getTileObjectAtPosition(cell);
             if (tileObject) tileObjects.push_back(tileObject);
         }
     }
@@ -110,7 +113,10 @@ std::vector<Cell> DeleteTool::getHighlightedPaths () {
 
     for (int i = dragRect.x; i < dragRect.xMax(); i++) {
         for (int j = dragRect.y; j < dragRect.yMax(); j++) {
-            if (Root::zoo()->world->pathGrid->getPathAtTile(Cell{i, j})->exists)
+            Cell cell{i, j};
+            if (!Root::zoo()->world->isPositionInMap(cell)) continue;
+
+            if (Root::zoo()->world->pathGrid->getPathAtTile(cell)->exists)
                 paths.emplace_back(i, j);
         }
     }
@@ -125,6 +131,8 @@ std::vector<Wall*> DeleteTool::getHighlightedWalls () {
     for (int i = dragRect.x; i < dragRect.xMax(); i++) {
         for (int j = dragRect.y; j < dragRect.yMax(); j++) {
             Cell cell{i, j};
+            if (!Root::zoo()->world->isPositionInMap(cell)) continue;
+
             for (auto wall : Root::zoo()->world->wallGrid->getSurroundingWalls(cell)) {
                 if (!wall->exists) continue;
 

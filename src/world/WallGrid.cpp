@@ -121,8 +121,10 @@ void WallGrid::deleteWallAtTile(Cell tilePos, Side side) {
             false,
             false
     };
+    auto& wall = grid[x][y];
 
-    updatePathfindingAtWall(grid[x][y]);
+    updatePathfindingAtWall(wall);
+    Root::zoo()->world->areaManager->joinAreas(wall);
 }
 
 void WallGrid::placeDoor(Wall* wall) {

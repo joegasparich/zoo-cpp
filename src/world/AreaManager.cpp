@@ -4,6 +4,8 @@
 #include "util/uuid.h"
 #include "Debug.h"
 
+#pragma clang diagnostic push
+#pragma ide diagnostic ignored "UnreachableCode"
 #define ZOO_AREA "ZOO"
 
 void AreaManager::setup () {
@@ -69,6 +71,9 @@ void AreaManager::joinAreas(Wall &removedWall) {
 
     auto areaA = getAreaAtPosition(tiles[0]);
     auto areaB = getAreaAtPosition(tiles[1]);
+
+    if (areaA == areaB)
+        return;
 
     // If one of the areas is the main zoo area then ensure we keep it
     if (areaB->id == ZOO_AREA) {
@@ -260,3 +265,5 @@ void AreaManager::serialise () {
     };
     Root::saveManager().SerialiseValue("areas", get, set);
 }
+
+#pragma clang diagnostic pop

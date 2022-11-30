@@ -5,6 +5,8 @@
 #include "ZooScene.h"
 #include "Messenger.h"
 
+#pragma clang diagnostic push
+#pragma ide diagnostic ignored "UnreachableCode"
 #define WATER_LEVEL 0.1f
 #define WATER_COLOR {0, 76, 255, 204}
 
@@ -498,3 +500,5 @@ void ElevationGrid::serialise() {
         Root::zoo()->world->biomeGrid->regenerateAllChunks();
     }
 }
+
+#pragma clang diagnostic pop

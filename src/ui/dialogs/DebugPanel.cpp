@@ -10,12 +10,15 @@ const Color DISABLED = {130, 26, 26, 255};
 const float PANEL_WIDTH = (BUTTON_WIDTH + GAP_SMALL * 2);
 const Rectangle dimensions = {SCREEN_WIDTH - PANEL_WIDTH, 70, PANEL_WIDTH, 200};
 
-DebugPanel::DebugPanel() : Window(dimensions) {}
+DebugPanel::DebugPanel() : Window(dimensions) {
+    title = "Debug";
+    draggable = true;
+}
 
-void DebugPanel::doWindowContents(Rectangle rect) {
-    Window::doWindowContents(rect);
+void DebugPanel::doWindowContents() {
+    Window::doWindowContents();
 
-    float curY = 10;
+    float curY = WINDOW_TITLE_HEIGHT + 10;
 
     GUI::TextColour = WHITE;
     GUI::TextAlign = AlignMode::Centre;

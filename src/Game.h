@@ -24,6 +24,7 @@ public:
     void onInput(InputEvent* event);
     static int getTicks();
 
+    InputManager input;
     UIManager ui;
     Renderer renderer;
     AssetManager assetManager;

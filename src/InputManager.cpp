@@ -48,11 +48,9 @@ void InputManager::processInput() {
 }
 
 void InputManager::fireInputEvent(InputEvent event) {
-    auto& instance = InputManager::get();
+    currentEvent = event;
 
-    instance.currentEvent = event;
-
-    Game::get().onInput(&instance.currentEvent);
+    Game::get().onInput(&currentEvent);
     // TODO: actually create an input event
     Messenger::fire(EventType::InputEvent);
 }
@@ -66,6 +64,6 @@ Vector2 InputManager::getMouseWorldPos () {
 }
 
 InputEvent *InputManager::getCurrentEvent() {
-    return &InputManager::get().currentEvent;
+    return &currentEvent;
 }
 

@@ -83,7 +83,7 @@ void WallTool::update() {
 
     auto& wallGrid = Root::zoo()->world->wallGrid;
 
-    auto mousePos = InputManager::getMouseWorldPos();
+    auto mousePos = Root::input().getMouseWorldPos();
     auto mouseQuadrant = World::getQuadrantAtPos(mousePos);
 
     if (isDragging) {

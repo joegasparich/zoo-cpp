@@ -10,6 +10,7 @@ class Root {
 public:
     static Game& game();
     static Zoo* zoo();
+    static InputManager& input();
     static Renderer& renderer();
     static UIManager& ui();
     static AssetManager& assetManager();

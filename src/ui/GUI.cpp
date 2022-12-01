@@ -8,18 +8,10 @@ AlignMode GUI::TextAlign = AlignMode::TopLeft;
 int GUI::FontSize = 10;
 Color highlightColor = {255, 255, 255, 150};
 
+GUI::GUI () = default;
+GUI::~GUI () = default;
+
 // Util
-Rectangle getAbsRect(Rectangle rect) {
-    return {
-        Root::ui().currentDrawBounds.x + rect.x,
-        Root::ui().currentDrawBounds.y + rect.y,
-        rect.width,
-        rect.height
-    };
-}
-bool mouseOverUI(Rectangle rect) {
-    return pointInRect(getAbsRect(rect), InputManager::getMousePos());
-}
 Rectangle maintainAspectRatio(Rectangle rect, Texture* texture, Rectangle source = {0, 0, 1, 1}) {
     float texWidth = texture->width * source.width;
     float texHeight = texture->height * source.height;
@@ -47,10 +39,11 @@ Rectangle maintainAspectRatio(Rectangle rect, Texture* texture, Rectangle source
 
 // Draw Functions
 void GUI::drawRect(Rectangle rect, Color col) {
-    auto absRect = getAbsRect(rect);
+    if (Root::ui().currentEvent != UIEvent::Draw) return;
 
-    if (Root::ui().currentEvent == UIEvent::Draw)
-        DrawRectangle(absRect.x, absRect.y, absRect.width, absRect.height, col);
+    auto absRect = Root::ui().getAbsRect(rect);
+
+    DrawRectangle(absRect.x, absRect.y, absRect.width, absRect.height, col);
 }
 
 void GUI::drawBorder(Rectangle rect, float thickness, Color col) {
@@ -60,9 +53,11 @@ void GUI::drawBorder(Rectangle rect, float thickness, Color col) {
     drawRect({rect.x + rect.width - thickness, rect.y, thickness, rect.height}, col); // right
 }
 
-void GUI::drawTexture(Rectangle rect, Texture* texture) {
+void GUI::drawTexture(Rectangle rect, Texture* texture, Color col) {
+    if (Root::ui().currentEvent != UIEvent::Draw) return;
+
     if (!texture) return;
-    auto absRect = getAbsRect(rect);
+    auto absRect = Root::ui().getAbsRect(rect);
 
     DrawTexturePro(
         *texture,
@@ -70,13 +65,15 @@ void GUI::drawTexture(Rectangle rect, Texture* texture) {
         maintainAspectRatio(absRect, texture),
         Vector2{0, 0},
         0.0f,
-        WHITE
+        col
     );
 }
 
 void GUI::drawSubTexture(Rectangle rect, Texture* texture, Rectangle source) {
+    if (Root::ui().currentEvent != UIEvent::Draw) return;
+
     if (!texture) return;
-    auto absRect = getAbsRect(rect);
+    auto absRect = Root::ui().getAbsRect(rect);
     Rectangle dimensions = {
         float(texture->width * source.x),
         float(texture->height * source.y),
@@ -94,8 +91,29 @@ void GUI::drawSubTexture(Rectangle rect, Texture* texture, Rectangle source) {
     );
 }
 
+void GUI::drawTextureNPatch (Rectangle rect, Texture* texture, int cornerSize, Color col) {
+    if (Root::ui().currentEvent != UIEvent::Draw) return;
+
+    if (!texture) return;
+    NPatchInfo nPatchInfo = {Rectangle{0.0f, 0.0f, float(texture->width), float(texture->height)},
+        cornerSize, cornerSize, cornerSize, cornerSize, NPATCH_NINE_PATCH};
+
+    if (Root::ui().currentEvent == UIEvent::Draw) {
+        DrawTextureNPatch(
+            *texture,
+            nPatchInfo,
+            Root::ui().getAbsRect(rect),
+            {0, 0},
+            0.0f,
+            col
+        );
+    }
+}
+
 void GUI::drawText(Rectangle rect, const std::string& text) {
-    auto absRect = getAbsRect(rect);
+    if (Root::ui().currentEvent != UIEvent::Draw) return;
+
+    auto absRect = Root::ui().getAbsRect(rect);
     Vector2 drawPos = {absRect.x, absRect.y};
     int textWidth = MeasureText(text.c_str(), FontSize);
 
@@ -116,15 +134,15 @@ void GUI::drawText(Rectangle rect, const std::string& text) {
 
 // Input Functions
 bool GUI::clickableArea(Rectangle rect) {
-    if (Root::ui().currentEvent == UIEvent::Input) {
-        auto event = InputManager::getCurrentEvent();
+    if (Root::ui().currentEvent != UIEvent::Input) return false;
 
-        if (event->mouseButtonUp == MOUSE_BUTTON_LEFT && mouseOverUI(rect)) {
-            return true;
-        }
-    }
+    auto event = Root::input().getCurrentEvent();
 
-    return false;
+    return event->mouseButtonDown == MOUSE_BUTTON_LEFT && Root::ui().isMouseOverRect(rect);
+}
+
+bool GUI::hoverArea (Rectangle rect) {
+    return Root::ui().isMouseOverRect(rect);
 }
 
 // Widgets
@@ -137,10 +155,14 @@ bool GUI::buttonText(Rectangle rect, const std::string& text, Color colour) {
     highlightMouseover(rect);
     drawText(rect, text);
 
+    if (hoverArea(rect)) {
+        Root::ui().setCursor(MOUSE_CURSOR_POINTING_HAND);
+    }
+
     return clickableArea(rect);
 }
 
 void GUI::highlightMouseover(Rectangle rect) {
-    if (mouseOverUI(rect))
+    if (hoverArea(rect))
         drawRect(rect, highlightColor);
 }

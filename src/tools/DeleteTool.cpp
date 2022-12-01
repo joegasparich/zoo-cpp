@@ -81,7 +81,7 @@ void DeleteTool::onInput (InputEvent* event) {
 }
 
 IRect DeleteTool::getDragRect() {
-    auto dragEndTile = flr(InputManager::getMouseWorldPos());
+    auto dragEndTile = flr(Root::input().getMouseWorldPos());
     auto upperLeft = Cell(min(dragStartTile.x, dragEndTile.x), min(dragStartTile.y, dragEndTile.y));
     auto bottomRight = Cell(max(dragStartTile.x, dragEndTile.x), max(dragStartTile.y, dragEndTile.y));
     auto width = bottomRight.x - upperLeft.x + 1;

@@ -7,5 +7,5 @@ class ProfilerPanel : public Window {
 public:
     explicit ProfilerPanel();
 
-    void doWindowContents(Rectangle r) override;
+    void doWindowContents() override;
 };

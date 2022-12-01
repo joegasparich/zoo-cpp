@@ -67,11 +67,13 @@ void Game::doLoop() {
             ticksSinceGameStart++;
         }
 
-        InputManager::processInput();
+        ui.preRender();
+
+        input.processInput();
 
         render(double(lag) / double(MS_PER_UPDATE));
 
-        ui.postUpdate();
+        ui.postRender();
     }
 }
 

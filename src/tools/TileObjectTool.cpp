@@ -57,7 +57,7 @@ void TileObjectTool::update() {
 
     for (int i = 0; i < currentObject->size.x; i++) {
         for (int j = 0; j < currentObject->size.y; j++) {
-            auto pos = flr(InputManager::getMouseWorldPos()) + Cell{i, j};
+            auto pos = flr(Root::input().getMouseWorldPos()) + Cell{i, j};
             if (Root::zoo()->world->getTileObjectAtPosition(pos)) toolManager.ghost->canPlace = false;
             if (elevationGrid->isTileWater(pos)) toolManager.ghost->canPlace = false;
             if (!Root::zoo()->world->isPositionInMap(pos)) {

@@ -45,7 +45,7 @@ void ElevationTool::onInput(InputEvent* event) {
 
 void ElevationTool::update() {
     if (dragging && Root::game().getTicks() % 5 == 0) {
-        Root::zoo()->world->elevationGrid->setElevationInCircle(InputManager::getMouseWorldPos(), 1.0f, currentElevation);
+        Root::zoo()->world->elevationGrid->setElevationInCircle(Root::input().getMouseWorldPos(), 1.0f, currentElevation);
     }
 }
 

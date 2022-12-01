@@ -32,7 +32,7 @@ void ToolGhost::cleanup() {
 
 void ToolGhost::render() {
     if (follow) {
-        pos = InputManager::getMouseWorldPos();
+        pos = Root::input().getMouseWorldPos();
     }
     if (snap) {
         pos = flr(pos);

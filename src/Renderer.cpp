@@ -19,7 +19,7 @@ void Renderer::init() {
 
 void Renderer::beginDrawing() {
     BeginDrawing();
-    ClearBackground(RAYWHITE); //TODO: Define our own colours
+    ClearBackground(BLUE); //TODO: Define our own colours
 
     renderedBlits = false;
 }

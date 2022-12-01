@@ -4,7 +4,10 @@
 
 const Rectangle dimensions = {0, 70, 200, 200};
 
-ProfilerPanel::ProfilerPanel() : Window(dimensions) {}
+ProfilerPanel::ProfilerPanel() : Window(dimensions) {
+    title = "Profiler";
+    draggable = true;
+}
 
 float drawTimer(Rectangle r, Timer* timer, int depth, float curY) {
     Rectangle textRect = {r.x + depth * 10, curY, r.width - depth * 4, 12};
@@ -18,10 +21,10 @@ float drawTimer(Rectangle r, Timer* timer, int depth, float curY) {
     return curY;
 }
 
-void ProfilerPanel::doWindowContents(Rectangle r) {
-    Window::doWindowContents(r);
+void ProfilerPanel::doWindowContents() {
+    Window::doWindowContents();
 
     float curY = 0;
-    curY = drawTimer(r, Profiler::getRecord("tick"), 0, curY);
-    curY = drawTimer(r, Profiler::getRecord("render"), 0, curY);
+    curY = drawTimer(getRect(), Profiler::getRecord("tick"), 0, curY);
+    curY = drawTimer(getRect(), Profiler::getRecord("render"), 0, curY);
 }

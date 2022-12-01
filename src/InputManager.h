@@ -32,23 +32,16 @@ struct InputEvent {
 
 class InputManager {
 public:
-    InputManager(const InputManager &) = delete;
-
-    static InputManager &get() {
-        static InputManager instance;
-        return instance;
-    }
-
-    static void processInput();
-    static void fireInputEvent(InputEvent event);
-
-    static Vector2 getMousePos();
-    static Vector2 getMouseWorldPos();
-    static InputEvent* getCurrentEvent();
-
-private:
     InputManager();
     ~InputManager();
 
+    void processInput();
+    void fireInputEvent(InputEvent event);
+
+    Vector2 getMousePos();
+    Vector2 getMouseWorldPos();
+    InputEvent* getCurrentEvent();
+
+private:
     InputEvent currentEvent;
 };

@@ -8,10 +8,10 @@ class Toolbar : public Window {
 public:
     explicit Toolbar(ToolManager *toolManager);
 
-    void doWindowContents(Rectangle rect) override;
+    void doWindowContents() override;
 
 private:
-    ToolManager* m_toolManager{};
+    ToolManager* toolManager{};
 
     std::string debugPanelId;
     std::string profilerPanelId;

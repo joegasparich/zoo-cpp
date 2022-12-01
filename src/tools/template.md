@@ -83,7 +83,7 @@ ToolType NewTool::getType () {
 ```cpp
     ...
     if (GUI::buttonText({curX, 10, BUTTON_WIDTH, 25}, "New"))
-        m_toolManager->setTool(ToolType::New);
+        toolManager->setTool(ToolType::New);
     curX += BUTTON_WIDTH + GAP_SMALL;
     ...
 ```

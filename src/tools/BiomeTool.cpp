@@ -23,13 +23,13 @@ void BiomeTool::set() {
 void BiomeTool::update() {
     if (dragging && Root::game().getTicks() % 5 == 0) {
         // Save backups for undo
-        for (auto chunk : Root::zoo()->world->biomeGrid->getChunksInRadius(InputManager::getMouseWorldPos() * BIOME_SCALE, DEFAULT_RADIUS * BIOME_SCALE)) {
+        for (auto chunk : Root::zoo()->world->biomeGrid->getChunksInRadius(Root::input().getMouseWorldPos() * BIOME_SCALE, DEFAULT_RADIUS * BIOME_SCALE)) {
             auto cellKey = Cell{int(chunk->x), int(chunk->y)}.toString();
             if (!oldChunkData->contains(cellKey))
                 oldChunkData->insert({cellKey, chunk->save()});
         }
 
-        Root::zoo()->world->biomeGrid->setBiomeInRadius(InputManager::getMouseWorldPos() * BIOME_SCALE, DEFAULT_RADIUS * BIOME_SCALE, currentBiome);
+        Root::zoo()->world->biomeGrid->setBiomeInRadius(Root::input().getMouseWorldPos() * BIOME_SCALE, DEFAULT_RADIUS * BIOME_SCALE, currentBiome);
     }
 }
 

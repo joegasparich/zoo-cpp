@@ -16,6 +16,9 @@ Zoo* Root::zoo() {
     }
 }
 
+InputManager& Root::input() {
+    return game().input;
+}
 Renderer& Root::renderer() {
     return game().renderer;
 }

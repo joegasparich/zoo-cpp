@@ -71,8 +71,8 @@ void PathTool::update() {
         // Dragging
         toolManager.ghost->visible = false;
 
-        auto xDif = flr(InputManager::getMouseWorldPos()).x - dragTile.x;
-        auto yDif = flr(InputManager::getMouseWorldPos()).y - dragTile.y;
+        auto xDif = flr(Root::input().getMouseWorldPos()).x - dragTile.x;
+        auto yDif = flr(Root::input().getMouseWorldPos()).y - dragTile.y;
         auto horizontal = abs(xDif) > abs(yDif);
         auto length = (horizontal ? abs(xDif) : abs(yDif)) + 1;
 
@@ -94,9 +94,9 @@ void PathTool::update() {
             updateGhostSprite(*ghost);
 
             if (horizontal) {
-                i += sign(flr(InputManager::getMouseWorldPos()).x - i);
+                i += sign(flr(Root::input().getMouseWorldPos()).x - i);
             } else {
-                j += sign(flr(InputManager::getMouseWorldPos()).y - j);
+                j += sign(flr(Root::input().getMouseWorldPos()).y - j);
             }
         }
 

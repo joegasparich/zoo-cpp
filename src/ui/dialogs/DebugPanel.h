@@ -7,5 +7,5 @@ class DebugPanel : public Window {
 public:
     explicit DebugPanel();
 
-    void doWindowContents(Rectangle rect) override;
+    void doWindowContents() override;
 };

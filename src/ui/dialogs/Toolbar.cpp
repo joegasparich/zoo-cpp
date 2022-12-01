@@ -9,41 +9,41 @@
 const Rectangle dimensions = {0, 0, SCREEN_WIDTH, 45};
 const float BUTTON_WIDTH = 70;
 
-Toolbar::Toolbar(ToolManager* toolManager) : Window(dimensions), m_toolManager{toolManager} {}
+Toolbar::Toolbar(ToolManager* toolManager) : Window(dimensions), toolManager{toolManager} {}
 
-void Toolbar::doWindowContents(Rectangle rect) {
-    Window::doWindowContents(rect);
+void Toolbar::doWindowContents() {
+    Window::doWindowContents();
 
     float curX = GAP_SMALL;
 
     GUI::TextAlign = AlignMode::Centre;
 
     if (GUI::buttonText({curX, 10, BUTTON_WIDTH, 25}, "Biome"))
-        m_toolManager->setTool(ToolType::Biome);
+        toolManager->setTool(ToolType::Biome);
     curX += BUTTON_WIDTH + GAP_SMALL;
 
     if (GUI::buttonText({curX, 10, BUTTON_WIDTH, 25}, "Elevation"))
-        m_toolManager->setTool(ToolType::Elevation);
+        toolManager->setTool(ToolType::Elevation);
     curX += BUTTON_WIDTH + GAP_SMALL;
 
     if (GUI::buttonText({curX, 10, BUTTON_WIDTH, 25}, "Wall"))
-        m_toolManager->setTool(ToolType::Wall);
+        toolManager->setTool(ToolType::Wall);
     curX += BUTTON_WIDTH + GAP_SMALL;
 
     if (GUI::buttonText({curX, 10, BUTTON_WIDTH, 25}, "Door"))
-        m_toolManager->setTool(ToolType::Door);
+        toolManager->setTool(ToolType::Door);
     curX += BUTTON_WIDTH + GAP_SMALL;
 
     if (GUI::buttonText({curX, 10, BUTTON_WIDTH, 25}, "Path"))
-        m_toolManager->setTool(ToolType::Path);
+        toolManager->setTool(ToolType::Path);
     curX += BUTTON_WIDTH + GAP_SMALL;
 
     if (GUI::buttonText({curX, 10, BUTTON_WIDTH, 25}, "Object"))
-        m_toolManager->setTool(ToolType::TileObject);
+        toolManager->setTool(ToolType::TileObject);
     curX += BUTTON_WIDTH + GAP_SMALL;
 
     if (GUI::buttonText({curX, 10, BUTTON_WIDTH, 25}, "Delete"))
-        m_toolManager->setTool(ToolType::Delete);
+        toolManager->setTool(ToolType::Delete);
     curX += BUTTON_WIDTH + GAP_SMALL;
 
     if (GUI::buttonText({curX, 10, BUTTON_WIDTH, 25}, "New"))

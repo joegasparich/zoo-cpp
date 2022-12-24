@@ -11,7 +11,9 @@ const float BUTTON_SIZE = 30;
 
 WallTool::WallTool(ToolManager &toolManager) :
     Tool(toolManager),
-    allWalls{Registry::getAllWalls()} {}
+    currentWall(nullptr),
+    allWalls{Registry::getAllWalls()},
+    ghosts{} {}
 WallTool::~WallTool() = default;
 
 void WallTool::set() {

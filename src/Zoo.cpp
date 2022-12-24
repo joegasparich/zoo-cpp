@@ -1,14 +1,7 @@
 #include "Zoo.h"
 #include "Root.h"
-#include "constants/world.h"
 #include "UIManager.h"
 #include "Profiler.h"
-#include "Debug.h"
-
-#define MIN_ZOOM 0.5f
-#define MAX_ZOOM 10.0f
-#define ZOOM_RATE 0.005f
-#define CAMERA_SPEED 2
 
 Zoo::Zoo() :
     entities{},
@@ -34,9 +27,6 @@ void Zoo::setup() {
     tools->setup();
 
     auto &camera = Root::renderer().camera;
-    dragStart = GetMousePosition();
-    dragCameraOrigin = camera.target;
-    camera.offset = {SCREEN_WIDTH/2, SCREEN_HEIGHT/2};
 }
 
 void Zoo::preUpdate() {
@@ -55,38 +45,6 @@ void Zoo::update() {
     for (auto& pair: entities) {
         pair.second->update();
     }
-
-    // TODO: Refactor this out somewhere and use input manager
-    // Camera movement
-    auto &camera = Root::renderer().camera;
-
-    // TODO: Why is there a lag spike when you first start moving the camera
-    float inputHorizontal = float(IsKeyDown(KEY_RIGHT)) - float(IsKeyDown(KEY_LEFT));
-    float inputVertical = float(IsKeyDown(KEY_DOWN)) - float(IsKeyDown(KEY_UP));
-
-    camera.target.x += inputHorizontal * CAMERA_SPEED / camera.zoom;
-    camera.target.y += inputVertical * CAMERA_SPEED / camera.zoom;
-
-    if (IsMouseButtonPressed(MOUSE_BUTTON_MIDDLE)) {
-        dragStart = GetMousePosition();
-        dragCameraOrigin = camera.target;
-    }
-    if (IsMouseButtonDown(MOUSE_BUTTON_MIDDLE)) {
-        camera.target = dragCameraOrigin + (dragStart - GetMousePosition()) / (camera.zoom * WORLD_SCALE);
-    }
-
-    // Camera zoom
-    float zoomDelta = GetMouseWheelMove() / 10.0f;
-
-    if (IsKeyDown(KEY_COMMA)) zoomDelta += ZOOM_RATE;
-    if (IsKeyDown(KEY_PERIOD)) zoomDelta -= ZOOM_RATE;
-
-    // TODO: Zoom towards mouse
-
-    // Do zoom
-    auto normalisedZoomLog = normalise(log(camera.zoom), log(MIN_ZOOM), log(MAX_ZOOM));
-    camera.zoom = exp(lerp(log(MIN_ZOOM), log(MAX_ZOOM), normalisedZoomLog + zoomDelta));
-    camera.zoom = Clamp(camera.zoom, MIN_ZOOM, MAX_ZOOM);
 }
 void Zoo::postUpdate() {
     world->postUpdate();

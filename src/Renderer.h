@@ -25,9 +25,9 @@ public:
     ~Renderer();
 
     void init();
+    void update();
     void beginDrawing();
     void endDrawing();
-    void sortAndDrawBlits();
     float getDepth(float yPos);
     void blit(BlitOptions opts);
 
@@ -38,11 +38,12 @@ public:
 
     void resetCamera();
 
-    Camera2D camera;
+    Camera3D camera;
 
 private:
-    void doBlit(BlitOptions opts);
+    Shader discardAlphaFragShader;
 
-    std::vector<BlitOptions> blits;
-    bool renderedBlits = false;
+    float zoom = 1;
+    Vector2 dragStart = {};
+    Vector2 dragCameraOrigin = {};
 };

@@ -6,6 +6,7 @@
 #include "util/color.h"
 #include "constants/world.h"
 #include "Debug.h"
+#include "constants/depth.h"
 
 #define SLOPE_COLOUR_STRENGTH 0.3f
 
@@ -30,7 +31,7 @@ BiomeChunk::BiomeChunk(unsigned int x, unsigned int y, unsigned int cols, unsign
     cols{cols},
     rows{rows},
     grid{},
-    triangles{} {
+    chunkMesh{0} {
     for (int i = 0; i < cols; i++) {
         grid.emplace_back();
         for (int j = 0; j < rows; j++) {
@@ -58,24 +59,34 @@ BiomeChunk::BiomeChunk(std::vector<std::vector<std::vector<Biome>>> gridData, un
     }
 }
 
+BiomeChunk::~BiomeChunk () {
+    if (isSetup) {
+        UnloadMesh(chunkMesh);
+    }
+}
+
 void BiomeChunk::setup() {
-    generateMesh();
+    chunkMesh.triangleCount = cols * rows * 4;
+    chunkMesh.vertexCount = chunkMesh.triangleCount * 3;
+    chunkMesh.vertices = (float*) MemAlloc(chunkMesh.vertexCount * 3 * sizeof(float));
+    chunkMesh.colors = (unsigned char*) MemAlloc(chunkMesh.vertexCount * 4 * sizeof(unsigned char));
+    UploadMesh(&chunkMesh, true);
+
+    isSetup = true;
+
+    regenerateMesh();
 }
 
 void BiomeChunk::postUpdate() {
     if (shouldRegenerate) {
         // TODO: Investigate drawing one chunk per frame or something
-        generateMesh();
+        regenerateMesh();
         shouldRegenerate = false;
     }
 }
 
-void BiomeChunk::generateMesh() {
-    // Maybe use GenMeshCustom?
-    // - Can't use GenMeshCustom unless I change to 3D camera
-    // Test performance on this
-
-    triangles.clear();
+void BiomeChunk::regenerateMesh() {
+    int vertexIndex = 0;
 
     for (int i=0; i < cols; ++i) {
         for (int j=0; j < rows; ++j) {
@@ -84,36 +95,38 @@ void BiomeChunk::generateMesh() {
                 // Apply biome color
                 auto color = col2vec(getBiomeInfo(cell.quadrants[q]).color);
                 color = rgb2hsv(color);
-                auto slopeColor = BiomeGrid::getQuadrantSlopeColour({float(i + x * CHUNK_SIZE), float(j + y * CHUNK_SIZE)}, (Side)q);
+                auto slopeColor = BiomeGrid::getQuadrantSlopeColour({float(i + x * CHUNK_SIZE), float(j + y * CHUNK_SIZE)}, Side(q));
                 color = hsv2rgb({color.x, color.y, clamp(color.z + slopeColor * SLOPE_COLOUR_STRENGTH, 0.0f, 1.0f)});
 
-                // generate triangle
-                BiomeTriangle triangle{vec2Col(color)};
-                int k = 0;
-                for (auto vertex : getQuadrantVertices({float(i), float(j)}, (Side)q)) {
-                    // Apply elevation
-                    auto elevation = Root::zoo()->world->elevationGrid->getElevationAtPos((vertex + Vector2{float(x * CHUNK_SIZE), float(y * CHUNK_SIZE)}) / 2.0f);
-                    // push vertex
-                    triangle.vertices[k] = {vertex.x, vertex.y - (elevation * 2.0f)},
-                    k++;
-                }
+                auto quadrantVertices = getQuadrantVertices({float(i), float(j)}, Side(q));
+                for (int v = 0; v < 3; v++) {
+                    auto elevation = Root::zoo()->world->elevationGrid->getElevationAtPos((quadrantVertices[v] + Vector2{float(x * CHUNK_SIZE), float(y * CHUNK_SIZE)}) / 2.0f);
 
-                triangles.push_back(triangle);
+                    chunkMesh.vertices[vertexIndex * 3] = quadrantVertices[v].x;
+                    chunkMesh.vertices[vertexIndex * 3 + 1] = quadrantVertices[v].y - (elevation * 2.0f);
+                    chunkMesh.vertices[vertexIndex * 3 + 2] = 0;
+
+                    chunkMesh.colors[vertexIndex * 4] = color.x * 255;
+                    chunkMesh.colors[vertexIndex * 4 + 1] = color.y * 255;
+                    chunkMesh.colors[vertexIndex * 4 + 2] = color.z * 255;
+                    chunkMesh.colors[vertexIndex * 4 + 3] = 255;
+
+                    vertexIndex++;
+                }
             }
         }
     }
+
+    UpdateMeshBuffer(chunkMesh, 0, chunkMesh.vertices, chunkMesh.vertexCount * 3 * sizeof(float), 0);
+    UpdateMeshBuffer(chunkMesh, 3, chunkMesh.colors, chunkMesh.vertexCount * 4 * sizeof(unsigned char), 0);
 };
 
 void BiomeChunk::render() {
     // Cull off-screen chunks
     if (!Root::renderer().isRectangleOnScreen({x * CHUNK_SIZE / BIOME_SCALE, y * CHUNK_SIZE / BIOME_SCALE, rows / BIOME_SCALE, cols / BIOME_SCALE})) return;
 
-    for(auto triangle : triangles) {
-        auto scale = WORLD_SCALE / BIOME_SCALE;
-        auto [a,b,c] = triangle.vertices;
-        auto pos = Vector2{float(x * CHUNK_SIZE), float(y * CHUNK_SIZE)} * scale;
-        DrawTriangle(pos + a * scale, pos + b * scale, pos + c * scale, triangle.color);
-    }
+    Material matDefault = LoadMaterialDefault();
+    DrawMesh(chunkMesh, matDefault, MatrixTranslate(float(x * CHUNK_SIZE), float(y * CHUNK_SIZE), DEPTH::GROUND) * MatrixScale(WORLD_SCALE / BIOME_SCALE, WORLD_SCALE / BIOME_SCALE, 1));
 }
 
 void BiomeChunk::setBiomeInRadius(Vector2 pos, float radius, Biome biome) {
@@ -142,7 +155,7 @@ void BiomeChunk::setBiomeInRadius(Vector2 pos, float radius, Biome biome) {
     }
 
     if (changed) {
-        generateMesh();
+        regenerateMesh();
     }
 }
 
@@ -198,14 +211,14 @@ void BiomeGrid::setup() {
     for (unsigned int i = 0; i < chunkCols; i++) {
         chunkGrid.emplace_back();
         for (unsigned int j = 0; j < chunkRows; j++) {
-            chunkGrid.at(i).push_back(BiomeChunk{
+            chunkGrid.at(i).emplace_back(std::make_unique<BiomeChunk>(
                 i,
                 j,
                 i == chunkCols - 1 && cols % CHUNK_SIZE != 0 ? cols & CHUNK_SIZE : CHUNK_SIZE,
-                j == chunkRows - 1 && rows % CHUNK_SIZE != 0 ? rows & CHUNK_SIZE : CHUNK_SIZE,
-            });
+                j == chunkRows - 1 && rows % CHUNK_SIZE != 0 ? rows & CHUNK_SIZE : CHUNK_SIZE
+            ));
 
-            chunkGrid.at(i).at(j).setup();
+            chunkGrid.at(i).at(j)->setup();
         }
     }
 
@@ -232,7 +245,7 @@ void BiomeGrid::cleanup() {
 void BiomeGrid::postUpdate() {
     for (auto & i : chunkGrid) {
         for (auto & j : i) {
-            j.postUpdate();
+            j->postUpdate();
         }
     }
 }
@@ -240,7 +253,7 @@ void BiomeGrid::postUpdate() {
 void BiomeGrid::render() {
     for (auto & i : chunkGrid) {
         for (auto & j : i) {
-            j.render();
+            j->render();
         }
     }
 }
@@ -286,7 +299,7 @@ void BiomeGrid::regenerateAllChunks() {
     assert(isSetup);
     for (auto & i : chunkGrid) {
         for (auto & j : i) {
-            j.shouldRegenerate = true;
+            j->shouldRegenerate = true;
         }
     }
 }
@@ -303,7 +316,7 @@ std::vector<BiomeChunk*> BiomeGrid::getChunksInRadius(Vector2 pos, float radius)
         for (int j = -1; j <= 1; j++) {
             if (isChunkInGrid(floorX + i, floorY + j)
                 && circleIntersectsRect({float((floorX + i) * CHUNK_SIZE), float((floorY + j) * CHUNK_SIZE)}, {CHUNK_SIZE, CHUNK_SIZE}, pos, radius)) {
-                chunks.push_back(&chunkGrid.at(floorX + i).at(floorY + j));
+                chunks.push_back(chunkGrid.at(floorX + i).at(floorY + j).get());
             }
         }
     }
@@ -314,7 +327,7 @@ std::vector<BiomeChunk*> BiomeGrid::getChunksInRadius(Vector2 pos, float radius)
 BiomeChunk* BiomeGrid::getChunk (int col, int row) const {
     if (!isChunkInGrid(col, row)) return nullptr;
 
-    return const_cast<BiomeChunk*>(&chunkGrid.at(col).at(row));
+    return chunkGrid.at(col).at(row).get();
 }
 
 bool BiomeGrid::isChunkInGrid(int col, int row) const {
@@ -340,10 +353,10 @@ void BiomeGrid::serialise() {
     std::function<json()> get = [&](){
         // 5D Chess
         std::vector<std::vector<std::vector<std::vector<std::vector<Biome>>>>> gridData;
-        std::transform(chunkGrid.begin(), chunkGrid.end(), std::back_inserter(gridData), [](std::vector<BiomeChunk>& row) {
+        std::transform(chunkGrid.begin(), chunkGrid.end(), std::back_inserter(gridData), [](std::vector<std::unique_ptr<BiomeChunk>>& row) {
             std::vector<std::vector<std::vector<std::vector<Biome>>>> rowData;
-            std::transform(row.begin(), row.end(), std::back_inserter(rowData), [](BiomeChunk& chunk) {
-                return chunk.save();
+            std::transform(row.begin(), row.end(), std::back_inserter(rowData), [](std::unique_ptr<BiomeChunk>& chunk) {
+                return chunk->save();
             });
             return rowData;
         });
@@ -358,10 +371,10 @@ void BiomeGrid::serialise() {
             unsigned int j = 0;
             chunkGrid.emplace_back();
             for (auto& chunkData : row) {
-                chunkGrid.at(i).push_back(BiomeChunk{
+                chunkGrid.at(i).emplace_back(std::make_unique<BiomeChunk>(
                     chunkData, i, j
-                });
-                chunkGrid.at(i).at(j).setup();
+                ));
+                chunkGrid.at(i).at(j)->setup();
                 j++;
             }
             i++;

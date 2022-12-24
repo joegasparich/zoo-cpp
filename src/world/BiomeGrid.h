@@ -51,7 +51,7 @@ public:
     void setup();
 
     void postUpdate();
-    void generateMesh();
+    void regenerateMesh();
     void render();
     void setBiomeInRadius(Vector2 pos, float radius, Biome biome);
     bool isPositionInChunk(Vector2 pos);
@@ -59,14 +59,19 @@ public:
     std::vector<std::vector<std::vector<Biome>>> save();
     void load(std::vector<std::vector<std::vector<Biome>>> gridData);
 
-    unsigned int x;
-    unsigned int y;
-    unsigned int rows;
-    unsigned int cols;
-    bool shouldRegenerate;
+    virtual ~BiomeChunk ();
+
+    bool shouldRegenerate = false;
+    unsigned int x = 0;
+    unsigned int y = 0;
+    unsigned int rows = 0;
+    unsigned int cols = 0;
+
+private:
+    bool isSetup = false;
 
     std::vector<std::vector<BiomeCell>> grid;
-    std::vector<BiomeTriangle> triangles;
+    Mesh chunkMesh = {0};
 };
 
 class BiomeGrid : public ISerialisable {
@@ -95,7 +100,7 @@ private:
     unsigned int cols;
     bool isSetup = false;
 
-    std::vector<std::vector<BiomeChunk>> chunkGrid;
+    std::vector<std::vector<std::unique_ptr<BiomeChunk>>> chunkGrid;
 
     std::string elevationListenerHandle;
 };

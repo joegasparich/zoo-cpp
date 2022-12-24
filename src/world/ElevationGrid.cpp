@@ -1,9 +1,11 @@
-#include <entities/components/TileObjectComponent.h>
 #include "ElevationGrid.h"
-#include "constants/world.h"
 #include "Debug.h"
 #include "ZooScene.h"
 #include "Messenger.h"
+#include "constants/depth.h"
+#include "constants/world.h"
+#include "entities/components/TileObjectComponent.h"
+#include "util/draw.h"
 
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "UnreachableCode"
@@ -36,7 +38,7 @@ void ElevationGrid::cleanup() {
 
 void ElevationGrid::render() {
     for(auto poly : polygons) {
-        DrawTriangleFan(&poly[0], poly.size(), WATER_COLOR);
+        DrawTriangleFan3D(&poly[0], poly.size(), WATER_COLOR, DEPTH::WATER);
     }
 }
 

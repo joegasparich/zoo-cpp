@@ -46,9 +46,6 @@ private:
     std::vector<std::unique_ptr<Entity>> entitiesToAdd;
     std::vector<unsigned int> entitiesToDelete;
 
-    Vector2 dragStart;
-    Vector2 dragCameraOrigin;
-
     // TODO: This needs to be saved and loaded
     unsigned int nextEntityId = 0;
 };

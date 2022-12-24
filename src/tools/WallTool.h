@@ -30,7 +30,7 @@ private:
     std::vector<WallData*> allWalls;
 
     std::vector<std::unique_ptr<ToolGhost>> ghosts;
-    bool isDragging;
-    Cell dragTile;
-    Side dragQuadrant;
+    bool isDragging = false;
+    Cell dragTile = {0, 0};
+    Side dragQuadrant = Side::North;
 };

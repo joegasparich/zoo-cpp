@@ -1,6 +1,11 @@
 #pragma once
 #include "raylib.h"
 
+// Vector3 to Vector2 conversions
+inline Vector2 xy(Vector3 v) { return {v.x, v.y}; }
+inline Vector2 xz(Vector3 v) { return {v.x, v.z}; }
+inline Vector2 yz(Vector3 v) { return {v.y, v.z}; }
+
 //Addition overloads: componentwise addition
 inline Vector2 operator+(const Vector2& a, const Vector2& b) {
     return Vector2Add(a,b);

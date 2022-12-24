@@ -3,6 +3,7 @@
 #include "ZooScene.h"
 #include "constants/world.h"
 #include "constants/depth.h"
+#include "util/draw.h"
 
 #define CIRCLE_RESOLUTION 16
 
@@ -66,8 +67,8 @@ void ToolGhost::renderCircle() {
     }
     vertices[CIRCLE_RESOLUTION + 1] = vertices[1];
 
-    DrawLineStrip(&vertices[1], vertices.size() - 1, ghostColour);
-    DrawTriangleFan(&vertices[0], vertices.size(), ColorAlpha(ghostColour, 0.5f));
+    DrawLineStrip3D(&vertices[1], vertices.size() - 1, ghostColour, DEPTH::UI);
+    DrawTriangleFan3D(&vertices[0], vertices.size(), ColorAlpha(ghostColour, 0.5f), DEPTH::UI);
 }
 
 void ToolGhost::renderSquare() {
@@ -80,8 +81,8 @@ void ToolGhost::renderSquare() {
     vertices[4] = (pos + Vector2{scale.x,   0})         * WORLD_SCALE;
     vertices[5] = vertices[1]; // close loop
 
-    DrawLineStrip(&vertices[1], vertices.size() - 1, ghostColour);
-    DrawTriangleFan(&vertices[0], vertices.size(), ColorAlpha(ghostColour, 0.5f));
+    DrawLineStrip3D(&vertices[1], vertices.size() - 1, ghostColour, DEPTH::UI);
+    DrawTriangleFan3D(&vertices[0], vertices.size(), ColorAlpha(ghostColour, 0.5f), DEPTH::UI);
 }
 
 void ToolGhost::renderSprite() {

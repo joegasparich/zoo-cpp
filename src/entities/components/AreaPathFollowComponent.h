@@ -27,6 +27,6 @@ private:
     bool hasDeferredTarget = true;
     Vector2 deferredTargetPos;
 
-    bool enteringDoor;
+    bool enteringDoor = false;
     Vector2 enterDoorPos;
 };

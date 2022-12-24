@@ -54,6 +54,7 @@ void Game::doLoop() {
 
             Profiler::startTimer("update");
             sceneManager.getCurrentScene()->update();
+            renderer.update();
             Profiler::stopTimer("update");
 
             Profiler::startTimer("postUpdate");
@@ -81,22 +82,16 @@ void Game::render(double step) {
     renderer.beginDrawing();
     {
         Profiler::begin("render");
-        BeginMode2D(renderer.camera);
+        BeginMode3D(renderer.camera);
         {
             Profiler::startTimer("scene");
             sceneManager.getCurrentScene()->render(step);
             Profiler::stopTimer("scene");
-            Profiler::startTimer("blits");
-            renderer.sortAndDrawBlits();
-            Profiler::stopTimer("blits");
             Profiler::startTimer("sceneLate");
             sceneManager.getCurrentScene()->renderLate(step);
             Profiler::stopTimer("sceneLate");
-            Profiler::startTimer("blitsLate");
-            renderer.sortAndDrawBlits();
-            Profiler::stopTimer("blitsLate");
         }
-        EndMode2D();
+        EndMode3D();
 
         Profiler::startTimer("ui");
         ui.render();

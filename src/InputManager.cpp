@@ -60,7 +60,7 @@ Vector2 InputManager::getMousePos () {
 }
 
 Vector2 InputManager::getMouseWorldPos () {
-    return Root::renderer().screenToWorldPos(GetMousePosition());
+    return Root::renderer().screenToWorldPos(getMousePos());
 }
 
 InputEvent *InputManager::getCurrentEvent() {

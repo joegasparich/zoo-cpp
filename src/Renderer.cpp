@@ -10,17 +10,19 @@
 #define ZOOM_RATE 0.005f
 #define CAMERA_SPEED 2
 
-Renderer::Renderer() : camera() {};
-Renderer::~Renderer() = default;
-
-void Renderer::init() {
+Renderer::Renderer() :
+    camera{},
+    zoom{1},
+    dragStart{},
+    dragCameraOrigin{},
+    discardAlphaFragShader{}
+{
     TraceLog(LOG_TRACE, "Initialising Renderer");
     InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, WINDOW_TITLE);
     SetTargetFPS(60);
 
     discardAlphaFragShader = LoadShader(NULL, ASSETS_PATH"/shaders/discard_alpha.fs");
 
-    camera = {};
     camera.projection = CAMERA_ORTHOGRAPHIC;
     camera.fovy = SCREEN_HEIGHT / zoom;
     camera.position = {0.0f, 0.0f, -10.0f};
@@ -30,7 +32,8 @@ void Renderer::init() {
     dragCameraOrigin = {camera.target.x, camera.target.y};
 
     rlEnableDepthTest();
-}
+};
+Renderer::~Renderer() = default;
 
 void Renderer::update () {
 

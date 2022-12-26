@@ -178,12 +178,13 @@ void WallTool::updateGhostSprite(ToolGhost& ghost, Cell tilePos, Side quadrant) 
     if (elevationGrid->getElevationAtPos(v2) < 0) ghost.canPlace = false;
     auto tiles = world->wallGrid->getAdjacentTiles(*wall);
 
-    Entity* blockingObj;
+
+    Entity* blockingObj = nullptr;
     for (auto tile : tiles) {
         auto obj = world->getTileObjectAtPosition(tile);
-        if (!blockingObj && obj) blockingObj = obj;
-
         if (obj && obj == blockingObj) ghost.canPlace = false;
+
+        if (!blockingObj && obj) blockingObj = obj;
     }
 
     auto [spriteIndex, elevation] = WallGrid::getSpriteInfo(*wall);

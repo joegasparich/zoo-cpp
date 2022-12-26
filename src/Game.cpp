@@ -24,7 +24,6 @@ void Game::run() {
 }
 
 void Game::init() {
-    renderer.init();
     ui.init();
 
     TraceLog(LOG_TRACE, "Loading Assets");

@@ -29,11 +29,6 @@ inline BiomeInfo getBiomeInfo(Biome biome) {
     }
 }
 
-struct BiomeTriangle {
-    Color color;
-    std::array<Vector2, 3> vertices;
-};
-
 struct BiomeCell {
     BiomeCell(std::array<Biome, 4> q) : quadrants{q} {};
     std::array<Biome, 4> quadrants;
